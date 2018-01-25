@@ -1,0 +1,15 @@
+package: github.com/mozillazg/request
+import:
+- package: github.com/bitly/go-simplejson
+  version: aabad6e819789e569bd6aabf444c935aa9ba1e44
+- package: github.com/bmizerany/assert
+  version: e17e99893cb6509f428e1728281c2ad60a6b31e3
+- package: github.com/kr/pretty
+  version: add1dbc86daf0f983cd4a48ceb39deb95c729b67
+- package: github.com/kr/text
+  version: 7cafcd837844e784b526369c9bce262804aebc60
+- package: golang.org/x/net
+  version: c4c3ea71919de159c9e246d7be66deb7f0a39a58
+  subpackages:
+  - proxy
+  - publicsuffix
