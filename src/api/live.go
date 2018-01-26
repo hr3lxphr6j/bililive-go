@@ -5,7 +5,7 @@ import (
 )
 
 type Info struct {
-	url                *url.URL
+	Url                *url.URL
 	HostName, RoomName string
 	Status             bool
 }
@@ -32,7 +32,7 @@ func NewLive(url *url.URL) Live {
 	switch url.Host {
 	case "www.panda.tv":
 		return &PandaLive{url}
-	case "api.bilibili.com":
+	case "live.bilibili.com":
 		return &BiliBiliLive{url}
 	case "www.zhanqi.tv":
 		return &ZhanQiLive{url}

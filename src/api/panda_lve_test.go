@@ -14,5 +14,5 @@ func TestPandaLive_GetRoom(t *testing.T) {
 
 func TestBiliBiliLive_GetUrls(t *testing.T) {
 	u, _ := url.Parse(pandaTestUrl)
-	t.Log((&PandaLive{u}).GetRoom())
+	t.Log((&PandaLive{u}).GetUrls())
 }
