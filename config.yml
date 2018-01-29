@@ -1,0 +1,5 @@
+enable_rpc: true
+interval: 30
+port: 8080
+out_put_path: /Users/chigusa/Movies
+live_rooms: ["https://www.panda.tv/10300"]

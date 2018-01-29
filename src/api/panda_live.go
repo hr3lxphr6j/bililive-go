@@ -43,7 +43,7 @@ func (p *PandaLive) GetRoom() (*Info, error) {
 	}
 
 	info := &Info{
-		url:      p.Url,
+		Url:      p.Url,
 		HostName: gjson.GetBytes(data, "data.hostinfo.name").String(),
 		RoomName: gjson.GetBytes(data, "data.roominfo.name").String(),
 		Status:   gjson.GetBytes(data, "data.videoinfo.status").String() == "2",

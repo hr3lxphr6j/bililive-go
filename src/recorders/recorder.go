@@ -1,13 +1,15 @@
-package recorder
+package recorders
 
 import (
 	"net/url"
 	"os/exec"
+	"time"
 )
 
 type Recorder struct {
 	LiveUrl    *url.URL
 	OutPutFile string
+	StartTime  time.Time
 	cmd        *exec.Cmd
 }
 
@@ -20,6 +22,7 @@ func (r *Recorder) Start() error {
 		"-bsf:a", "aac_adtstoasc",
 		r.OutPutFile,
 	)
+	r.StartTime = time.Now()
 	return cmd.Start()
 }
 

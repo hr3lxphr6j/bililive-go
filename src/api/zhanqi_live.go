@@ -34,7 +34,7 @@ func (z *ZhanQiLive) GetRoom() (*Info, error) {
 		return nil, err
 	}
 	info := &Info{
-		url:      z.Url,
+		Url:      z.Url,
 		HostName: gjson.GetBytes(body, "data.nickname").String(),
 		RoomName: gjson.GetBytes(body, "data.title").String(),
 		Status:   gjson.GetBytes(body, "data.status").String() == "4",

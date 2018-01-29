@@ -29,7 +29,7 @@ func (b *BiliBiliLive) GetRoom() (*Info, error) {
 		return nil, &RoomNotExistsError{b.Url}
 	}
 	info := &Info{
-		url:      b.Url,
+		Url:      b.Url,
 		RoomName: gjson.GetBytes(body, "data.title").String(),
 		Status:   gjson.GetBytes(body, "data.live_status").Int() == 1,
 	}

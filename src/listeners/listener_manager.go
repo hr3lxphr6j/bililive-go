@@ -47,7 +47,7 @@ func (l *ListenerManager) AddListener(ctx context.Context, live api.Live) error 
 	}
 	listener := &Listener{
 		Live:   live,
-		ticker: time.NewTicker(core.GetInterval(ctx)),
+		ticker: time.NewTicker(time.Duration(core.GetInstance(ctx).Config.Interval) * time.Second),
 		ed:     core.GetInstance(ctx).EventDispatcher,
 		stop:   make(chan struct{}),
 		status: false,
