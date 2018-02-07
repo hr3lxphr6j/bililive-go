@@ -1,12 +1,13 @@
 package http
 
 import (
-	"github.com/mozillazg/request"
-	"net/http"
-	"io/ioutil"
 	"bytes"
 	"compress/gzip"
+	"errors"
+	"github.com/mozillazg/request"
 	"io"
+	"io/ioutil"
+	"net/http"
 )
 
 var commonHeader = map[string]string{
@@ -18,6 +19,8 @@ var commonHeader = map[string]string{
 }
 
 func parseResponse(resp *request.Response) ([]byte, error) {
+	defer resp.Body.Close()
+
 	var reader io.Reader
 
 	switch resp.Header.Get("Content-Encoding") {
@@ -39,12 +42,16 @@ func parseResponse(resp *request.Response) ([]byte, error) {
 }
 
 func Get(url string, query map[string]string) ([]byte, error) {
+
 	c := new(http.Client)
 	req := request.NewRequest(c)
 	req.Headers = commonHeader
 	req.Params = query
 
 	if resp, err := req.Get(url); err == nil {
+		if resp.StatusCode != 200 {
+			return nil, errors.New(resp.Status)
+		}
 		return parseResponse(resp)
 	} else {
 		return nil, err

@@ -1,18 +1,18 @@
 package api
 
 import (
-	"testing"
 	"net/url"
+	"testing"
 )
 
-const bilibiliTestUrl = "https://api.bilibili.com/1030"
+const bilibiliTestUrl = "https://api.bilibili.com/161"
 
 func TestBiliBiliLive_GetRoom(t *testing.T) {
 	u, _ := url.Parse(bilibiliTestUrl)
-	t.Log((&BiliBiliLive{u}).GetRoom())
+	t.Log((&BiliBiliLive{Url: u}).GetRoom())
 }
 
 func TestBiliBiliLive_GetUrl(t *testing.T) {
 	u, _ := url.Parse(bilibiliTestUrl)
-	t.Log((&BiliBiliLive{u}).GetUrls())
+	t.Log((&BiliBiliLive{Url: u}).GetUrls())
 }

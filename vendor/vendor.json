@@ -15,6 +15,12 @@
 			"revisionTime": "2017-10-23T23:58:38Z"
 		},
 		{
+			"checksumSHA1": "9ZSqjmvF/JE6Qj/5xOoCAmUgXz8=",
+			"path": "github.com/sirupsen/logrus",
+			"revision": "778f2e774c725116edbc3d039dc0dfc1cc62aae8",
+			"revisionTime": "2018-03-29T22:59:52Z"
+		},
+		{
 			"checksumSHA1": "l5PqW07HU3/c90XkZss+ZWpi0iI=",
 			"path": "github.com/tidwall/gjson",
 			"revision": "87033efcaec6215741137e8ca61952c53ef2685d",
@@ -25,6 +31,12 @@
 			"path": "github.com/tidwall/match",
 			"revision": "1731857f09b1f38450e2c12409748407822dc6be",
 			"revisionTime": "2017-10-02T07:59:45Z"
+		},
+		{
+			"checksumSHA1": "BGm8lKZmvJbf/YOJLeL1rw2WVjA=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "e73bf333ef8920dbb52ad18d4bd38ad9d9bc76d7",
+			"revisionTime": "2018-04-20T16:33:09Z"
 		},
 		{
 			"checksumSHA1": "r9l4r3H6FOLQ0c2JaoXpopFjpnw=",
@@ -39,11 +51,23 @@
 			"revisionTime": "2018-01-12T01:53:59Z"
 		},
 		{
+			"checksumSHA1": "RSCMWnn21rwYF//Yt89AC1f1wXY=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "79b0c6888797020a994db17c8510466c72fe75d9",
+			"revisionTime": "2018-04-18T21:20:05Z"
+		},
+		{
+			"checksumSHA1": "Dfz4tGItokMvHZENCsBmPPB8FGQ=",
+			"path": "golang.org/x/sys/windows",
+			"revision": "79b0c6888797020a994db17c8510466c72fe75d9",
+			"revisionTime": "2018-04-18T21:20:05Z"
+		},
+		{
 			"checksumSHA1": "qOmvuDm+F+2nQQecUZBVkZrTn6Y=",
 			"path": "gopkg.in/yaml.v2",
 			"revision": "d670f9405373e636a5a2765eea47fac0c9bc91a4",
 			"revisionTime": "2018-01-09T11:43:31Z"
 		}
 	],
-	"rootPath": "bililive"
+	"rootPath": "github.com/hr3lxphr6j/bililive-go"
 }

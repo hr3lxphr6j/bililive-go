@@ -5,6 +5,7 @@ import (
 )
 
 type Info struct {
+	Live               Live
 	Url                *url.URL
 	HostName, RoomName string
 	Status             bool
@@ -31,11 +32,11 @@ func IsRoomNotExistsError(err error) bool {
 func NewLive(url *url.URL) Live {
 	switch url.Host {
 	case "www.panda.tv":
-		return &PandaLive{url}
+		return &PandaLive{Url: url}
 	case "live.bilibili.com":
-		return &BiliBiliLive{url}
+		return &BiliBiliLive{Url: url}
 	case "www.zhanqi.tv":
-		return &ZhanQiLive{url}
+		return &ZhanQiLive{Url: url}
 	default:
 		return nil
 	}

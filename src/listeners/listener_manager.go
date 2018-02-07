@@ -1,13 +1,23 @@
 package listeners
 
 import (
-	"bililive/src/api"
-	"sync"
 	"context"
-	"bililive/src"
-	"time"
+	"github.com/hr3lxphr6j/bililive-go/src/api"
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"net/url"
+	"sync"
 )
 
+func NewIListenerManager(ctx context.Context) IListenerManager {
+	lm := &ListenerManager{
+		savers: make(map[api.Live]*Listener),
+		lock:   new(sync.RWMutex),
+	}
+	instance.GetInstance(ctx).ListenerManager = lm
+	return lm
+}
+
+// 监听管理器接口
 type IListenerManager interface {
 	AddListener(ctx context.Context, live api.Live) error
 	RemoveListener(ctx context.Context, live api.Live) error
@@ -16,11 +26,12 @@ type IListenerManager interface {
 
 type ListenerManager struct {
 	savers map[api.Live]*Listener
-	lock   sync.RWMutex
+	lock   *sync.RWMutex
 }
 
+// 验证直播间有效性
 func (l *ListenerManager) verifyLive(live api.Live) bool {
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 3; i++ {
 		_, err := live.GetRoom()
 		if err == nil {
 			return true
@@ -33,27 +44,19 @@ func (l *ListenerManager) verifyLive(live api.Live) bool {
 }
 
 func (l *ListenerManager) AddListener(ctx context.Context, live api.Live) error {
-
-	if !l.verifyLive(live) {
+	if live == nil || !l.verifyLive(live) {
 		return roomNotExistError
 	}
 
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
-	_, ok := l.savers[live]
-	if ok {
+	if _, ok := l.savers[live]; ok {
 		return listenerExistError
 	}
-	listener := &Listener{
-		Live:   live,
-		ticker: time.NewTicker(time.Duration(core.GetInstance(ctx).Config.Interval) * time.Second),
-		ed:     core.GetInstance(ctx).EventDispatcher,
-		stop:   make(chan struct{}),
-		status: false,
-	}
-	l.savers[live] = listener
+	listener := NewListener(ctx, live)
 	listener.Start()
+	l.savers[live] = listener
 	return nil
 }
 
@@ -61,13 +64,13 @@ func (l *ListenerManager) RemoveListener(ctx context.Context, live api.Live) err
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
-	listener, ok := l.savers[live]
-	if !ok {
+	if listener, ok := l.savers[live]; !ok {
 		return listenerNotExistError
+	} else {
+		listener.Close()
+		delete(l.savers, live)
+		return nil
 	}
-	listener.Close()
-	delete(l.savers, live)
-	return nil
 }
 
 func (l *ListenerManager) HasListener(ctx context.Context, live api.Live) bool {
@@ -75,4 +78,32 @@ func (l *ListenerManager) HasListener(ctx context.Context, live api.Live) bool {
 	defer l.lock.RUnlock()
 	_, ok := l.savers[live]
 	return ok
+}
+
+func (l *ListenerManager) Start(ctx context.Context) error {
+	inst := instance.GetInstance(ctx)
+	inst.WaitGroup.Add(1)
+
+	for _, room := range instance.GetInstance(ctx).Config.LiveRooms {
+		u, err := url.Parse(room)
+		if err != nil {
+			instance.GetInstance(ctx).Logger.Error(err)
+		}
+		err = l.AddListener(ctx, api.NewLive(u))
+		if err != nil {
+			instance.GetInstance(ctx).Logger.WithFields(map[string]interface{}{"Url": room}).Error(err)
+		}
+	}
+	return nil
+}
+
+func (l *ListenerManager) Close(ctx context.Context) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	for _, listener := range l.savers {
+		go listener.Close()
+	}
+	inst := instance.GetInstance(ctx)
+	inst.WaitGroup.Done()
 }

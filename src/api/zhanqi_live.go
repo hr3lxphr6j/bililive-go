@@ -1,12 +1,12 @@
 package api
 
 import (
-	"net/url"
-	"bililive/src/lib/http"
-	"fmt"
-	"strings"
-	"github.com/tidwall/gjson"
 	"encoding/base64"
+	"fmt"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
+	"github.com/tidwall/gjson"
+	"net/url"
+	"strings"
 )
 
 const (
@@ -34,6 +34,7 @@ func (z *ZhanQiLive) GetRoom() (*Info, error) {
 		return nil, err
 	}
 	info := &Info{
+		Live:     z,
 		Url:      z.Url,
 		HostName: gjson.GetBytes(body, "data.nickname").String(),
 		RoomName: gjson.GetBytes(body, "data.title").String(),

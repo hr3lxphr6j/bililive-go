@@ -5,5 +5,5 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
-	t.Log(NewConfig("../../config.yml"))
+	t.Log(NewConfigWithFile("../../config.yml"))
 }

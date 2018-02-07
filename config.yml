@@ -1,5 +1,12 @@
-enable_rpc: true
-interval: 30
-port: 8080
-out_put_path: /Users/chigusa/Movies
+rpc:
+  enable: false
+  port: 8080
+  path: /rpc
+  tls:
+    enable: false
+    cert_file: null
+    ket_file: null
+log_level: debug
+interval: 15
+out_put_path: ./
 live_rooms: ["https://www.panda.tv/10300"]
