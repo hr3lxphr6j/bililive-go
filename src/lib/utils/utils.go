@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strconv"
 )
 
@@ -34,4 +35,9 @@ func ParseUnicode(str string) string {
 		}
 	}
 	return buf.String()
+}
+
+func ReplaceIllegalChar(str string) string {
+	reg := regexp.MustCompile(`[\/\\\:\*\?\"\<\>\|]`)
+	return reg.ReplaceAllString(str, "_")
 }

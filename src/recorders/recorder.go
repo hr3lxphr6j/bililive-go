@@ -6,6 +6,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"os/exec"
 	"path/filepath"
 	"time"
@@ -30,8 +31,10 @@ func NewRecorder(ctx context.Context, info *api.Info) (*Recorder, error) {
 		Live: info.Live,
 		OutPutFile: filepath.Join(
 			instance.GetInstance(ctx).Config.OutPutPath,
-			fmt.Sprintf("[%02d-%02d-%02d %02d-%02d-%02d][%s]%s.flv",
-				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), info.HostName, info.RoomName)),
+			fmt.Sprintf("[%02d-%02d-%02d %02d-%02d-%02d][%s][%s].flv",
+				t.Year(), t.Month(), t.Day(), t.Hour(),
+				t.Minute(), t.Second(),
+				utils.ReplaceIllegalChar(info.HostName), utils.ReplaceIllegalChar(info.RoomName))),
 		ed: inst.EventDispatcher.(events.IEventDispatcher),
 	}, nil
 }

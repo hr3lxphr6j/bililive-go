@@ -1,6 +1,6 @@
 # Bililive-go
 
-多平台、多直播间录制工具，目前支持 哔哩哔哩，熊猫TV，战旗TV，斗鱼TV，火猫TV，龙珠直播   
+多平台、多直播间录制工具，目前支持 哔哩哔哩，熊猫TV，战旗TV，斗鱼TV，火猫TV，龙珠直播，一直播，twitch   
 
 ![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/screenshot.png)
 ## 依赖
