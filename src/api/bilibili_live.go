@@ -57,7 +57,7 @@ func (b *BiliBiliLive) GetRoom() (*Info, error) {
 	}
 
 	body2, err := http.Get(biliBiliUserApiUrl, map[string]string{
-		"roomid": strings.Split(b.Url.Path, "/")[1],
+		"roomid": b.realId,
 	}, nil)
 	if err != nil {
 		return nil, err
