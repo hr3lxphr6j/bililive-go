@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const bilibiliTestUrl = "https://api.bilibili.com/161"
+const bilibiliTestUrl = "https://live.bilibili.com/161"
 
 func TestBiliBiliLive_GetRoom(t *testing.T) {
 	u, _ := url.Parse(bilibiliTestUrl)

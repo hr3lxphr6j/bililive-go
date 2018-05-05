@@ -41,11 +41,15 @@ func parseResponse(resp *request.Response) ([]byte, error) {
 	return body, nil
 }
 
-func Get(url string, query map[string]string) ([]byte, error) {
+func Get(url string, query map[string]string, header map[string]string) ([]byte, error) {
 
 	c := new(http.Client)
 	req := request.NewRequest(c)
-	req.Headers = commonHeader
+	if header != nil {
+		req.Headers = header
+	} else {
+		req.Headers = commonHeader
+	}
 	req.Params = query
 
 	if resp, err := req.Get(url); err == nil {
@@ -58,10 +62,14 @@ func Get(url string, query map[string]string) ([]byte, error) {
 	}
 }
 
-func Post(url string, query map[string]string, body []byte) ([]byte, error) {
+func Post(url string, query map[string]string, body []byte, header map[string]string) ([]byte, error) {
 	c := new(http.Client)
 	req := request.NewRequest(c)
-	req.Headers = commonHeader
+	if header != nil {
+		req.Headers = header
+	} else {
+		req.Headers = commonHeader
+	}
 	req.Params = query
 	req.Body = bytes.NewReader(body)
 

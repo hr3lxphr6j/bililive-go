@@ -1,9 +1,18 @@
 # Bililive-go
 
-直播录制工具，目前支持 哔哩哔哩，熊猫TV，战旗TV
+多平台、多直播间录制工具，目前支持 哔哩哔哩，熊猫TV，战旗TV，斗鱼TV，火猫TV，龙珠直播   
 
+![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/screenshot.png)
 ## 依赖
 * ffmpeg
+
+## 下载
+[releases](https://github.com/hr3lxphr6j/bililive-go/releases)
+
+## 例子
+```
+./bililive-go -i "https://www.douyu.com/6655|https://www.panda.tv/10300"
+```
 
 ## 使用
 ```

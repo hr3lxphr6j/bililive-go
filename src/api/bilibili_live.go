@@ -15,29 +15,33 @@ const (
 )
 
 type BiliBiliLive struct {
-	Url             *url.URL
-	shortId, fullId string
+	Url    *url.URL
+	realId string
 }
 
+func (b *BiliBiliLive) parseRealId() error {
+	if body, err := http.Get(biliBiliRoomInitUrl, map[string]string{"id": strings.Split(b.Url.Path, "/")[1]}, nil); err != nil {
+		return err
+	} else {
+		if gjson.GetBytes(body, "code").Int() != 0 {
+			return &RoomNotExistsError{b.Url}
+		} else {
+			b.realId = gjson.GetBytes(body, "data.room_id").String()
+		}
+		return nil
+	}
+}
 func (b *BiliBiliLive) GetRoom() (*Info, error) {
 	// Parse the short id from URL to full id
-	if b.shortId == "" || b.fullId == "" {
-		b.shortId = strings.Split(b.Url.Path, "/")[1]
-		if body, err := http.Get(biliBiliRoomInitUrl, map[string]string{"id": b.shortId}); err != nil {
+	if b.realId == "" {
+		if err := b.parseRealId(); err != nil {
 			return nil, err
-		} else {
-			if gjson.GetBytes(body, "code").Int() != 0 {
-				return nil, &RoomNotExistsError{b.Url}
-			} else {
-				b.fullId = gjson.GetBytes(body, "data.room_id").String()
-			}
 		}
 	}
-
 	body, err := http.Get(biliBiliRoomApiUrl, map[string]string{
-		"room_id": b.fullId,
+		"room_id": b.realId,
 		"from":    "room",
-	})
+	}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +58,7 @@ func (b *BiliBiliLive) GetRoom() (*Info, error) {
 
 	body2, err := http.Get(biliBiliUserApiUrl, map[string]string{
 		"roomid": strings.Split(b.Url.Path, "/")[1],
-	})
+	}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -64,11 +68,16 @@ func (b *BiliBiliLive) GetRoom() (*Info, error) {
 }
 
 func (b *BiliBiliLive) GetUrls() ([]*url.URL, error) {
+	if b.realId == "" {
+		if err := b.parseRealId(); err != nil {
+			return nil, err
+		}
+	}
 	body, err := http.Get(biliBiliLiveApiUrl, map[string]string{
-		"cid":      b.fullId,
+		"cid":      b.realId,
 		"quality":  "0",
 		"platform": "web",
-	})
+	}, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -25,7 +25,7 @@ func (p *PandaLive) requestRoomInfo() ([]byte, error) {
 		"__plat": "pc_web",
 		"_":      strconv.FormatInt(time.Now().Unix(), 10),
 	}
-	body, err := http.Get(pandaApiUrl, query)
+	body, err := http.Get(pandaApiUrl, query, nil)
 	if err != nil {
 		return nil, err
 	}

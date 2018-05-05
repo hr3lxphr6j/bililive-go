@@ -18,7 +18,7 @@ type ZhanQiLive struct {
 }
 
 func (z *ZhanQiLive) requestRoomInfo() ([]byte, error) {
-	body, err := http.Get(fmt.Sprintf(zhanQiApiUrl, strings.Split(z.Url.Path, "/")[1]), nil)
+	body, err := http.Get(fmt.Sprintf(zhanQiApiUrl, strings.Split(z.Url.Path, "/")[1]), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -28,6 +28,7 @@ func (z *ZhanQiLive) requestRoomInfo() ([]byte, error) {
 		return nil, &RoomNotExistsError{z.Url}
 	}
 }
+
 func (z *ZhanQiLive) GetRoom() (*Info, error) {
 	body, err := z.requestRoomInfo()
 	if err != nil {

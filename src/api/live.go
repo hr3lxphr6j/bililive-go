@@ -37,6 +37,12 @@ func NewLive(url *url.URL) Live {
 		return &BiliBiliLive{Url: url}
 	case "www.zhanqi.tv":
 		return &ZhanQiLive{Url: url}
+	case "www.douyu.com":
+		return &DouyuLive{Url: url}
+	case "star.longzhu.com":
+		return &LongzhuLive{Url: url}
+	case "www.huomao.com":
+		return &HuoMaoLive{Url: url}
 	default:
 		return nil
 	}

@@ -17,7 +17,7 @@ import (
 
 const (
 	AppName     = "BiliLive-go"
-	AppVersion  = "0.04"
+	AppVersion  = "0.05"
 	CommandName = "bililive-go"
 )
 
