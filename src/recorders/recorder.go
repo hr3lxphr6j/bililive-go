@@ -14,8 +14,7 @@ import (
 
 type Recorder struct {
 	Info       *api.Info
-	Live       api.Live
-	OutPutFile string
+	OutPutPath string
 	StartTime  time.Time
 
 	cmd  *exec.Cmd
@@ -25,17 +24,11 @@ type Recorder struct {
 
 func NewRecorder(ctx context.Context, info *api.Info) (*Recorder, error) {
 	inst := instance.GetInstance(ctx)
-	t := time.Now()
+
 	return &Recorder{
-		Info: info,
-		Live: info.Live,
-		OutPutFile: filepath.Join(
-			instance.GetInstance(ctx).Config.OutPutPath,
-			fmt.Sprintf("[%02d-%02d-%02d %02d-%02d-%02d][%s][%s].flv",
-				t.Year(), t.Month(), t.Day(), t.Hour(),
-				t.Minute(), t.Second(),
-				utils.ReplaceIllegalChar(info.HostName), utils.ReplaceIllegalChar(info.RoomName))),
-		ed: inst.EventDispatcher.(events.IEventDispatcher),
+		Info:       info,
+		OutPutPath: instance.GetInstance(ctx).Config.OutPutPath,
+		ed:         inst.EventDispatcher.(events.IEventDispatcher),
 	}, nil
 }
 
@@ -45,11 +38,18 @@ func (r *Recorder) run() {
 		case <-r.stop:
 			return
 		default:
-			urls, err := r.Live.GetUrls()
+			urls, err := r.Info.Live.GetUrls()
 			if err != nil {
 				time.Sleep(5 * time.Second)
 				continue
 			}
+			t := time.Now()
+			outfile := filepath.Join(
+				r.OutPutPath,
+				fmt.Sprintf("[%02d-%02d-%02d %02d-%02d-%02d][%s][%s].flv",
+					t.Year(), t.Month(), t.Day(), t.Hour(),
+					t.Minute(), t.Second(),
+					utils.ReplaceIllegalChar(r.Info.HostName), utils.ReplaceIllegalChar(r.Info.RoomName)))
 			r.cmd = exec.Command(
 				"ffmpeg",
 				"-y", "-re",
@@ -57,7 +57,7 @@ func (r *Recorder) run() {
 				"-c", "copy",
 				"-bsf:a", "aac_adtstoasc",
 				"-f", "flv",
-				r.OutPutFile,
+				outfile,
 			)
 			r.cmd.Run()
 
