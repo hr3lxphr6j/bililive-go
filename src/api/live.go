@@ -47,6 +47,8 @@ func NewLive(url *url.URL) Live {
 		return &YiZhiBoLive{Url: url}
 	case "www.twitch.tv":
 		return &TwitchLive{Url: url}
+	case "www.huya.com":
+		return &HuYaLive{Url: url}
 	default:
 		return nil
 	}

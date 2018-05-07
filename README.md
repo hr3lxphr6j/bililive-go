@@ -1,27 +1,94 @@
 # Bililive-go
 
-多平台、多直播间录制工具，目前支持 哔哩哔哩，熊猫TV，战旗TV，斗鱼TV，火猫TV，龙珠直播，一直播，twitch   
+Bililive-go是一个跨平台、多直播间录制工具   
+By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)   
 
 ![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/screenshot.png)
-## 依赖
-* ffmpeg
 
-## 下载
-[releases](https://github.com/hr3lxphr6j/bililive-go/releases)
 
 ## 例子
 ```
-./bililive-go -i "https://www.douyu.com/6655|https://www.panda.tv/10300"
+./bililive-go -i "https://www.panda.tv/10300|https://www.douyu.com/6655"
 ```
+
+## 支持网站
+
+<table>
+    <tr align="center">
+        <th>站点</th>
+        <th>url</th>
+        <th>支持情况</th>
+    </tr>
+    <tr align="center">
+        <td>哔哩哔哩直播</td>
+        <td>live.bilibili.com</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>熊猫直播</td>
+        <td>www.panda.tv</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>战旗直播</td>
+        <td>www.zhanqi.tv</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>斗鱼直播</td>
+        <td>www.douyu.com</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>火猫直播</td>
+        <td>www.huomao.com</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>龙珠直播</td>
+        <td>longzhu.com</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>虎牙直播</td>
+        <td>www.huya.com</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>一直播</td>
+        <td>www.yizhibo.com</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>twitch</td>
+        <td>www.twitch.tv</td>
+        <td>滋瓷</td>
+    </tr>
+</table>
+
+## 依赖
+* [ffmpeg](https://ffmpeg.org/)
+
+## 下载&安装
+* 安装ffmpeg
+    * Windows：[FFmpeg Builds](https://ffmpeg.zeranoe.com/builds/)
+    * macOS: [FFmpeg Builds](https://ffmpeg.zeranoe.com/builds/) or `brew install ffmpeg`
+    * Linux: 从对应的包管理器上安装或从源码构建
+
+* 下载Bililive-go 
+    * [releases](https://github.com/hr3lxphr6j/bililive-go/releases)
+
+## 获取&编译
+`go get -v github.com/hr3lxphr6j/bililive-go`
 
 ## 使用
 ```
 Usage: bililive-go [-hv] [-i urls] [-o path] [-t seconds] [-c filename]
 Options:
-  -h: this help
-  -v: show version and exit
-  -i: live room urls, if have many urls, split with "|"
-  -o: output file path (default: ./)
-  -t: interval of query live status (default: 30)
-  -c: set configuration file, command line options with override this (default: ./config.yml)
+  -h: 显示帮助并退出
+  -v: 显示版本并退出
+  -i: 直播间地址，若有多个直播间请使用 "|" 进行分割
+  -o: 输出文件目录，默认为 ./ ，及为当前目录 
+  -t: 直播间状态查询间隔时间，默认30(s)
+  -c: 设置配置文件，命令行的参数将会覆盖配置文件中相同的设置，默认读取 ./config.yml
 ```
