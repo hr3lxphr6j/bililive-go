@@ -7,12 +7,12 @@ import (
 
 const huomaoTestUrl = "https://www.huomao.com/762719"
 
-func TestHuoMaoLive_GetRoom(t *testing.T) {
+func TestHuoMaoLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(huomaoTestUrl)
-	t.Log((&HuoMaoLive{Url: u}).GetRoom())
+	t.Log(NewLive(u).GetInfo())
 }
 
-func TestHuoMaoLive_GetUrls(t *testing.T) {
+func TestHuoMaoLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(huomaoTestUrl)
-	t.Log((&HuoMaoLive{Url: u}).GetUrls())
+	t.Log(NewLive(u).GetStreamUrls())
 }

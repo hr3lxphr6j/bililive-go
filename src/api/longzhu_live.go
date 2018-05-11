@@ -16,7 +16,7 @@ const (
 )
 
 type LongzhuLive struct {
-	Url    *url.URL
+	abstractLive
 	realId string
 }
 
@@ -34,7 +34,7 @@ func (l *LongzhuLive) parseRealId() error {
 	return nil
 }
 
-func (l *LongzhuLive) GetRoom() (*Info, error) {
+func (l *LongzhuLive) GetInfo() (*Info, error) {
 	if l.realId == "" {
 		if err := l.parseRealId(); err != nil {
 			return nil, err
@@ -46,16 +46,16 @@ func (l *LongzhuLive) GetRoom() (*Info, error) {
 	}
 	info := &Info{
 		Live:     l,
-		Url:      l.Url,
 		HostName: gjson.GetBytes(body, "userName").String(),
 		RoomName: gjson.GetBytes(body, "title").String(),
 		Status:   len(gjson.GetBytes(body, "streamUri").String()) > 4,
 	}
+	l.cachedInfo = info
 	return info, nil
 
 }
 
-func (l *LongzhuLive) GetUrls() ([]*url.URL, error) {
+func (l *LongzhuLive) GetStreamUrls() ([]*url.URL, error) {
 	if l.realId == "" {
 		if err := l.parseRealId(); err != nil {
 			return nil, err

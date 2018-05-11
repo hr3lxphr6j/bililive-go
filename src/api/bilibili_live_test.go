@@ -5,14 +5,14 @@ import (
 	"testing"
 )
 
-const bilibiliTestUrl = "https://live.bilibili.com/161"
+const biliBiliTestUrl = "https://live.bilibili.com/161"
 
-func TestBiliBiliLive_GetRoom(t *testing.T) {
-	u, _ := url.Parse(bilibiliTestUrl)
-	t.Log((&BiliBiliLive{Url: u}).GetRoom())
+func TestBiliBiliLive_GetInfo(t *testing.T) {
+	u, _ := url.Parse(biliBiliTestUrl)
+	t.Log(NewLive(u).GetInfo())
 }
 
-func TestBiliBiliLive_GetUrl(t *testing.T) {
-	u, _ := url.Parse(bilibiliTestUrl)
-	t.Log((&BiliBiliLive{Url: u}).GetUrls())
+func TestBiliBiliLive_GetStreamUrls(t *testing.T) {
+	u, _ := url.Parse(biliBiliTestUrl)
+	t.Log(NewLive(u).GetStreamUrls())
 }

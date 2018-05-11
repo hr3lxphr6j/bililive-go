@@ -16,7 +16,7 @@ const (
 )
 
 type PandaLive struct {
-	Url *url.URL
+	abstractLive
 }
 
 func (p *PandaLive) requestRoomInfo() ([]byte, error) {
@@ -36,7 +36,7 @@ func (p *PandaLive) requestRoomInfo() ([]byte, error) {
 	}
 }
 
-func (p *PandaLive) GetRoom() (*Info, error) {
+func (p *PandaLive) GetInfo() (*Info, error) {
 	data, err := p.requestRoomInfo()
 	if err != nil {
 		return nil, err
@@ -44,16 +44,15 @@ func (p *PandaLive) GetRoom() (*Info, error) {
 
 	info := &Info{
 		Live:     p,
-		Url:      p.Url,
 		HostName: gjson.GetBytes(data, "data.hostinfo.name").String(),
 		RoomName: gjson.GetBytes(data, "data.roominfo.name").String(),
 		Status:   gjson.GetBytes(data, "data.videoinfo.status").String() == "2",
 	}
-
+	p.cachedInfo = info
 	return info, nil
 }
 
-func (p *PandaLive) GetUrls() ([]*url.URL, error) {
+func (p *PandaLive) GetStreamUrls() ([]*url.URL, error) {
 	data, err := p.requestRoomInfo()
 	if err != nil {
 		return nil, err

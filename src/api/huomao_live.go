@@ -11,25 +11,25 @@ import (
 const huomaoLiveApiUrl = "http://www.huomao.com/swf/live_data"
 
 type HuoMaoLive struct {
-	Url *url.URL
+	abstractLive
 }
 
-func (h *HuoMaoLive) GetRoom() (*Info, error) {
+func (h *HuoMaoLive) GetInfo() (*Info, error) {
 	dom, err := http.Get(h.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
 	info := &Info{
 		Live:     h,
-		Url:      h.Url,
 		HostName: utils.ParseUnicode(regexp.MustCompile(`"nickname":"([^"]*)"`).FindStringSubmatch(string(dom))[1]),
 		RoomName: utils.ParseUnicode(regexp.MustCompile(`"channel":"([^"]*)"`).FindStringSubmatch(string(dom))[1]),
 		Status:   utils.ParseUnicode(regexp.MustCompile(`"is_live":"?(\d*)"?,`).FindStringSubmatch(string(dom))[1]) == "1",
 	}
+	h.cachedInfo = info
 	return info, nil
 }
 
-func (h *HuoMaoLive) GetUrls() ([]*url.URL, error) {
+func (h *HuoMaoLive) GetStreamUrls() ([]*url.URL, error) {
 	dom, err := http.Get(h.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err

@@ -7,12 +7,12 @@ import (
 
 const huyaTestUrl = "https://www.huya.com/dongxiaosa"
 
-func TestHuYaLive_GetRoom(t *testing.T) {
+func TestHuYaLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(huyaTestUrl)
-	t.Log((&HuYaLive{Url: u}).GetRoom())
+	t.Log(NewLive(u).GetInfo())
 }
 
-func TestHuYaLive_GetUrls(t *testing.T) {
+func TestHuYaLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(huyaTestUrl)
-	t.Log((&HuYaLive{Url: u}).GetUrls())
+	t.Log(NewLive(u).GetStreamUrls())
 }

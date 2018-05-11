@@ -29,13 +29,13 @@ type Listener struct {
 }
 
 func (l *Listener) Start() error {
-	info, _ := l.Live.GetRoom()
-	l.ed.DispatchEvent(events.NewEvent(ListenStart, info))
+	l.ed.DispatchEvent(events.NewEvent(ListenStart, l.Live))
 	go l.run()
 	return nil
 }
 
 func (l *Listener) Close() {
+	l.ed.DispatchEvent(events.NewEvent(ListenStop, l.Live))
 	close(l.stop)
 }
 
@@ -49,7 +49,7 @@ func (l *Listener) run() {
 		case <-l.stop:
 			return
 		case <-l.ticker.C:
-			info, err := l.Live.GetRoom()
+			info, err := l.Live.GetInfo()
 			if err != nil {
 				continue
 			}
@@ -58,9 +58,9 @@ func (l *Listener) run() {
 			}
 			l.status = info.Status
 			if l.status {
-				l.ed.DispatchEvent(events.NewEvent(LiveStart, info))
+				l.ed.DispatchEvent(events.NewEvent(LiveStart, l.Live))
 			} else {
-				l.ed.DispatchEvent(events.NewEvent(LiveEnd, info))
+				l.ed.DispatchEvent(events.NewEvent(LiveEnd, l.Live))
 			}
 		}
 	}

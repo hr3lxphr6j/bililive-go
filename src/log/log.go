@@ -12,11 +12,11 @@ import (
 	"os"
 )
 
-func info2Fields(info *api.Info) logrus.Fields {
+func info2Fields(live api.Live) logrus.Fields {
 	return logrus.Fields{
-		"Url":      info.Url,
-		"HostName": info.HostName,
-		"RoomName": info.RoomName,
+		"Url":      live.GetRawUrl(),
+		"HostName": live.GetCachedInfo().HostName,
+		"RoomName": live.GetCachedInfo().RoomName,
 	}
 }
 
@@ -32,7 +32,7 @@ func registerEventLog(ed events.IEventDispatcher, logger *interfaces.Logger) {
 
 	for _, e := range targetEvents {
 		ed.AddEventListener(e, events.NewEventListener(func(event *events.Event) {
-			logger.WithFields(info2Fields(event.Object.(*api.Info))).Info(event.Type)
+			logger.WithFields(info2Fields(event.Object.(api.Live))).Info(event.Type)
 		}))
 	}
 

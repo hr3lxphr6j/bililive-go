@@ -14,7 +14,7 @@ const (
 )
 
 type ZhanQiLive struct {
-	Url *url.URL
+	abstractLive
 }
 
 func (z *ZhanQiLive) requestRoomInfo() ([]byte, error) {
@@ -29,22 +29,22 @@ func (z *ZhanQiLive) requestRoomInfo() ([]byte, error) {
 	}
 }
 
-func (z *ZhanQiLive) GetRoom() (*Info, error) {
+func (z *ZhanQiLive) GetInfo() (*Info, error) {
 	body, err := z.requestRoomInfo()
 	if err != nil {
 		return nil, err
 	}
 	info := &Info{
 		Live:     z,
-		Url:      z.Url,
 		HostName: gjson.GetBytes(body, "data.nickname").String(),
 		RoomName: gjson.GetBytes(body, "data.title").String(),
 		Status:   gjson.GetBytes(body, "data.status").String() == "4",
 	}
+	z.cachedInfo = info
 	return info, nil
 }
 
-func (z *ZhanQiLive) GetUrls() ([]*url.URL, error) {
+func (z *ZhanQiLive) GetStreamUrls() ([]*url.URL, error) {
 	body, err := z.requestRoomInfo()
 	if err != nil {
 		return nil, err

@@ -7,12 +7,12 @@ import (
 
 const douyuTestUrl = "https://www.douyu.com/6655"
 
-func TestDouyuLive_GetRoom(t *testing.T) {
+func TestDouyuLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(douyuTestUrl)
-	t.Log((&DouyuLive{Url: u}).GetRoom())
+	t.Log(NewLive(u).GetInfo())
 }
 
-func TestDouyuLive_GetUrl(t *testing.T) {
+func TestDouyuLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(douyuTestUrl)
-	t.Log((&DouyuLive{Url: u}).GetUrls())
+	t.Log(NewLive(u).GetStreamUrls())
 }

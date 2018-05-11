@@ -18,7 +18,7 @@ const (
 var header = map[string]string{"user-agent": "Mozilla/5.0 (iPad; CPU OS 8_1_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B466 Safari/600.1.4"}
 
 type DouyuLive struct {
-	Url *url.URL
+	abstractLive
 }
 
 func (d *DouyuLive) requestRoomInfo() ([]byte, error) {
@@ -34,23 +34,23 @@ func (d *DouyuLive) requestRoomInfo() ([]byte, error) {
 	return body, nil
 }
 
-func (d *DouyuLive) GetRoom() (*Info, error) {
+func (d *DouyuLive) GetInfo() (*Info, error) {
 	data, err := d.requestRoomInfo()
 	if err != nil {
 		return nil, err
 	}
 	info := &Info{
 		Live:     d,
-		Url:      d.Url,
 		HostName: gjson.GetBytes(data, "data.nickname").String(),
 		RoomName: gjson.GetBytes(data, "data.room_name").String(),
 		Status:   gjson.GetBytes(data, "data.show_status").String() == "1",
 	}
+	d.cachedInfo = info
 	return info, nil
 
 }
 
-func (d *DouyuLive) GetUrls() ([]*url.URL, error) {
+func (d *DouyuLive) GetStreamUrls() ([]*url.URL, error) {
 	data, err := d.requestRoomInfo()
 	if err != nil {
 		return nil, err

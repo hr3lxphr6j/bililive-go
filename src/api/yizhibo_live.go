@@ -10,7 +10,7 @@ import (
 const yizhiboApiUrl = "http://www.yizhibo.com/live/h5api/get_basic_live_info"
 
 type YiZhiBoLive struct {
-	Url *url.URL
+	abstractLive
 }
 
 func (y *YiZhiBoLive) requestRoomInfo() ([]byte, error) {
@@ -26,22 +26,22 @@ func (y *YiZhiBoLive) requestRoomInfo() ([]byte, error) {
 	}
 }
 
-func (y *YiZhiBoLive) GetRoom() (*Info, error) {
+func (y *YiZhiBoLive) GetInfo() (*Info, error) {
 	data, err := y.requestRoomInfo()
 	if err != nil {
 		return nil, err
 	}
 	info := &Info{
 		Live:     y,
-		Url:      y.Url,
 		HostName: gjson.GetBytes(data, "data.nickname").String(),
 		RoomName: gjson.GetBytes(data, "data.live_title").String(),
 		Status:   gjson.GetBytes(data, "data.status").Int() == 10,
 	}
+	y.cachedInfo = info
 	return info, nil
 }
 
-func (y *YiZhiBoLive) GetUrls() ([]*url.URL, error) {
+func (y *YiZhiBoLive) GetStreamUrls() ([]*url.URL, error) {
 	data, err := y.requestRoomInfo()
 	if err != nil {
 		return nil, err

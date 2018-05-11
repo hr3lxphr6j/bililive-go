@@ -1,19 +1,43 @@
 package api
 
 import (
+	"fmt"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"net/url"
 )
 
 type Info struct {
 	Live               Live
-	Url                *url.URL
 	HostName, RoomName string
 	Status             bool
 }
 
+type LiveId string
+
 type Live interface {
-	GetRoom() (*Info, error)
-	GetUrls() ([]*url.URL, error)
+	GetLiveId() LiveId
+	GetRawUrl() string
+	GetInfo() (*Info, error)
+	GetCachedInfo() *Info
+	GetStreamUrls() ([]*url.URL, error)
+}
+
+type abstractLive struct {
+	Url        *url.URL
+	cachedInfo *Info
+	liveId     LiveId
+}
+
+func (a *abstractLive) GetLiveId() LiveId {
+	return a.liveId
+}
+
+func (a *abstractLive) GetRawUrl() string {
+	return a.Url.String()
+}
+
+func (a *abstractLive) GetCachedInfo() *Info {
+	return a.cachedInfo
 }
 
 type RoomNotExistsError struct {
@@ -30,26 +54,44 @@ func IsRoomNotExistsError(err error) bool {
 }
 
 func NewLive(url *url.URL) Live {
+	baseLive := abstractLive{
+		Url:    url,
+		liveId: LiveId(utils.GetMd5String([]byte(fmt.Sprintf("%s%s", url.Host, url.Path)))),
+	}
+	var live Live
 	switch url.Host {
 	case "www.panda.tv":
-		return &PandaLive{Url: url}
+		live = &PandaLive{abstractLive: baseLive}
 	case "live.bilibili.com":
-		return &BiliBiliLive{Url: url}
+		live = &BiliBiliLive{abstractLive: baseLive}
 	case "www.zhanqi.tv":
-		return &ZhanQiLive{Url: url}
+		live = &ZhanQiLive{abstractLive: baseLive}
 	case "www.douyu.com":
-		return &DouyuLive{Url: url}
+		live = &DouyuLive{abstractLive: baseLive}
 	case "star.longzhu.com":
-		return &LongzhuLive{Url: url}
+		live = &LongzhuLive{abstractLive: baseLive}
 	case "www.huomao.com":
-		return &HuoMaoLive{Url: url}
+		live = &HuoMaoLive{abstractLive: baseLive}
 	case "www.yizhibo.com":
-		return &YiZhiBoLive{Url: url}
+		live = &YiZhiBoLive{abstractLive: baseLive}
 	case "www.twitch.tv":
-		return &TwitchLive{Url: url}
+		live = &TwitchLive{abstractLive: baseLive}
 	case "www.huya.com":
-		return &HuYaLive{Url: url}
+		live = &HuYaLive{abstractLive: baseLive}
 	default:
-		return nil
+		live = nil
 	}
+	if live != nil {
+		for i := 0; i < 3; i++ {
+			if _, err := live.GetInfo(); err != nil {
+				if IsRoomNotExistsError(err) {
+					live = nil
+					break
+				}
+			} else {
+				break
+			}
+		}
+	}
+	return live
 }

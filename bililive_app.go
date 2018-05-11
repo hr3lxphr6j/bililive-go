@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
@@ -11,13 +12,15 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
 	"github.com/hr3lxphr6j/bililive-go/src/log"
 	"github.com/hr3lxphr6j/bililive-go/src/recorders"
+	"github.com/hr3lxphr6j/bililive-go/src/servers"
+	"net/url"
 	"os"
 	"strings"
 )
 
 const (
 	AppName     = "BiliLive-go"
-	AppVersion  = "0.12"
+	AppVersion  = "0.20"
 	CommandName = "bililive-go"
 )
 
@@ -120,17 +123,43 @@ func main() {
 	// 解析参数和配置
 	parse(inst)
 
-	// 初始化组件
+	// 初始化事件分发模块
 	events.NewIEventDispatcher(ctx)
 	logger := log.NewLogger(ctx)
 	logger.Infof("%s Version: %s Link Start", AppName, AppVersion)
 	logger.Debug(inst.Config)
 
+	// 初始化直播间记录
+	inst.Lives = make(map[api.LiveId]api.Live)
+
+	// 初始化监听、录制
 	listeners.NewIListenerManager(ctx)
 	recorders.NewIRecorderManager(ctx)
+
+	// 从配置添加直播间
+	for _, room := range inst.Config.LiveRooms {
+		u, err := url.Parse(room)
+		if err != nil {
+			logger.Error(err)
+		}
+		l := api.NewLive(u)
+		if l != nil {
+			if _, ok := inst.Lives[l.GetLiveId()]; ok {
+				logger.Errorf("%s is exist!", room)
+			} else {
+				inst.Lives[l.GetLiveId()] = l
+			}
+		} else {
+			logger.Errorf("url: %s, is not support, or not exist!")
+		}
+	}
 
 	inst.ListenerManager.Start(ctx)
 	inst.RecorderManager.Start(ctx)
 
+	// 初始化RPC
+	if inst.Config.RPC.Enable {
+		servers.NewServer(ctx).Start(ctx)
+	}
 	inst.WaitGroup.Wait()
 }

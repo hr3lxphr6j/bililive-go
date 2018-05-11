@@ -1,6 +1,6 @@
 rpc:
-  enable: false
-  port: 8080
+  enable: true
+  port: :8080
   path: /rpc
   tls:
     enable: false
@@ -9,4 +9,4 @@ rpc:
 log_level: info
 interval: 15
 out_put_path: ./
-live_rooms: ["https://www.panda.tv/10300"]
+live_rooms: ["https://live.bilibili.com/161"]

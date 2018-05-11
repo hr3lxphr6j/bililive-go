@@ -7,12 +7,12 @@ import (
 
 const longzhuTestUrl = "http://star.longzhu.com/777777"
 
-func TestLongzhuLive_GetRoom(t *testing.T) {
+func TestLongzhuLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(longzhuTestUrl)
-	t.Log((&LongzhuLive{Url: u}).GetRoom())
+	t.Log(NewLive(u).GetInfo())
 }
 
-func TestLongzhuLive_GetUrls(t *testing.T) {
+func TestLongzhuLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(longzhuTestUrl)
-	t.Log((&LongzhuLive{Url: u}).GetUrls())
+	t.Log(NewLive(u).GetStreamUrls())
 }

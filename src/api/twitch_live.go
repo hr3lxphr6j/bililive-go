@@ -20,7 +20,7 @@ const (
 var twitchHeader = map[string]string{"client-id": twitchClientId}
 
 type TwitchLive struct {
-	Url                *url.URL
+	abstractLive
 	hostName, roomName string
 }
 
@@ -37,7 +37,7 @@ func (t *TwitchLive) parseInfo() error {
 
 }
 
-func (t *TwitchLive) GetRoom() (*Info, error) {
+func (t *TwitchLive) GetInfo() (*Info, error) {
 	if t.hostName == "" || t.roomName == "" {
 		if err := t.parseInfo(); err != nil {
 			return nil, err
@@ -53,15 +53,15 @@ func (t *TwitchLive) GetRoom() (*Info, error) {
 	}
 	info := &Info{
 		Live:     t,
-		Url:      t.Url,
 		HostName: t.hostName,
 		RoomName: t.roomName,
 		Status:   status,
 	}
+	t.cachedInfo = info
 	return info, nil
 }
 
-func (t *TwitchLive) GetUrls() ([]*url.URL, error) {
+func (t *TwitchLive) GetStreamUrls() ([]*url.URL, error) {
 	if t.hostName == "" || t.roomName == "" {
 		if err := t.parseInfo(); err != nil {
 			return nil, err

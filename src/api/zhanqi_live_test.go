@@ -1,18 +1,18 @@
 package api
 
 import (
-	"testing"
 	"net/url"
+	"testing"
 )
 
 const zhanQiTestUrl = "https://www.zhanqi.tv/12qaq"
 
-func TestZhanQiLive_GetRoom(t *testing.T) {
+func TestZhanQiLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(zhanQiTestUrl)
-	t.Log((&ZhanQiLive{u}).GetRoom())
+	t.Log(NewLive(u).GetInfo())
 }
 
-func TestZhanQiLive_GetUrls(t *testing.T) {
+func TestZhanQiLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(zhanQiTestUrl)
-	t.Log((&ZhanQiLive{u}).GetUrls())
+	t.Log(NewLive(u).GetStreamUrls())
 }

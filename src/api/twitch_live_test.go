@@ -7,12 +7,12 @@ import (
 
 const twitchTestUrl = "https://www.twitch.tv/wuyikoei"
 
-func TestTwitchLive_GetRoom(t *testing.T) {
+func TestTwitchLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(twitchTestUrl)
-	t.Log((&TwitchLive{Url: u}).GetRoom())
+	t.Log(NewLive(u).GetInfo())
 }
 
-func TestTwitchLive_GetUrls(t *testing.T) {
+func TestTwitchLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(twitchTestUrl)
-	t.Log((&TwitchLive{Url: u}).GetUrls())
+	t.Log(NewLive(u).GetStreamUrls())
 }

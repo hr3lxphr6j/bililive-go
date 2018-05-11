@@ -12,10 +12,10 @@ import (
 )
 
 type HuYaLive struct {
-	Url *url.URL
+	abstractLive
 }
 
-func (h *HuYaLive) GetRoom() (*Info, error) {
+func (h *HuYaLive) GetInfo() (*Info, error) {
 	dom, err := http.Get(h.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err
@@ -25,15 +25,15 @@ func (h *HuYaLive) GetRoom() (*Info, error) {
 	}
 	info := &Info{
 		Live:     h,
-		Url:      h.Url,
 		HostName: utils.ParseUnicode(regexp.MustCompile(`"nick":"([^"]*)"`).FindStringSubmatch(string(dom))[1]),
 		RoomName: utils.ParseUnicode(regexp.MustCompile(`"introduction":"([^"]*)"`).FindStringSubmatch(string(dom))[1]),
 		Status:   utils.ParseUnicode(regexp.MustCompile(`"isOn":([^,]*),`).FindStringSubmatch(string(dom))[1]) == "true",
 	}
+	h.cachedInfo = info
 	return info, nil
 }
 
-func (h *HuYaLive) GetUrls() ([]*url.URL, error) {
+func (h *HuYaLive) GetStreamUrls() ([]*url.URL, error) {
 	dom, err := http.Get(h.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err

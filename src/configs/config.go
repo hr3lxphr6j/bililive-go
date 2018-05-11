@@ -16,7 +16,7 @@ type TLS struct {
 }
 type RPC struct {
 	Enable bool   `yaml:"enable"`
-	Port   uint   `yaml:"port"`
+	Port   string `yaml:"port"`
 	Path   string `yaml:"path"`
 	TLS    TLS    `yaml:"tls"`
 }
@@ -36,8 +36,8 @@ func VerifyConfig(config *Config) error {
 		return errors.New(fmt.Sprintf(`the out put path: "%s" is not exist`, config.OutPutPath))
 	}
 	if config.RPC.Enable {
-		if config.RPC.Port == 0 {
-			return errors.New("rpc listen port can not be null or '0'")
+		if config.RPC.Port == "" {
+			return errors.New("rpc listen port can not be null")
 		}
 		if config.RPC.TLS.Enable {
 			if _, err := tls.LoadX509KeyPair(config.RPC.TLS.CertFile, config.RPC.TLS.KeyFile); err != nil {

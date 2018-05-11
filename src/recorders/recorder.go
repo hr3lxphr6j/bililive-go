@@ -13,7 +13,7 @@ import (
 )
 
 type Recorder struct {
-	Info       *api.Info
+	Live       api.Live
 	OutPutPath string
 	StartTime  time.Time
 
@@ -22,11 +22,10 @@ type Recorder struct {
 	stop chan struct{}
 }
 
-func NewRecorder(ctx context.Context, info *api.Info) (*Recorder, error) {
+func NewRecorder(ctx context.Context, live api.Live) (*Recorder, error) {
 	inst := instance.GetInstance(ctx)
-
 	return &Recorder{
-		Info:       info,
+		Live:       live,
 		OutPutPath: instance.GetInstance(ctx).Config.OutPutPath,
 		ed:         inst.EventDispatcher.(events.IEventDispatcher),
 	}, nil
@@ -38,7 +37,7 @@ func (r *Recorder) run() {
 		case <-r.stop:
 			return
 		default:
-			urls, err := r.Info.Live.GetUrls()
+			urls, err := r.Live.GetStreamUrls()
 			if err != nil {
 				time.Sleep(5 * time.Second)
 				continue
@@ -46,10 +45,14 @@ func (r *Recorder) run() {
 			t := time.Now()
 			outfile := filepath.Join(
 				r.OutPutPath,
-				fmt.Sprintf("[%02d-%02d-%02d %02d-%02d-%02d][%s][%s].flv",
+				fmt.Sprintf(
+					"[%02d-%02d-%02d %02d-%02d-%02d][%s][%s].flv",
 					t.Year(), t.Month(), t.Day(), t.Hour(),
 					t.Minute(), t.Second(),
-					utils.ReplaceIllegalChar(r.Info.HostName), utils.ReplaceIllegalChar(r.Info.RoomName)))
+					utils.ReplaceIllegalChar(r.Live.GetCachedInfo().HostName),
+					utils.ReplaceIllegalChar(r.Live.GetCachedInfo().RoomName),
+				),
+			)
 			r.cmd = exec.Command(
 				"ffmpeg",
 				"-y", "-re",
@@ -69,7 +72,7 @@ func (r *Recorder) Start() error {
 	r.StartTime = time.Now()
 	r.stop = make(chan struct{})
 	go r.run()
-	r.ed.DispatchEvent(events.NewEvent(RecordeStart, r.Info))
+	r.ed.DispatchEvent(events.NewEvent(RecordeStart, r.Live))
 	return nil
 }
 
@@ -79,5 +82,5 @@ func (r *Recorder) Close() {
 	if err == nil {
 		stdIn.Write([]byte("q"))
 	}
-	r.ed.DispatchEvent(events.NewEvent(RecordeStop, r.Info))
+	r.ed.DispatchEvent(events.NewEvent(RecordeStop, r.Live))
 }

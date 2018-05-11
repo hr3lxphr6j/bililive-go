@@ -15,7 +15,7 @@ const (
 )
 
 type BiliBiliLive struct {
-	Url    *url.URL
+	abstractLive
 	realId string
 }
 
@@ -31,7 +31,8 @@ func (b *BiliBiliLive) parseRealId() error {
 		return nil
 	}
 }
-func (b *BiliBiliLive) GetRoom() (*Info, error) {
+
+func (b *BiliBiliLive) GetInfo() (*Info, error) {
 	// Parse the short id from URL to full id
 	if b.realId == "" {
 		if err := b.parseRealId(); err != nil {
@@ -51,7 +52,6 @@ func (b *BiliBiliLive) GetRoom() (*Info, error) {
 
 	info := &Info{
 		Live:     b,
-		Url:      b.Url,
 		RoomName: gjson.GetBytes(body, "data.title").String(),
 		Status:   gjson.GetBytes(body, "data.live_status").Int() == 1,
 	}
@@ -64,10 +64,11 @@ func (b *BiliBiliLive) GetRoom() (*Info, error) {
 	}
 
 	info.HostName = gjson.GetBytes(body2, "data.info.uname").String()
+	b.cachedInfo = info
 	return info, nil
 }
 
-func (b *BiliBiliLive) GetUrls() ([]*url.URL, error) {
+func (b *BiliBiliLive) GetStreamUrls() ([]*url.URL, error) {
 	if b.realId == "" {
 		if err := b.parseRealId(); err != nil {
 			return nil, err
