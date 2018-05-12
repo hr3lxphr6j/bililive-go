@@ -17,7 +17,7 @@ type TLS struct {
 type RPC struct {
 	Enable bool   `yaml:"enable"`
 	Port   string `yaml:"port"`
-	Path   string `yaml:"path"`
+	Token  string `yaml:"token"`
 	TLS    TLS    `yaml:"tls"`
 }
 type Config struct {
@@ -26,6 +26,7 @@ type Config struct {
 	Interval   int      `yaml:"interval"`
 	OutPutPath string   `yaml:"out_put_path"`
 	LiveRooms  []string `yaml:"live_rooms"`
+	file       string
 }
 
 func VerifyConfig(config *Config) error {
@@ -58,7 +59,16 @@ func NewConfigWithFile(configFilePath string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	config.file = configFilePath
 	return config, nil
+}
+
+func (config *Config) Marshal() error {
+	b, err := yaml.Marshal(config)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(config.file, b, os.ModeAppend)
 }
 
 func NewConfig() *Config {

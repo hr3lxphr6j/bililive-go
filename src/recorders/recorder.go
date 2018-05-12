@@ -8,6 +8,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
+	"io"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
@@ -19,10 +20,12 @@ type Recorder struct {
 	OutPutPath string
 	StartTime  time.Time
 
-	cmd    *exec.Cmd
-	ed     events.IEventDispatcher
-	logger *interfaces.Logger
-	stop   chan struct{}
+	cmd       *exec.Cmd
+	cmdStdIn  io.WriteCloser
+	cmdStdErr io.ReadCloser
+	ed        events.IEventDispatcher
+	logger    *interfaces.Logger
+	stop      chan struct{}
 }
 
 func NewRecorder(ctx context.Context, live api.Live) (*Recorder, error) {
@@ -61,20 +64,19 @@ func (r *Recorder) run() {
 				"ffmpeg",
 				"-loglevel", "warning",
 				"-y", "-re",
-				"-timeout", "10000000",
+				"-timeout", "15000000",
 				"-i", urls[0].String(),
 				"-c", "copy",
 				"-bsf:a", "aac_adtstoasc",
 				"-f", "flv",
 				outfile,
 			)
-			stderr, err := r.cmd.StderrPipe()
+			r.cmdStdIn, _ = r.cmd.StdinPipe()
+			r.cmdStdErr, _ = r.cmd.StderrPipe()
 			r.cmd.Start()
 			r.logger.WithFields(r.Live.GetInfoMap()).WithField("stream_url", urls[0].String()).Debug("ffmpeg start")
-			if err == nil {
-				if b, err := ioutil.ReadAll(stderr); err == nil {
-					r.logger.WithFields(r.Live.GetInfoMap()).WithField("std_err", string(b)).Debug("ffmpeg log info")
-				}
+			if b, err := ioutil.ReadAll(r.cmdStdErr); err == nil {
+				r.logger.WithFields(r.Live.GetInfoMap()).WithField("std_err", string(b)).Debug("ffmpeg log info")
 			}
 			r.cmd.Wait()
 			r.logger.WithFields(r.Live.GetInfoMap()).WithField("stream_url", urls[0].String()).Debug("ffmpeg stop")
@@ -94,10 +96,7 @@ func (r *Recorder) Start() error {
 
 func (r *Recorder) Close() {
 	close(r.stop)
-	stdIn, err := r.cmd.StdinPipe()
-	if err == nil {
-		stdIn.Write([]byte("q"))
-	}
+	r.cmdStdIn.Write([]byte("q"))
 	r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde End")
 	r.ed.DispatchEvent(events.NewEvent(RecordeStop, r.Live))
 }

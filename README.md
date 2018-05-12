@@ -92,3 +92,23 @@ Options:
   -t: 直播间状态查询间隔时间，默认30(s)
   -c: 设置配置文件，命令行的参数将会覆盖配置文件中相同的设置，默认读取 ./config.yml
 ```
+
+## 配置文件
+```yaml
+rpc: 
+  enable: true            # 是否开启API
+  port: 127.0.0.1:8080    # 监听地址
+  token: ""               # token,在header中传递
+  tls:                    # tls配置
+    enable: false
+    cert_file: ""
+    key_file: ""
+log_level: info           # log等级(info|debug...)
+interval: 15              # 直播间状态查询间隔时间（秒）
+out_put_path: ./          # 输出文件路径
+live_rooms:               # 直播间url
+- https://www.panda.tv/10300
+```
+
+## API
+[API doc](https://github.com/hr3lxphr6j/bililive-go/raw/rpc-b/API.md)

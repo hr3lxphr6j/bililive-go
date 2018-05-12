@@ -1,12 +1,13 @@
 rpc:
   enable: true
-  port: :8080
-  path: /rpc
+  port: 127.0.0.1:8080
+  token: ""
   tls:
     enable: false
-    cert_file: null
-    ket_file: null
+    cert_file: ""
+    key_file: ""
 log_level: info
 interval: 15
 out_put_path: ./
-live_rooms: ["https://www.panda.tv/10300"]
+live_rooms:
+- https://www.panda.tv/10300

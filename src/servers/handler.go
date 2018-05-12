@@ -61,30 +61,55 @@ func getAllLives(writer http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getLives(writer http.ResponseWriter, r *http.Request) {
+func getLive(writer http.ResponseWriter, r *http.Request) {
+	inst := instance.GetInstance(r.Context())
+
 	vars := mux.Vars(r)
 	res := CommonResp{}
-	if id, ok := vars["id"]; ok {
-		inst := instance.GetInstance(r.Context())
-		if live, ok2 := inst.Lives[api.LiveId(id)]; ok2 {
-			res.Data = live2RespLive(r.Context(), live)
-			writer.WriteHeader(http.StatusOK)
-		} else {
-			res.ErrNo = 404
-			res.ErrMsg = fmt.Sprintf("live id: %s can not find", id)
-			writer.WriteHeader(http.StatusNotFound)
-		}
+
+	if live, ok := inst.Lives[api.LiveId(vars["id"])]; ok {
+		res.Data = live2RespLive(r.Context(), live)
 	} else {
-		res.ErrNo = 400
-		res.ErrMsg = "live id is null"
-		writer.WriteHeader(http.StatusBadRequest)
+		res.ErrNo = 404
+		res.ErrMsg = fmt.Sprintf("live id: %s can not find", vars["id"])
+		writer.WriteHeader(http.StatusNotFound)
 	}
+
 	if resp, err := json.Marshal(res); err == nil {
 		writer.Write(resp)
 	}
 }
 
 func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
+	inst := instance.GetInstance(r.Context())
+
+	vars := mux.Vars(r)
+	res := CommonResp{}
+
+	if live, ok := inst.Lives[api.LiveId(vars["id"])]; ok {
+
+		switch vars["action"] {
+		case "start":
+			inst.ListenerManager.(listeners.IListenerManager).AddListener(r.Context(), live)
+			res.Data = live2RespLive(r.Context(), live)
+		case "stop":
+			inst.ListenerManager.(listeners.IListenerManager).RemoveListener(r.Context(), live.GetLiveId())
+			res.Data = live2RespLive(r.Context(), live)
+		default:
+			res.ErrNo = 400
+			res.ErrMsg = fmt.Sprintf("Invalid Action: %s", vars["action"])
+			writer.WriteHeader(http.StatusBadRequest)
+		}
+
+	} else {
+		res.ErrNo = 404
+		res.ErrMsg = fmt.Sprintf("live id: %s can not find", vars["id"])
+		writer.WriteHeader(http.StatusNotFound)
+	}
+
+	if resp, err := json.Marshal(res); err == nil {
+		writer.Write(resp)
+	}
 
 }
 
@@ -106,6 +131,7 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 	b, _ := ioutil.ReadAll(r.Body)
 	lives := make([]RespLive, 0)
 	gjson.GetBytes(b, "lives").ForEach(func(key, value gjson.Result) bool {
+
 		isListen := value.Get("listen").Bool()
 		u, _ := url.Parse(value.Get("url").String())
 
@@ -123,4 +149,53 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 	})
 	resp, _ := json.Marshal(CommonResp{Data: map[string]interface{}{"lives": lives}})
 	writer.Write(resp)
+}
+
+func getConfig(writer http.ResponseWriter, r *http.Request) {
+	if resp, err := json.Marshal(instance.GetInstance(r.Context()).Config); err == nil {
+		writer.Write(resp)
+	}
+}
+
+func putConfig(writer http.ResponseWriter, r *http.Request) {
+	res := CommonResp{}
+	configRoom := instance.GetInstance(r.Context()).Config.LiveRooms
+	configRoom = make([]string, 0)
+	for _, live := range instance.GetInstance(r.Context()).Lives {
+		configRoom = append(configRoom, live.GetRawUrl())
+	}
+	instance.GetInstance(r.Context()).Config.LiveRooms = configRoom
+	if err := instance.GetInstance(r.Context()).Config.Marshal(); err == nil {
+		res.Data = "OK"
+	} else {
+		res.ErrNo = 400
+		res.ErrMsg = err.Error()
+		writer.WriteHeader(http.StatusBadRequest)
+	}
+
+	if resp, err := json.Marshal(res); err == nil {
+		writer.Write(resp)
+	}
+}
+
+func removeLive(writer http.ResponseWriter, r *http.Request) {
+	inst := instance.GetInstance(r.Context())
+
+	vars := mux.Vars(r)
+	res := CommonResp{}
+
+	if live, ok := inst.Lives[api.LiveId(vars["id"])]; ok {
+		inst.ListenerManager.(listeners.IListenerManager).RemoveListener(r.Context(), live.GetLiveId())
+		delete(inst.Lives, live.GetLiveId())
+		res.Data = "OK"
+	} else {
+		res.ErrNo = 404
+		res.ErrMsg = fmt.Sprintf("live id: %s can not find", vars["id"])
+		writer.WriteHeader(http.StatusNotFound)
+	}
+
+	if resp, err := json.Marshal(res); err == nil {
+		writer.Write(resp)
+	}
+
 }

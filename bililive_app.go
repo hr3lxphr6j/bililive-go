@@ -144,9 +144,8 @@ func main() {
 	for _, room := range inst.Config.LiveRooms {
 		u, err := url.Parse(room)
 		if err != nil {
-			logger.Error(err)
+			logger.WithField("url", room).Error(err)
 		}
-
 		if l, err := api.NewLive(u); err == nil {
 			if _, ok := inst.Lives[l.GetLiveId()]; ok {
 				logger.Errorf("%s is exist!", room)

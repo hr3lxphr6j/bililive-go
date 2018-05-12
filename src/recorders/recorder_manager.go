@@ -47,6 +47,11 @@ func (r *RecorderManager) Start(ctx context.Context) error {
 		r.RemoveRecorder(ctx, event.Object.(api.Live).GetLiveId())
 	}))
 
+	// 监听关闭事件
+	ed.AddEventListener(listeners.ListenStop, events.NewEventListener(func(event *events.Event) {
+		r.RemoveRecorder(ctx, event.Object.(api.Live).GetLiveId())
+	}))
+
 	return nil
 }
 
