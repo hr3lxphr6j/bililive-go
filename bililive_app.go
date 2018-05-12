@@ -135,6 +135,10 @@ func main() {
 	// 初始化监听、录制
 	listeners.NewIListenerManager(ctx)
 	recorders.NewIRecorderManager(ctx)
+	// 初始化RPC
+	if inst.Config.RPC.Enable {
+		servers.NewServer(ctx).Start(ctx)
+	}
 
 	// 从配置添加直播间
 	for _, room := range inst.Config.LiveRooms {
@@ -142,24 +146,20 @@ func main() {
 		if err != nil {
 			logger.Error(err)
 		}
-		l := api.NewLive(u)
-		if l != nil {
+
+		if l, err := api.NewLive(u); err == nil {
 			if _, ok := inst.Lives[l.GetLiveId()]; ok {
 				logger.Errorf("%s is exist!", room)
 			} else {
 				inst.Lives[l.GetLiveId()] = l
 			}
 		} else {
-			logger.Errorf("url: %s, is not support, or not exist!")
+			logger.WithField("url", room).Error(err.Error())
 		}
 	}
 
 	inst.ListenerManager.Start(ctx)
 	inst.RecorderManager.Start(ctx)
 
-	// 初始化RPC
-	if inst.Config.RPC.Enable {
-		servers.NewServer(ctx).Start(ctx)
-	}
 	inst.WaitGroup.Wait()
 }

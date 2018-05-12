@@ -108,8 +108,8 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 	gjson.GetBytes(b, "lives").ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
 		u, _ := url.Parse(value.Get("url").String())
-		live := api.NewLive(u)
-		if live != nil {
+
+		if live, err := api.NewLive(u); err == nil {
 			inst := instance.GetInstance(r.Context())
 			if _, ok := inst.Lives[live.GetLiveId()]; !ok {
 				inst.Lives[live.GetLiveId()] = live

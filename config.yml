@@ -9,4 +9,4 @@ rpc:
 log_level: info
 interval: 15
 out_put_path: ./
-live_rooms: ["https://live.bilibili.com/161"]
+live_rooms: ["https://www.panda.tv/10300"]

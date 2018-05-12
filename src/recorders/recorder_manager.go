@@ -34,7 +34,7 @@ type RecorderManager struct {
 func (r *RecorderManager) Start(ctx context.Context) error {
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Add(1)
-
+	inst.Logger.Debug("RecorderManager Start")
 	ed := inst.EventDispatcher.(events.IEventDispatcher)
 
 	// 开播事件
@@ -53,6 +53,7 @@ func (r *RecorderManager) Start(ctx context.Context) error {
 func (r *RecorderManager) Close(ctx context.Context) {
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Done()
+	inst.Logger.Debug("RecorderManager End")
 }
 
 func (r *RecorderManager) AddRecorder(ctx context.Context, live api.Live) error {

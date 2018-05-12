@@ -32,9 +32,10 @@ type ListenerManager struct {
 func (l *ListenerManager) Start(ctx context.Context) error {
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Add(1)
+	instance.GetInstance(ctx).Logger.Debug("ListenerManager Start")
 	for _, live := range inst.Lives {
 		if err := l.AddListener(ctx, live); err != nil {
-			instance.GetInstance(ctx).Logger.WithFields(map[string]interface{}{"id": live.GetLiveId()}).Error(err)
+			instance.GetInstance(ctx).Logger.WithFields(map[string]interface{}{"url": live.GetRawUrl()}).Error(err)
 		}
 	}
 	return nil
@@ -43,12 +44,12 @@ func (l *ListenerManager) Start(ctx context.Context) error {
 func (l *ListenerManager) Close(ctx context.Context) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-
 	for _, listener := range l.savers {
 		go listener.Close()
 	}
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Done()
+	instance.GetInstance(ctx).Logger.Debug("ListenerManager Closed")
 }
 
 func (l *ListenerManager) AddListener(ctx context.Context, live api.Live) error {

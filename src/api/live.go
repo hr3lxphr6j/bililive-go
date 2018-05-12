@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"net/url"
@@ -18,6 +19,7 @@ type Live interface {
 	GetLiveId() LiveId
 	GetRawUrl() string
 	GetInfo() (*Info, error)
+	GetInfoMap() map[string]interface{}
 	GetCachedInfo() *Info
 	GetStreamUrls() ([]*url.URL, error)
 }
@@ -40,6 +42,16 @@ func (a *abstractLive) GetCachedInfo() *Info {
 	return a.cachedInfo
 }
 
+func (a *abstractLive) GetInfoMap() map[string]interface{} {
+	return map[string]interface{}{
+		"id":        a.GetLiveId(),
+		"url":       a.GetRawUrl(),
+		"host_name": a.GetCachedInfo().HostName,
+		"room_name": a.GetCachedInfo().RoomName,
+		"status":    a.GetCachedInfo().Status,
+	}
+}
+
 type RoomNotExistsError struct {
 	Url *url.URL
 }
@@ -53,7 +65,7 @@ func IsRoomNotExistsError(err error) bool {
 	return ok
 }
 
-func NewLive(url *url.URL) Live {
+func NewLive(url *url.URL) (Live, error) {
 	baseLive := abstractLive{
 		Url:    url,
 		liveId: LiveId(utils.GetMd5String([]byte(fmt.Sprintf("%s%s", url.Host, url.Path)))),
@@ -85,13 +97,12 @@ func NewLive(url *url.URL) Live {
 		for i := 0; i < 3; i++ {
 			if _, err := live.GetInfo(); err != nil {
 				if IsRoomNotExistsError(err) {
-					live = nil
-					break
+					return nil, err
 				}
 			} else {
-				break
+				return live, nil
 			}
 		}
 	}
-	return live
+	return nil, errors.New("cat not parse")
 }
