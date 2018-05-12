@@ -111,4 +111,4 @@ live_rooms:               # 直播间url
 ```
 
 ## API
-[API doc](https://github.com/hr3lxphr6j/bililive-go/raw/rpc-b/API.md)
+[API doc](https://github.com/hr3lxphr6j/bililive-go/blob/rpc-b/API.md)
