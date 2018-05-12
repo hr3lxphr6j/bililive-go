@@ -90,6 +90,8 @@ func NewLive(url *url.URL) (Live, error) {
 		live = &TwitchLive{abstractLive: baseLive}
 	case "www.huya.com":
 		live = &HuYaLive{abstractLive: baseLive}
+	case "cc.163.com":
+		live = &CCLive{abstractLive: baseLive}
 	default:
 		live = nil
 	}

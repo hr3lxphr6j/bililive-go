@@ -22,7 +22,7 @@ type RPC struct {
 }
 type Config struct {
 	RPC        RPC      `yaml:"rpc"`
-	LogLevel   string   `yaml:"log_level"`
+	Debug      bool     `yaml:"debug"`
 	Interval   int      `yaml:"interval"`
 	OutPutPath string   `yaml:"out_put_path"`
 	LiveRooms  []string `yaml:"live_rooms"`
@@ -69,13 +69,4 @@ func (config *Config) Marshal() error {
 		return err
 	}
 	return ioutil.WriteFile(config.file, b, os.ModeAppend)
-}
-
-func NewConfig() *Config {
-	config := new(Config)
-	config.RPC.Enable = false
-	config.LogLevel = "info"
-	config.Interval = 30
-	config.OutPutPath = "./"
-	return config
 }

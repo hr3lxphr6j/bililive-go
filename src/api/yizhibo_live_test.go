@@ -9,10 +9,12 @@ const yizhiboTestUrl = "https://www.yizhibo.com/l/ytbdVP1SSmWXzUx_.html"
 
 func TestYiZhiBoLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(yizhiboTestUrl)
-	t.Log(NewLive(u).GetInfo())
+	live, _ := NewLive(u)
+	t.Log(live.GetInfo())
 }
 
 func TestYiZhiBoLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(yizhiboTestUrl)
-	t.Log(NewLive(u).GetStreamUrls())
+	live, _ := NewLive(u)
+	t.Log(live.GetStreamUrls())
 }

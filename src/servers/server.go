@@ -2,6 +2,8 @@ package servers
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"net/http"
@@ -11,6 +13,8 @@ import (
 type Server struct {
 	server *http.Server
 }
+
+var authorization string
 
 func initMux(ctx context.Context) *mux.Router {
 	m := mux.NewRouter()
@@ -22,7 +26,6 @@ func initMux(ctx context.Context) *mux.Router {
 					"Method":     r.Method,
 					"Path":       r.RequestURI,
 					"RemoteAddr": r.RemoteAddr,
-					"Token":      r.Header.Get("token"),
 				}).Debug("Http Request")
 				handler.ServeHTTP(w, r)
 			})
@@ -30,11 +33,16 @@ func initMux(ctx context.Context) *mux.Router {
 		// token verify
 		func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.Header.Get("token") == instance.GetInstance(ctx).Config.RPC.Token {
+				token := instance.GetInstance(ctx).Config.RPC.Token
+				if authorization == "" {
+					authorization = fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("token:%s", token))))
+				}
+				if token == "" || r.Header.Get("authorization") == authorization {
 					handler.ServeHTTP(w, r)
 				} else {
 					http.Error(w, "Forbidden", http.StatusForbidden)
 				}
+
 			})
 		},
 		// context

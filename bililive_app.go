@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
+	"github.com/alecthomas/kingpin"
 	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
@@ -15,98 +15,59 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/servers"
 	"net/url"
 	"os"
-	"strings"
 )
 
 const (
-	AppName     = "BiliLive-go"
-	AppVersion  = "0.20"
-	CommandName = "bililive-go"
+	AppName    = "BiliLive-go"
+	AppVersion = "0.21-beta"
 )
-
-func version() {
-	fmt.Fprintf(os.Stderr, "%s Version: %s\n", AppName, AppVersion)
-}
-
-func help() {
-	version()
-	fmt.Fprintf(os.Stderr,
-		"Usage: %s [-hv] [-i urls] [-o path] [-t seconds] [-c filename]\n\n"+
-			"Options:\n"+
-			"  -h:\tthis help\n"+
-			"  -v:\tshow version and exit\n"+
-			"  -i:\tlive room urls, if have many urls, split with \"|\"\n"+
-			"  -o:\toutput file path (default: ./)\n"+
-			"  -t:\tinterval of query live status (default: 30)\n"+
-			"  -c:\tset configuration file, command line options with override this (default: ./config.yml)\n", CommandName)
-}
 
 var (
-	h bool   // 帮助
-	v bool   // 版本信息
-	c string // 配置文件
-	i string // 直播间urls
-	o string // 输出路径
-	t int    // 轮训间隔
-
+	app      = kingpin.New(AppName, "A command-line live stream save tools.").Version(AppVersion)
+	debug    = app.Flag("debug", "Enable debug mode.").Default("false").Bool()
+	interval = app.Flag("interval", "Interval of query live status").Default("20").Short('t').Int()
+	output   = app.Flag("output", "Output file path.").Short('o').Default("./").String()
+	input    = app.Flag("input", "Live room urls").Short('i').Strings()
+	conf     = app.Flag("config", "Config file.").Short('c').String()
+	rpc      = app.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
+	rpcAddr  = app.Flag("rpc-addr", "RPC server listen port").Default(":8080").String()
+	rpcToken = app.Flag("rpc-token", "RPC server token.").String()
+	rpcTLS   = app.Flag("enable-rpc-tls", "Enable TLS for RPC server").Bool()
+	certFile = app.Flag("rpc-tls-cert-file", "Cert file for TLS on RPC").String()
+	keyFile  = app.Flag("rpc-tls-key-file", "Key file for TLS on RPC").String()
 )
 
-func parse(inst *instance.Instance) {
-	flag.BoolVar(&h, "h", false, "show help info")
-	flag.BoolVar(&v, "v", false, "show version")
-	flag.StringVar(&c, "c", "", "config file")
-	flag.StringVar(&i, "i", "", "live room urls, if have many urls, split with \"|\"")
-	flag.StringVar(&o, "o", "", "output file path (default: ./)")
-	flag.IntVar(&t, "t", -1, "interval of query live status")
-	flag.Parse()
-
-	if h {
-		help()
-		os.Exit(0)
-	}
-	if v {
-		version()
-		os.Exit(0)
-	}
-
-	if c == "" {
-		// 未定义配置文件，尝试解析默认位置
-		config, err := configs.NewConfigWithFile("./config.yml")
-		if err != nil {
-			config = configs.NewConfig()
+func getConfig() (*configs.Config, error) {
+	kingpin.MustParse(app.Parse(os.Args[1:]))
+	var config *configs.Config
+	if *conf != "" {
+		if c, err := configs.NewConfigWithFile(*conf); err == nil {
+			config = c
+		} else {
+			return nil, err
 		}
-		inst.Config = config
 	} else {
-		// 已定义配置文件，若解析出错则报错退出
-		config, err := configs.NewConfigWithFile(c)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, err.Error()+"\n")
-			os.Exit(1)
+		config = &configs.Config{
+			RPC: configs.RPC{
+				Enable: *rpc,
+				Port:   *rpcAddr,
+				Token:  *rpcToken,
+				TLS: configs.TLS{
+					Enable:   *rpcTLS,
+					CertFile: *certFile,
+					KeyFile:  *keyFile,
+				},
+			},
+			Debug:      *debug,
+			Interval:   *interval,
+			OutPutPath: *output,
+			LiveRooms:  *input,
 		}
-		inst.Config = config
 	}
-
-	if i != "" {
-		for _, u := range strings.Split(i, "|") {
-			if u != "" {
-				inst.Config.LiveRooms = append(inst.Config.LiveRooms, u)
-			}
-		}
+	if err := configs.VerifyConfig(config); err != nil {
+		return nil, err
 	}
-
-	if o != "" {
-		inst.Config.OutPutPath = o
-	}
-
-	if t != -1 {
-		inst.Config.Interval = t
-	}
-
-	if err := configs.VerifyConfig(inst.Config); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(2)
-	}
-
+	return config, nil
 }
 
 func main() {
@@ -115,31 +76,23 @@ func main() {
 		fmt.Fprintf(os.Stderr, "FFmpeg binary not found, Please Check.\n")
 		os.Exit(3)
 	}
-
+	config, err := getConfig()
+	if err != nil {
+		fmt.Fprint(os.Stderr, err.Error())
+		os.Exit(1)
+	}
 	// 初始化实例
 	inst := new(instance.Instance)
+	inst.Config = config
 	ctx := context.WithValue(context.Background(), instance.InstanceKey, inst)
-
-	// 解析参数和配置
-	parse(inst)
-
-	// 初始化事件分发模块
-	events.NewIEventDispatcher(ctx)
 	logger := log.NewLogger(ctx)
 	logger.Infof("%s Version: %s Link Start", AppName, AppVersion)
 	logger.Debug(inst.Config)
 
+	// 初始化事件分发模块
+	events.NewIEventDispatcher(ctx)
 	// 初始化直播间记录
 	inst.Lives = make(map[api.LiveId]api.Live)
-
-	// 初始化监听、录制
-	listeners.NewIListenerManager(ctx)
-	recorders.NewIRecorderManager(ctx)
-	// 初始化RPC
-	if inst.Config.RPC.Enable {
-		servers.NewServer(ctx).Start(ctx)
-	}
-
 	// 从配置添加直播间
 	for _, room := range inst.Config.LiveRooms {
 		u, err := url.Parse(room)
@@ -156,9 +109,16 @@ func main() {
 			logger.WithField("url", room).Error(err.Error())
 		}
 	}
-
+	// 初始化RPC
+	if inst.Config.RPC.Enable {
+		servers.NewServer(ctx).Start(ctx)
+	}
+	// 初始化监听、录制
+	listeners.NewIListenerManager(ctx)
+	recorders.NewIRecorderManager(ctx)
+	// 启动监听模块
 	inst.ListenerManager.Start(ctx)
 	inst.RecorderManager.Start(ctx)
-
 	inst.WaitGroup.Wait()
+	logger.Info("Bye~")
 }

@@ -3,12 +3,12 @@
 Bililive-go是一个跨平台、多直播间录制工具   
 By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)   
 
-![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/screenshot.png)
+![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/screenshot.webp)
 
 
 ## 例子
 ```
-./bililive-go -i "https://www.panda.tv/10300|https://www.douyu.com/6655"
+./bililive-go -i https://www.panda.tv/10300 -i https://www.douyu.com/6655
 ```
 
 ## 支持网站
@@ -55,6 +55,11 @@ By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)
         <td>滋瓷</td>
     </tr>
     <tr align="center">
+        <td>CC直播</td>
+        <td>cc.163.com</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
         <td>一直播</td>
         <td>www.yizhibo.com</td>
         <td>滋瓷</td>
@@ -83,14 +88,27 @@ By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)
 
 ## 使用
 ```
-Usage: bililive-go [-hv] [-i urls] [-o path] [-t seconds] [-c filename]
-Options:
-  -h: 显示帮助并退出
-  -v: 显示版本并退出
-  -i: 直播间地址，若有多个直播间请使用 "|" 进行分割
-  -o: 输出文件目录，默认为 ./ ，及为当前目录 
-  -t: 直播间状态查询间隔时间，默认30(s)
-  -c: 设置配置文件，命令行的参数将会覆盖配置文件中相同的设置，默认读取 ./config.yml
+usage: BiliLive-go [<flags>]
+
+A command-line live stream save tools.
+
+Flags:
+      --help                 Show context-sensitive help (also try --help-long and --help-man).
+      --version              Show application version.
+      --debug                Enable debug mode.
+  -t, --interval=20          Interval of query live status
+  -o, --output="./"          Output file path.
+  -i, --input=INPUT ...      Live room urls
+  -c, --config=CONFIG        Config file.
+      --enable-rpc           Enable RPC server.
+      --rpc-addr=":8080"     RPC server listen port
+      --rpc-token=RPC-TOKEN  RPC server token.
+      --enable-rpc-tls       Enable TLS for RPC server
+      --rpc-tls-cert-file=RPC-TLS-CERT-FILE  
+                             Cert file for TLS on RPC
+      --rpc-tls-key-file=RPC-TLS-KEY-FILE  
+                             Key file for TLS on RPC
+
 ```
 
 ## 配置文件
@@ -98,12 +116,12 @@ Options:
 rpc: 
   enable: true            # 是否开启API
   port: 127.0.0.1:8080    # 监听地址
-  token: ""               # token,在header中传递
+  token: ""               # token
   tls:                    # tls配置
     enable: false
     cert_file: ""
     key_file: ""
-log_level: info           # log等级(info|debug...)
+debug: false              # debug模式
 interval: 15              # 直播间状态查询间隔时间（秒）
 out_put_path: ./          # 输出文件路径
 live_rooms:               # 直播间url
@@ -111,4 +129,4 @@ live_rooms:               # 直播间url
 ```
 
 ## API
-[API doc](https://github.com/hr3lxphr6j/bililive-go/blob/rpc-b/API.md)
+[API doc](https://github.com/hr3lxphr6j/bililive-go/blob/master/API.md)

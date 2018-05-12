@@ -5,14 +5,16 @@ import (
 	"testing"
 )
 
-const pandaTestUrl = "https://www.panda.tv/1865618"
+const pandaTestUrl = "https://www.panda.tv/1909193"
 
 func TestPandaLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(pandaTestUrl)
-	t.Log(NewLive(u).GetInfo())
+	live, _ := NewLive(u)
+	t.Log(live.GetInfo())
 }
 
 func TestPandaLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(pandaTestUrl)
-	t.Log(NewLive(u).GetStreamUrls())
+	live, _ := NewLive(u)
+	t.Log(live.GetStreamUrls())
 }

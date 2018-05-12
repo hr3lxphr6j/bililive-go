@@ -9,10 +9,12 @@ const twitchTestUrl = "https://www.twitch.tv/wuyikoei"
 
 func TestTwitchLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(twitchTestUrl)
-	t.Log(NewLive(u).GetInfo())
+	live, _ := NewLive(u)
+	t.Log(live.GetInfo())
 }
 
 func TestTwitchLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(twitchTestUrl)
-	t.Log(NewLive(u).GetStreamUrls())
+	live, _ := NewLive(u)
+	t.Log(live.GetStreamUrls())
 }

@@ -31,7 +31,9 @@ type ListenerManager struct {
 
 func (l *ListenerManager) Start(ctx context.Context) error {
 	inst := instance.GetInstance(ctx)
-	inst.WaitGroup.Add(1)
+	if inst.Config.RPC.Enable || len(inst.Lives) > 0 {
+		inst.WaitGroup.Add(1)
+	}
 	instance.GetInstance(ctx).Logger.Debug("ListenerManager Start")
 	for _, live := range inst.Lives {
 		if err := l.AddListener(ctx, live); err != nil {

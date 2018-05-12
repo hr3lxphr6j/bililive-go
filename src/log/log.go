@@ -10,25 +10,10 @@ import (
 
 func NewLogger(ctx context.Context) *interfaces.Logger {
 	inst := instance.GetInstance(ctx)
-
 	logLevel := logrus.InfoLevel
-	switch inst.Config.LogLevel {
-	case "panic":
-		logLevel = logrus.PanicLevel
-	case "fatal":
-		logLevel = logrus.FatalLevel
-	case "error":
-		logLevel = logrus.ErrorLevel
-	case "warn":
-		logLevel = logrus.WarnLevel
-	case "info":
-		logLevel = logrus.InfoLevel
-	case "debug":
+	if inst.Config.Debug {
 		logLevel = logrus.DebugLevel
-	default:
-		logLevel = logrus.InfoLevel
 	}
-
 	logger := &interfaces.Logger{Logger: &logrus.Logger{
 		Out: os.Stderr,
 		Formatter: &logrus.TextFormatter{

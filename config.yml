@@ -6,7 +6,7 @@ rpc:
     enable: false
     cert_file: ""
     key_file: ""
-log_level: info
+debug: true
 interval: 15
 out_put_path: ./
 live_rooms:

@@ -1,12 +1,11 @@
 # Bililive-go API
 
 
-* `GET /live` Get all live info 
+* `GET /lives` Get all live info 
     - Request:  
         ```text
         method: GET
-        path: /live
-        token: 114514
+        path: http://token:114514@127.0.0.1:8080/lives
         ```
     - Response:   
         ```json
@@ -42,12 +41,11 @@
         }
         ```
         
-* `GET /live/{id}` Get live info by id
+* `GET /lives/{id}` Get live info by id
     - Request:  
         ```text
         method: GET
-        path: /live/8cfc58ff74b31970899c0fe69345c222
-        token: 114514
+        path: http://token:114514@127.0.0.1:8080/lives/8cfc58ff74b31970899c0fe69345c222
         ```
     - Response:
         ```json
@@ -68,12 +66,49 @@
         }
         ```
         
-* `DELETE /live/{id}` Delete live by id
+* `POST /lives` Add live
+    - Request:  
+        ```text
+        method: POST
+        path: http://token:114514@127.0.0.1:8080/lives
+        body: 
+              {
+                  "lives": [
+                      {
+                          "url": "https://www.panda.tv/10300",
+                          "listen": true
+                      }
+                  ]
+              }
+        ```
+    - Response:
+        ```json
+        {
+            "err_no": 0,
+            "err_msg": "",
+            "data": {
+                "lives": [
+                    {
+                        "id": "8cfc58ff74b31970899c0fe69345c222",
+                        "live_url": "https://www.panda.tv/10300",
+                        "info": {
+                            "host_name": "司机王老菊",
+                            "room_name": "【王老菊】",
+                            "status": false
+                        },
+                        "is_listening": true,
+                        "is_recoding": false
+                    }
+                ]
+            }
+        }
+        ```        
+        
+* `DELETE /lives/{id}` Delete live by id
     - Request:  
         ```text
         method: DELETE
-        path: /live/8cfc58ff74b31970899c0fe69345c222
-        token: 114514
+        path: http://token:114514@127.0.0.1:8080/lives/8cfc58ff74b31970899c0fe69345c222
         ```
     - Response:
         ```json
@@ -88,8 +123,7 @@
     - Request:  
         ```text
         method: GET
-        path: /live/8cfc58ff74b31970899c0fe69345c222/start
-        token: 114514
+        path: http://token:114514@127.0.0.1:8080/lives/8cfc58ff74b31970899c0fe69345c222/start
         ```
     - Response:
         ```json
@@ -114,8 +148,7 @@
     - Request:  
         ```text
         method: GET
-        path: /live/8cfc58ff74b31970899c0fe69345c222/stop
-        token: 114514
+        path: http://token:114514@127.0.0.1:8080/lives/8cfc58ff74b31970899c0fe69345c222/stop
         ```
     - Response:
         ```json
@@ -140,8 +173,7 @@
     - Request:  
         ```text
         method: GET
-        path: /config
-        token: 114514
+        path: http://token:114514@127.0.0.1:8080/config
         ```
     - Response:
         ```json
@@ -170,8 +202,7 @@
     - Request:  
         ```text
         method: PUT
-        path: /config
-        token: 114514
+        path: http://token:114514@127.0.0.1:8080/config
         ```
     - Response:
         ```json
@@ -185,9 +216,8 @@
 * `GET /files/` A basic file server for out put path
     - Request:  
         ```text
-        method: PUT
-        path: /files
-        token: 114514
+        method: GET
+        path: http://token:114514@127.0.0.1:8080/files
         ```
     - Response:
         ```html

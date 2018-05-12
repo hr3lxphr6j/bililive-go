@@ -33,7 +33,9 @@ type RecorderManager struct {
 
 func (r *RecorderManager) Start(ctx context.Context) error {
 	inst := instance.GetInstance(ctx)
-	inst.WaitGroup.Add(1)
+	if inst.Config.RPC.Enable || len(inst.Lives) > 0 {
+		inst.WaitGroup.Add(1)
+	}
 	inst.Logger.Debug("RecorderManager Start")
 	ed := inst.EventDispatcher.(events.IEventDispatcher)
 

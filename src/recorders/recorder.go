@@ -64,7 +64,7 @@ func (r *Recorder) run() {
 				"ffmpeg",
 				"-loglevel", "warning",
 				"-y", "-re",
-				"-timeout", "15000000",
+				"-timeout", "60000000",
 				"-i", urls[0].String(),
 				"-c", "copy",
 				"-bsf:a", "aac_adtstoasc",
