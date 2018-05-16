@@ -35,11 +35,6 @@ func (l *ListenerManager) Start(ctx context.Context) error {
 		inst.WaitGroup.Add(1)
 	}
 	instance.GetInstance(ctx).Logger.Debug("ListenerManager Start")
-	for _, live := range inst.Lives {
-		if err := l.AddListener(ctx, live); err != nil {
-			instance.GetInstance(ctx).Logger.WithFields(map[string]interface{}{"url": live.GetRawUrl()}).Error(err)
-		}
-	}
 	return nil
 }
 

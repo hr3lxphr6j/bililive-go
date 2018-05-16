@@ -34,6 +34,7 @@ type Listener struct {
 func (l *Listener) Start() error {
 	l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Start")
 	l.ed.DispatchEvent(events.NewEvent(ListenStart, l.Live))
+	l.refresh()
 	go l.run()
 	return nil
 }
@@ -42,6 +43,24 @@ func (l *Listener) Close() {
 	l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Close")
 	l.ed.DispatchEvent(events.NewEvent(ListenStop, l.Live))
 	close(l.stop)
+}
+
+func (l *Listener) refresh() {
+	info, err := l.Live.GetInfo()
+	if err != nil {
+		return
+	}
+	if info.Status == l.status {
+		return
+	}
+	l.status = info.Status
+	if l.status {
+		l.logger.WithFields(l.Live.GetInfoMap()).Info("Live Start")
+		l.ed.DispatchEvent(events.NewEvent(LiveStart, l.Live))
+	} else {
+		l.logger.WithFields(l.Live.GetInfoMap()).Info("Live End")
+		l.ed.DispatchEvent(events.NewEvent(LiveEnd, l.Live))
+	}
 }
 
 func (l *Listener) run() {
@@ -54,21 +73,7 @@ func (l *Listener) run() {
 		case <-l.stop:
 			return
 		case <-l.ticker.C:
-			info, err := l.Live.GetInfo()
-			if err != nil {
-				continue
-			}
-			if info.Status == l.status {
-				continue
-			}
-			l.status = info.Status
-			if l.status {
-				l.logger.WithFields(l.Live.GetInfoMap()).Info("Live Start")
-				l.ed.DispatchEvent(events.NewEvent(LiveStart, l.Live))
-			} else {
-				l.logger.WithFields(l.Live.GetInfoMap()).Info("Live End")
-				l.ed.DispatchEvent(events.NewEvent(LiveEnd, l.Live))
-			}
+			l.refresh()
 		}
 	}
 }

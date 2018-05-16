@@ -19,7 +19,7 @@ import (
 
 const (
 	AppName    = "BiliLive-go"
-	AppVersion = "0.21-beta"
+	AppVersion = "0.22-beta (Dark Sword)"
 )
 
 var (
@@ -114,11 +114,18 @@ func main() {
 		servers.NewServer(ctx).Start(ctx)
 	}
 	// 初始化监听、录制
-	listeners.NewIListenerManager(ctx)
+	lm := listeners.NewIListenerManager(ctx)
 	recorders.NewIRecorderManager(ctx)
 	// 启动监听模块
 	inst.ListenerManager.Start(ctx)
 	inst.RecorderManager.Start(ctx)
+
+	// 添加现有直播间监听
+	for _, live := range inst.Lives {
+		if err := lm.AddListener(ctx, live); err != nil {
+			logger.WithFields(map[string]interface{}{"url": live.GetRawUrl()}).Error(err)
+		}
+	}
 	inst.WaitGroup.Wait()
 	logger.Info("Bye~")
 }
