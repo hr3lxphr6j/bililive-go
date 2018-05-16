@@ -10,6 +10,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"io"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
@@ -50,8 +51,10 @@ func (r *Recorder) run() {
 				continue
 			}
 			t := time.Now()
+			outputPath := filepath.Join(r.OutPutPath, r.Live.GetPlatformCNName(), r.Live.GetCachedInfo().HostName)
+			os.MkdirAll(outputPath, os.ModePerm)
 			outfile := filepath.Join(
-				r.OutPutPath,
+				outputPath,
 				fmt.Sprintf(
 					"[%02d-%02d-%02d %02d-%02d-%02d][%s][%s].flv",
 					t.Year(), t.Month(), t.Day(), t.Hour(),

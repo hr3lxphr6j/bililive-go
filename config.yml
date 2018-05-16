@@ -8,6 +8,7 @@ rpc:
     key_file: ""
 debug: true
 interval: 15
-out_put_path: ./
+out_put_path: /Users/chigusa/Movies
 live_rooms:
 - https://www.panda.tv/10300
+- https://live.bilibili.com/1010

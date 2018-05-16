@@ -2,8 +2,11 @@ FROM alpine
 
 MAINTAINER chigusa
 
+
 ENV OUTPUT_DIR /srv/bililive
 ENV PORT 8080
+
+EXPOSE $PORT
 
 RUN mkdir -p $OUTPUT_DIR && \
     apk update && \
@@ -13,6 +16,6 @@ RUN mkdir -p $OUTPUT_DIR && \
 EXPOSE $PORT
 VOLUME $OUTPUT_DIR
 
-ADD bililive /usr/bin
+ADD bililive-go /usr/bin
 
-CMD bililive --enable-rpc --port $PORT -o $OUTPUT_DIR
+ENTRYPOINT /usr/bin/bililive-go --enable-rpc --rpc-addr :$PORT -o $OUTPUT_DIR

@@ -7,6 +7,19 @@ import (
 	"net/url"
 )
 
+var LivePlatformCNNameMap = map[string]string{
+	"www.panda.tv":      "熊猫",
+	"live.bilibili.com": "哔哩哔哩",
+	"www.zhanqi.tv":     "战旗",
+	"www.douyu.com":     "斗鱼",
+	"star.longzhu.com":  "龙珠",
+	"www.huomao.com":    "火猫",
+	"www.yizhibo.com":   "一直播",
+	"www.twitch.tv":     "twitch",
+	"www.huya.com":      "虎牙",
+	"cc.163.com":        "CC直播",
+}
+
 type Info struct {
 	Live               Live
 	HostName, RoomName string
@@ -22,6 +35,7 @@ type Live interface {
 	GetInfoMap() map[string]interface{}
 	GetCachedInfo() *Info
 	GetStreamUrls() ([]*url.URL, error)
+	GetPlatformCNName() string
 }
 
 type abstractLive struct {
@@ -50,6 +64,10 @@ func (a *abstractLive) GetInfoMap() map[string]interface{} {
 		"room_name": a.GetCachedInfo().RoomName,
 		"status":    a.GetCachedInfo().Status,
 	}
+}
+
+func (a *abstractLive) GetPlatformCNName() string {
+	return LivePlatformCNNameMap[a.Url.Host]
 }
 
 type RoomNotExistsError struct {
