@@ -55,6 +55,11 @@ By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)
         <td>滋瓷</td>
     </tr>
     <tr align="center">
+        <td>全民直播</td>
+        <td>www.quanmin.tv</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
         <td>CC直播</td>
         <td>cc.163.com</td>
         <td>滋瓷</td>
@@ -67,6 +72,11 @@ By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)
     <tr align="center">
         <td>twitch</td>
         <td>www.twitch.tv</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>OPENREC</td>
+        <td>www.openrec.tv</td>
         <td>滋瓷</td>
     </tr>
 </table>
