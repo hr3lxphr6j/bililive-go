@@ -12,6 +12,7 @@ const huomaoLiveApiUrl = "http://www.huomao.com/swf/live_data"
 
 type HuoMaoLive struct {
 	abstractLive
+	isDuanbo bool
 }
 
 func (h *HuoMaoLive) GetInfo() (*Info, error) {
@@ -19,11 +20,24 @@ func (h *HuoMaoLive) GetInfo() (*Info, error) {
 	if err != nil {
 		return nil, err
 	}
+	h.isDuanbo = regexp.MustCompile(`face_label\s?=\s?(\d*);`).FindStringSubmatch(string(dom))[1] == "1"
+	var hostNameReg string
+	var roomNameReg string
+	var statusReg string
+	if h.isDuanbo {
+		hostNameReg = `live_yz_h_nickName\s?=\s?"([^"]*)";`
+		roomNameReg = `live_yz_h_channelName\s?=\s?"([^"]*)";`
+		statusReg = `is_live\s?=\s?"?(\d*)"?;`
+	} else {
+		hostNameReg = `"nickname":"([^"]*)",`
+		roomNameReg = `"channel":"([^"]*)"`
+		statusReg = `"is_live":"?(\d*)"?,`
+	}
 	info := &Info{
 		Live:     h,
-		HostName: utils.ParseUnicode(regexp.MustCompile(`"nickname":"([^"]*)"`).FindStringSubmatch(string(dom))[1]),
-		RoomName: utils.ParseUnicode(regexp.MustCompile(`"channel":"([^"]*)"`).FindStringSubmatch(string(dom))[1]),
-		Status:   utils.ParseUnicode(regexp.MustCompile(`"is_live":"?(\d*)"?,`).FindStringSubmatch(string(dom))[1]) == "1",
+		HostName: utils.ParseUnicode(regexp.MustCompile(hostNameReg).FindStringSubmatch(string(dom))[1]),
+		RoomName: utils.ParseUnicode(regexp.MustCompile(roomNameReg).FindStringSubmatch(string(dom))[1]),
+		Status:   utils.ParseUnicode(regexp.MustCompile(statusReg).FindStringSubmatch(string(dom))[1]) == "1",
 	}
 	h.cachedInfo = info
 	return info, nil
@@ -34,7 +48,13 @@ func (h *HuoMaoLive) GetStreamUrls() ([]*url.URL, error) {
 	if err != nil {
 		return nil, err
 	}
-	streamID := regexp.MustCompile(`"stream":"([^"]*)"`).FindStringSubmatch(string(dom))[1]
+	var streamReg string
+	if !h.isDuanbo {
+		streamReg = `"stream":"([^"]*)"`
+	} else {
+		streamReg = `getFlash\("\d*","([^"]*)","\d*"\);`
+	}
+	streamID := regexp.MustCompile(streamReg).FindStringSubmatch(string(dom))[1]
 	body, err := http.Post(huomaoLiveApiUrl, map[string]string{
 		"VideoIDS":   streamID,
 		"streamtype": "live",
