@@ -1,5 +1,9 @@
 # Bililive-go API
 
+## About Token
+你可以在配置中指定token来保证API的安全性，token可以以两种方式提供
+   - HTTP Basic: `http://token:114514@127.0.0.1:8080/lives`
+   - Url Parameter: `http://127.0.0.1:8080/lives?token=114514`
 
 * `GET /lives` Get all live info 
     - Request:  

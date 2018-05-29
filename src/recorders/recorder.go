@@ -51,7 +51,7 @@ func (r *Recorder) run() {
 				continue
 			}
 			t := time.Now()
-			outputPath := filepath.Join(r.OutPutPath, r.Live.GetPlatformCNName(), r.Live.GetCachedInfo().HostName)
+			outputPath := filepath.Join(r.OutPutPath, utils.ReplaceIllegalChar(r.Live.GetPlatformCNName()), utils.ReplaceIllegalChar(r.Live.GetCachedInfo().HostName))
 			os.MkdirAll(outputPath, os.ModePerm)
 			outfile := filepath.Join(
 				outputPath,

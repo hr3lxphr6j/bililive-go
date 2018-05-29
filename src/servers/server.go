@@ -30,27 +30,14 @@ func initMux(ctx context.Context) *mux.Router {
 				handler.ServeHTTP(w, r)
 			})
 		},
-		// token verify
-		func(handler http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				token := instance.GetInstance(ctx).Config.RPC.Token
-				if authorization == "" {
-					authorization = fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("token:%s", token))))
-				}
-				if token == "" || r.Header.Get("authorization") == authorization {
-					handler.ServeHTTP(w, r)
-				} else {
-					http.Error(w, "Forbidden", http.StatusForbidden)
-				}
 
-			})
-		},
 		// context
 		func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				handler.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), instance.InstanceKey, instance.GetInstance(ctx))))
 			})
 		},
+
 		// Content-Type
 		func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +46,24 @@ func initMux(ctx context.Context) *mux.Router {
 				}
 				handler.ServeHTTP(w, r)
 			})
+		},
+
+		// token verify
+		func(handler http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				token := instance.GetInstance(ctx).Config.RPC.Token
+				if authorization == "" {
+					authorization = fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("token:%s", token))))
+				}
+				if token == "" || r.Header.Get("authorization") == authorization || r.FormValue("token") == token {
+					handler.ServeHTTP(w, r)
+				} else {
+					w.WriteHeader(http.StatusForbidden)
+					w.Write([]byte(`{"err_no":403,"err_msg":"the token is incorrect","data":null}`))
+				}
+			})
 		})
+
 	m.HandleFunc("/config", getConfig).Methods("GET")
 	m.HandleFunc("/config", putConfig).Methods("PUT")
 	m.HandleFunc("/lives", getAllLives).Methods("GET")
