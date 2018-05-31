@@ -38,6 +38,21 @@ func initMux(ctx context.Context) *mux.Router {
 			})
 		},
 
+		// CORS
+		func(handler http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == http.MethodOptions {
+					w.Header().Add("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+					w.Header().Add("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+					w.Header().Add("Access-Control-Allow-Headers", "Authorization")
+					w.Write(nil)
+				} else {
+					w.Header().Add("Access-Control-Allow-Origin", "*")
+					handler.ServeHTTP(w, r)
+				}
+			})
+		},
+
 		// Content-Type
 		func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -64,13 +79,13 @@ func initMux(ctx context.Context) *mux.Router {
 			})
 		})
 
-	m.HandleFunc("/config", getConfig).Methods("GET")
-	m.HandleFunc("/config", putConfig).Methods("PUT")
-	m.HandleFunc("/lives", getAllLives).Methods("GET")
-	m.HandleFunc("/lives", addLives).Methods("POST")
-	m.HandleFunc("/lives/{id}", getLive).Methods("GET")
-	m.HandleFunc("/lives/{id}", removeLive).Methods("DELETE")
-	m.HandleFunc("/lives/{id}/{action}", parseLiveAction).Methods("GET")
+	m.HandleFunc("/config", getConfig).Methods("GET", "OPTIONS")
+	m.HandleFunc("/config", putConfig).Methods("PUT", "OPTIONS")
+	m.HandleFunc("/lives", getAllLives).Methods("GET", "OPTIONS")
+	m.HandleFunc("/lives", addLives).Methods("POST", "OPTIONS")
+	m.HandleFunc("/lives/{id}", getLive).Methods("GET", "OPTIONS")
+	m.HandleFunc("/lives/{id}", removeLive).Methods("DELETE", "OPTIONS")
+	m.HandleFunc("/lives/{id}/{action}", parseLiveAction).Methods("GET", "OPTIONS")
 	m.PathPrefix("/files/").Handler(http.StripPrefix("/files/", http.FileServer(http.Dir(instance.GetInstance(ctx).Config.OutPutPath))))
 	return m
 }
