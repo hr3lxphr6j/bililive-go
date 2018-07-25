@@ -2,12 +2,13 @@ package recorders
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
-	"sync"
-	"time"
 )
 
 func NewIRecorderManager(ctx context.Context) IRecorderManager {

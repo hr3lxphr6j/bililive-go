@@ -2,12 +2,14 @@ package api
 
 import (
 	"fmt"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
-	"github.com/tidwall/gjson"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/tidwall/gjson"
+
+	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
 )
 
 const (

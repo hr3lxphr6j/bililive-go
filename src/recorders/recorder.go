@@ -3,17 +3,18 @@ package recorders
 import (
 	"context"
 	"fmt"
-	"github.com/hr3lxphr6j/bililive-go/src/api"
-	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"github.com/hr3lxphr6j/bililive-go/src/api"
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 )
 
 type Recorder struct {
@@ -93,7 +94,7 @@ func (r *Recorder) Start() error {
 	r.stop = make(chan struct{})
 	go r.run()
 	r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde Start")
-	r.ed.DispatchEvent(events.NewEvent(RecordeStart, r.Live))
+	r.ed.DispatchEvent(events.NewEvent(RecorderStart, r.Live))
 	return nil
 }
 
@@ -101,5 +102,5 @@ func (r *Recorder) Close() {
 	close(r.stop)
 	r.cmdStdIn.Write([]byte("q"))
 	r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde End")
-	r.ed.DispatchEvent(events.NewEvent(RecordeStop, r.Live))
+	r.ed.DispatchEvent(events.NewEvent(RecorderStop, r.Live))
 }

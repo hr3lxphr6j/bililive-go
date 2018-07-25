@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"os"
+
 	"github.com/alecthomas/kingpin"
 	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
@@ -13,8 +16,6 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/log"
 	"github.com/hr3lxphr6j/bililive-go/src/recorders"
 	"github.com/hr3lxphr6j/bililive-go/src/servers"
-	"net/url"
-	"os"
 )
 
 const (

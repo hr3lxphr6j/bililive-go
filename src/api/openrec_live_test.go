@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const openrecTestUrl = "https://www.openrec.tv/live/J84JHlBu1vT"
+const openrecTestUrl = "https://www.openrec.tv/live/JEmT0qQP1BM"
 
 func TestOpenRecLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(openrecTestUrl)
@@ -16,5 +16,7 @@ func TestOpenRecLive_GetInfo(t *testing.T) {
 func TestOpenRecLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(openrecTestUrl)
 	live, _ := NewLive(u)
-	t.Log(live.GetStreamUrls())
+	if live.GetCachedInfo().Status {
+		t.Log(live.GetStreamUrls())
+	}
 }

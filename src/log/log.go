@@ -2,10 +2,11 @@ package log
 
 import (
 	"context"
+	"os"
+
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/sirupsen/logrus"
-	"os"
 )
 
 func NewLogger(ctx context.Context) *interfaces.Logger {

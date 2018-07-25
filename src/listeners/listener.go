@@ -2,11 +2,12 @@ package listeners
 
 import (
 	"context"
+	"time"
+
 	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
-	"time"
 )
 
 func NewListener(ctx context.Context, live api.Live) *Listener {

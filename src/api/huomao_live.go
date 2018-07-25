@@ -1,11 +1,13 @@
 package api
 
 import (
-	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
-	"github.com/tidwall/gjson"
 	"net/url"
 	"regexp"
+
+	"github.com/tidwall/gjson"
+
+	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 )
 
 const huomaoLiveApiUrl = "http://www.huomao.com/swf/live_data"

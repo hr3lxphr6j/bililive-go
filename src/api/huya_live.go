@@ -2,13 +2,14 @@ package api
 
 import (
 	"fmt"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"math/rand"
 	"net/url"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 )
 
 type HuYaLive struct {

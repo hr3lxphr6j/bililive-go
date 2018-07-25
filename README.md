@@ -1,4 +1,6 @@
 # Bililive-go
+[![Build Status](https://travis-ci.org/hr3lxphr6j/bililive-go.svg?branch=master)](https://travis-ci.org/hr3lxphr6j/bililive-go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/hr3lxphr6j/bililive-go)](https://goreportcard.com/report/github.com/hr3lxphr6j/bililive-go)
 
 Bililive-go是一个跨平台、多直播间录制工具   
 By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)   
@@ -139,4 +141,4 @@ live_rooms:               # 直播间url
 ```
 
 ## API
-[API doc](https://github.com/hr3lxphr6j/bililive-go/blob/master/API.md)
+[API doc](https://github.com/hr3lxphr6j/bililive-go/blob/master/docs/API.md)

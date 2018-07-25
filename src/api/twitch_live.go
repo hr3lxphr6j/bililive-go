@@ -2,11 +2,13 @@ package api
 
 import (
 	"fmt"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
-	"github.com/tidwall/gjson"
 	"math/rand"
 	"net/url"
 	"strings"
+
+	"github.com/tidwall/gjson"
+
+	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
 )
 
 const (

@@ -1,11 +1,16 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"net/url"
+	"time"
+
+	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 )
+
+type LiveId string
 
 var LivePlatformCNNameMap = map[string]string{
 	"www.panda.tv":      "熊猫",
@@ -23,12 +28,32 @@ var LivePlatformCNNameMap = map[string]string{
 }
 
 type Info struct {
-	Live               Live
-	HostName, RoomName string
-	Status             bool
+	Live                        Live
+	HostName, RoomName          string
+	Status, Listening, Recoding bool
 }
 
-type LiveId string
+func (i *Info) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Id             LiveId `json:"id"`
+		LiveUrl        string `json:"live_url"`
+		PlatformCNName string `json:"platform_cn_name"`
+		HostName       string `json:"host_name"`
+		RoomName       string `json:"room_name"`
+		Status         bool   `json:"status"`
+		Listening      bool   `json:"listening"`
+		Recoding       bool   `json:"recoding"`
+	}{
+		Id:             i.Live.GetLiveId(),
+		LiveUrl:        i.Live.GetRawUrl(),
+		PlatformCNName: i.Live.GetPlatformCNName(),
+		HostName:       i.HostName,
+		RoomName:       i.RoomName,
+		Status:         i.Status,
+		Listening:      i.Listening,
+		Recoding:       i.Recoding,
+	})
+}
 
 type Live interface {
 	GetLiveId() LiveId
@@ -38,51 +63,6 @@ type Live interface {
 	GetCachedInfo() *Info
 	GetStreamUrls() ([]*url.URL, error)
 	GetPlatformCNName() string
-}
-
-type abstractLive struct {
-	Url        *url.URL
-	cachedInfo *Info
-	liveId     LiveId
-}
-
-func (a *abstractLive) GetLiveId() LiveId {
-	return a.liveId
-}
-
-func (a *abstractLive) GetRawUrl() string {
-	return a.Url.String()
-}
-
-func (a *abstractLive) GetCachedInfo() *Info {
-	return a.cachedInfo
-}
-
-func (a *abstractLive) GetInfoMap() map[string]interface{} {
-	return map[string]interface{}{
-		"id":        a.GetLiveId(),
-		"url":       a.GetRawUrl(),
-		"host_name": a.GetCachedInfo().HostName,
-		"room_name": a.GetCachedInfo().RoomName,
-		"status":    a.GetCachedInfo().Status,
-	}
-}
-
-func (a *abstractLive) GetPlatformCNName() string {
-	return LivePlatformCNNameMap[a.Url.Host]
-}
-
-type RoomNotExistsError struct {
-	Url *url.URL
-}
-
-func (e *RoomNotExistsError) Error() string {
-	return "room not exists"
-}
-
-func IsRoomNotExistsError(err error) bool {
-	_, ok := err.(*RoomNotExistsError)
-	return ok
 }
 
 func NewLive(url *url.URL) (Live, error) {
@@ -125,10 +105,11 @@ func NewLive(url *url.URL) (Live, error) {
 				if IsRoomNotExistsError(err) {
 					return nil, err
 				}
+				time.Sleep(1 * time.Second)
 			} else {
 				return live, nil
 			}
 		}
 	}
-	return nil, errors.New("cat not parse")
+	return nil, errors.New("can not parse")
 }

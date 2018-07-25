@@ -16,32 +16,28 @@
         {
             "err_no": 0,
             "err_msg": "",
-            "data": {
-                "lives": [
-                    {
-                        "id": "dad99e07cf99226b928143e7bd55b6e1",
-                        "live_url": "https://live.bilibili.com/953650",
-                        "info": {
-                            "host_name": "真·凤舞九天",
-                            "room_name": "尬聊",
-                            "status": true
-                        },
-                        "is_listening": true,
-                        "is_recoding": true
-                    },
-                    {
-                        "id": "8cfc58ff74b31970899c0fe69345c222",
-                        "live_url": "https://www.panda.tv/10300",
-                        "info": {
-                          "host_name": "司机王老菊",
-                          "room_name": "【王老菊】",
-                          "status": false
-                        },
-                        "is_listening": true,
-                        "is_recoding": false
-                    }
-                ]
-            }
+            "data": [
+                {
+                    "id": "94d6fe233dc6f184d3dd78b6a73ee571",
+                    "live_url": "https://live.bilibili.com/1010",
+                    "platform_cn_name": "哔哩哔哩",
+                    "host_name": "KB呆又呆",
+                    "room_name": "老菊蚊香初体验【KBDYD】",
+                    "status": true,
+                    "listening": true,
+                    "recoding": true
+                },
+                {
+                    "id": "8cfc58ff74b31970899c0fe69345c222",
+                    "live_url": "https://www.panda.tv/10300",
+                    "platform_cn_name": "熊猫",
+                    "host_name": "司机王老菊",
+                    "room_name": "王老菊未来科技演播室",
+                    "status": true,
+                    "listening": true,
+                    "recoding": true
+                }
+            ]
         }
         ```
         
@@ -59,13 +55,12 @@
             "data": {
                 "id": "8cfc58ff74b31970899c0fe69345c222",
                 "live_url": "https://www.panda.tv/10300",
-                "info": {
-                    "host_name": "司机王老菊",
-                    "room_name": "【王老菊】",
-                    "status": false
-                },
-                "is_listening": true,
-                "is_recoding": false
+                "platform_cn_name": "熊猫",
+                "host_name": "司机王老菊",
+                "room_name": "王老菊未来科技演播室",
+                "status": true,
+                "listening": true,
+                "recoding": true
             }
         }
         ```
@@ -79,7 +74,7 @@
               {
                   "lives": [
                       {
-                          "url": "https://www.panda.tv/10300",
+                          "url": "https://www.douyu.com/6655",
                           "listen": true
                       }
                   ]
@@ -90,21 +85,18 @@
         {
             "err_no": 0,
             "err_msg": "",
-            "data": {
-                "lives": [
-                    {
-                        "id": "8cfc58ff74b31970899c0fe69345c222",
-                        "live_url": "https://www.panda.tv/10300",
-                        "info": {
-                            "host_name": "司机王老菊",
-                            "room_name": "【王老菊】",
-                            "status": false
-                        },
-                        "is_listening": true,
-                        "is_recoding": false
-                    }
-                ]
-            }
+            "data": [
+                {
+                    "id": "780c675e3e39fbeff6c10344b6c164e0",
+                    "live_url": "https://www.douyu.com/6655",
+                    "platform_cn_name": "斗鱼",
+                    "host_name": "ywwuyi",
+                    "room_name": "钢之魂！！！",
+                    "status": false,
+                    "listening": true,
+                    "recoding": false
+                }
+            ]
         }
         ```        
         
@@ -137,13 +129,12 @@
             "data": {
                 "id": "8cfc58ff74b31970899c0fe69345c222",
                 "live_url": "https://www.panda.tv/10300",
-                "info": {
-                    "host_name": "司机王老菊",
-                    "room_name": "【王老菊】",
-                    "status": false
-                },
-                "is_listening": true,
-                "is_recoding": false
+                "platform_cn_name": "熊猫",
+                "host_name": "司机王老菊",
+                "room_name": "王老菊未来科技演播室",
+                "status": true,
+                "listening": true,
+                "recoding": false
             }
         }
         ```
@@ -162,13 +153,12 @@
             "data": {
                 "id": "8cfc58ff74b31970899c0fe69345c222",
                 "live_url": "https://www.panda.tv/10300",
-                "info": {
-                    "host_name": "司机王老菊",
-                    "room_name": "【王老菊】",
-                    "status": false
-                },
-                "is_listening": false,
-                "is_recoding": false
+                "platform_cn_name": "熊猫",
+                "host_name": "司机王老菊",
+                "room_name": "王老菊未来科技演播室",
+                "status": true,
+                "listening": false,
+                "recoding": false
             }
         }
         ```
@@ -182,23 +172,27 @@
     - Response:
         ```json
         {
-            "RPC": {
-                "Enable": true,
-                "Port": "127.0.0.1:8080",
-                "Token": "114514",
-                "TLS": {
-                    "Enable": false,
-                    "CertFile": "",
-                    "KeyFile": ""
-                }
-            },
-            "LogLevel": "info",
-            "Interval": 15,
-            "OutPutPath": "/Users/chigusa/Movies",
-            "LiveRooms": [
-                "https://live.bilibili.com/953650",
-                "https://live.bilibili.com/146910"
-            ]
+            "err_no": 0,
+            "err_msg": "",
+            "data": {
+                "RPC": {
+                    "Enable": true,
+                    "Port": "127.0.0.1:8080",
+                    "Token": "",
+                    "TLS": {
+                        "Enable": false,
+                        "CertFile": "",
+                        "KeyFile": ""
+                    }
+                },
+                "Debug": true,
+                "Interval": 15,
+                "OutPutPath": "/Users/chigusa/Movies",
+                "LiveRooms": [
+                    "https://www.panda.tv/10300",
+                    "https://live.bilibili.com/1010"
+                ]
+            }
         }
         ```
         

@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"net/http"
 	"strings"
+
+	"github.com/gorilla/mux"
+
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
 )
 
 type Server struct {

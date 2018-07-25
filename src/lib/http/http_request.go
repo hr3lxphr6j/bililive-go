@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"compress/gzip"
 	"errors"
-	"github.com/mozillazg/request"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/mozillazg/request"
 )
 
 var commonHeader = map[string]string{
