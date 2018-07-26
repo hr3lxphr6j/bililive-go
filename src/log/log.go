@@ -18,6 +18,7 @@ func NewLogger(ctx context.Context) *interfaces.Logger {
 	logger := &interfaces.Logger{Logger: &logrus.Logger{
 		Out: os.Stderr,
 		Formatter: &logrus.TextFormatter{
+			DisableColors:   true,
 			FullTimestamp:   true,
 			TimestampFormat: "2006-01-02 15:04:05",
 		},

@@ -2,12 +2,14 @@ package api
 
 import (
 	"net/url"
+	"time"
 )
 
 type abstractLive struct {
-	Url        *url.URL
-	cachedInfo *Info
-	liveId     LiveId
+	Url           *url.URL
+	lastStartTime time.Time
+	cachedInfo    *Info
+	liveId        LiveId
 }
 
 func (a *abstractLive) GetLiveId() LiveId {
@@ -34,4 +36,12 @@ func (a *abstractLive) GetInfoMap() map[string]interface{} {
 
 func (a *abstractLive) GetPlatformCNName() string {
 	return LivePlatformCNNameMap[a.Url.Host]
+}
+
+func (a *abstractLive) GetLastStartTime() time.Time {
+	return a.lastStartTime
+}
+
+func (a *abstractLive) SetLastStartTime(time time.Time) {
+	a.lastStartTime = time
 }

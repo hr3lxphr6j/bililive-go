@@ -3,7 +3,6 @@ package recorders
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
@@ -22,7 +21,7 @@ func NewIRecorderManager(ctx context.Context) IRecorderManager {
 
 type IRecorderManager interface {
 	AddRecorder(ctx context.Context, live api.Live) error
-	RemoveRecorder(ctx context.Context, liveId api.LiveId) (time.Duration, error)
+	RemoveRecorder(ctx context.Context, liveId api.LiveId) error
 	GetRecorder(ctx context.Context, liveId api.LiveId) (*Recorder, error)
 	HasRecorder(ctx context.Context, liveId api.LiveId) bool
 }
@@ -80,15 +79,15 @@ func (r *RecorderManager) AddRecorder(ctx context.Context, live api.Live) error 
 
 }
 
-func (r *RecorderManager) RemoveRecorder(ctx context.Context, liveId api.LiveId) (time.Duration, error) {
+func (r *RecorderManager) RemoveRecorder(ctx context.Context, liveId api.LiveId) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	if recorder, ok := r.savers[liveId]; !ok {
-		return 0, recorderNotExistError
+		return recorderNotExistError
 	} else {
 		recorder.Close()
 		delete(r.savers, liveId)
-		return time.Now().Sub(recorder.StartTime), nil
+		return nil
 	}
 }
 

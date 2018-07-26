@@ -34,15 +34,17 @@ type Info struct {
 }
 
 func (i *Info) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Id             LiveId `json:"id"`
-		LiveUrl        string `json:"live_url"`
-		PlatformCNName string `json:"platform_cn_name"`
-		HostName       string `json:"host_name"`
-		RoomName       string `json:"room_name"`
-		Status         bool   `json:"status"`
-		Listening      bool   `json:"listening"`
-		Recoding       bool   `json:"recoding"`
+	t := struct {
+		Id                LiveId `json:"id"`
+		LiveUrl           string `json:"live_url"`
+		PlatformCNName    string `json:"platform_cn_name"`
+		HostName          string `json:"host_name"`
+		RoomName          string `json:"room_name"`
+		Status            bool   `json:"status"`
+		Listening         bool   `json:"listening"`
+		Recoding          bool   `json:"recoding"`
+		LastStartTime     string `json:"last_start_time,omitempty"`
+		LastStartTimeUnix int64  `json:"last_start_time_unix,omitempty"`
 	}{
 		Id:             i.Live.GetLiveId(),
 		LiveUrl:        i.Live.GetRawUrl(),
@@ -52,7 +54,12 @@ func (i *Info) MarshalJSON() ([]byte, error) {
 		Status:         i.Status,
 		Listening:      i.Listening,
 		Recoding:       i.Recoding,
-	})
+	}
+	if !i.Live.GetLastStartTime().IsZero() {
+		t.LastStartTime = i.Live.GetLastStartTime().Format("2006-01-02 15:04:05")
+		t.LastStartTimeUnix = i.Live.GetLastStartTime().Unix()
+	}
+	return json.Marshal(t)
 }
 
 type Live interface {
@@ -63,6 +70,8 @@ type Live interface {
 	GetCachedInfo() *Info
 	GetStreamUrls() ([]*url.URL, error)
 	GetPlatformCNName() string
+	GetLastStartTime() time.Time
+	SetLastStartTime(time.Time)
 }
 
 func NewLive(url *url.URL) (Live, error) {

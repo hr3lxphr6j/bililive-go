@@ -20,7 +20,7 @@ import (
 
 const (
 	AppName    = "BiliLive-go"
-	AppVersion = "0.22.5 (Dark Sword)"
+	AppVersion = "0.22.7 (Dark Sword)"
 )
 
 var (

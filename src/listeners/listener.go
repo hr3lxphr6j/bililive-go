@@ -23,8 +23,7 @@ func NewListener(ctx context.Context, live api.Live) *Listener {
 }
 
 type Listener struct {
-	Live api.Live
-
+	Live   api.Live
 	status bool
 	ticker *time.Ticker
 	stop   chan struct{}
@@ -56,6 +55,7 @@ func (l *Listener) refresh() {
 	}
 	l.status = info.Status
 	if l.status {
+		l.Live.SetLastStartTime(time.Now())
 		l.logger.WithFields(l.Live.GetInfoMap()).Info("Live Start")
 		l.ed.DispatchEvent(events.NewEvent(LiveStart, l.Live))
 	} else {

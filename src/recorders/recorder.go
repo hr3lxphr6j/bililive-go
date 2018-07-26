@@ -20,7 +20,6 @@ import (
 type Recorder struct {
 	Live       api.Live
 	OutPutPath string
-	StartTime  time.Time
 
 	cmd       *exec.Cmd
 	cmdStdIn  io.WriteCloser
@@ -90,7 +89,6 @@ func (r *Recorder) run() {
 }
 
 func (r *Recorder) Start() error {
-	r.StartTime = time.Now()
 	r.stop = make(chan struct{})
 	go r.run()
 	r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde Start")
