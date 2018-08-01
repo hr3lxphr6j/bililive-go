@@ -9,6 +9,7 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
+	"github.com/hr3lxphr6j/bililive-go/src/consts"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
@@ -18,13 +19,8 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/servers"
 )
 
-const (
-	AppName    = "BiliLive-go"
-	AppVersion = "0.22.7 (Dark Sword)"
-)
-
 var (
-	app      = kingpin.New(AppName, "A command-line live stream save tools.").Version(AppVersion)
+	app      = kingpin.New(consts.AppName, "A command-line live stream save tools.").Version(consts.AppVersion)
 	debug    = app.Flag("debug", "Enable debug mode.").Default("false").Bool()
 	interval = app.Flag("interval", "Interval of query live status").Default("20").Short('t').Int()
 	output   = app.Flag("output", "Output file path.").Short('o').Default("./").String()
@@ -87,8 +83,9 @@ func main() {
 	inst.Config = config
 	ctx := context.WithValue(context.Background(), instance.InstanceKey, inst)
 	logger := log.NewLogger(ctx)
-	logger.Infof("%s Version: %s Link Start", AppName, AppVersion)
-	logger.Debug(inst.Config)
+	logger.Infof("%s Version: %s Link Start", consts.AppName, consts.AppVersion)
+	logger.Debugf("%+v", consts.AppInfo)
+	logger.Debugf("%+v", inst.Config)
 
 	// 初始化事件分发模块
 	events.NewIEventDispatcher(ctx)

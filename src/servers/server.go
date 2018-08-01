@@ -80,7 +80,7 @@ func initMux(ctx context.Context) *mux.Router {
 				}
 			})
 		})
-
+	m.HandleFunc("/info", getInfo).Methods("GET", "OPTIONS")
 	m.HandleFunc("/config", getConfig).Methods("GET", "OPTIONS")
 	m.HandleFunc("/config", putConfig).Methods("PUT", "OPTIONS")
 	m.HandleFunc("/lives", getAllLives).Methods("GET", "OPTIONS")

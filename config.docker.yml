@@ -1,12 +1,12 @@
 rpc:
-  enable: false
-  port: 127.0.0.1:8080
+  enable: true
+  port: :8080
   token: ""
   tls:
     enable: false
     cert_file: ""
     key_file: ""
 debug: false
-interval: 15
-out_put_path: ./
+interval: 20
+out_put_path: /srv/bililive
 live_rooms:

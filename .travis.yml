@@ -1,4 +1,8 @@
 language: go
 
 go:
-    - 1.10.x
+- master
+
+script:
+  - make
+  - make test

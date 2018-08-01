@@ -154,3 +154,4 @@ Temporary Items
 bins/
 !/API.md
 .idea
+bin/

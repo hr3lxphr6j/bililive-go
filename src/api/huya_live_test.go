@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const huyaTestUrl = "https://www.huya.com/dongxiaosa"
+const huyaTestUrl = "https://www.huya.com/saonan"
 
 func TestHuYaLive_GetInfo(t *testing.T) {
 	u, _ := url.Parse(huyaTestUrl)
@@ -16,5 +16,8 @@ func TestHuYaLive_GetInfo(t *testing.T) {
 func TestHuYaLive_GetStreamUrls(t *testing.T) {
 	u, _ := url.Parse(huyaTestUrl)
 	live, _ := NewLive(u)
-	t.Log(live.GetStreamUrls())
+	info, _ := live.GetInfo()
+	if info.Status {
+		t.Log(live.GetStreamUrls())
+	}
 }

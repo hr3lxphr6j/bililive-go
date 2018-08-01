@@ -4,7 +4,29 @@
 你可以在配置中指定token来保证API的安全性，token可以以两种方式提供
    - HTTP Basic: `http://token:114514@127.0.0.1:8080/lives`
    - Url Parameter: `http://127.0.0.1:8080/lives?token=114514`
-
+----------------------------------------------------------------
+* `GET /info` Get app info
+    - Request:
+        ```text
+        method: GET
+        path: http://token:114514@127.0.0.1:8080/info
+        ```
+    - Response:
+        ```json
+        {
+            "err_no": 0,
+            "err_msg": "",
+            "data": {
+                "app_name": "BiliLive-go",
+                "app_version": "0.22.7-2-gd853192",
+                "build_time": "2018-08-01_21:58:04",
+                "git_hash": "d853192083ed880998175ba60eb528f5e1ded0e5",
+                "pid": 44783,
+                "platform": "darwin/amd64",
+                "go_version": "go1.10.3"
+            }
+        }
+        ```
 * `GET /lives` Get all live info 
     - Request:  
         ```text

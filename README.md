@@ -5,7 +5,7 @@
 Bililive-go是一个跨平台、多直播间录制工具   
 By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)   
 
-![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/screenshot.webp)
+![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/screenshot.png)
 
 
 ## 例子
@@ -96,7 +96,11 @@ By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)
     * [releases](https://github.com/hr3lxphr6j/bililive-go/releases)
 
 ## 获取&编译
-`go get -v github.com/hr3lxphr6j/bililive-go`
+```
+$ go get github.com/hr3lxphr6j/bililive-go
+$ $GOPATH/src/github.com/hr3lxphr6j/bililive-go
+$ make
+```
 
 ## 使用
 ```

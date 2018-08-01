@@ -12,6 +12,7 @@ import (
 	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/api"
+	"github.com/hr3lxphr6j/bililive-go/src/consts"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
 	"github.com/hr3lxphr6j/bililive-go/src/recorders"
@@ -170,6 +171,15 @@ func removeLive(writer http.ResponseWriter, r *http.Request) {
 		res.ErrNo = 404
 		res.ErrMsg = fmt.Sprintf("live id: %s can not find", vars["id"])
 		writer.WriteHeader(http.StatusNotFound)
+	}
+	if resp, err := json.Marshal(res); err == nil {
+		writer.Write(resp)
+	}
+}
+
+func getInfo(writer http.ResponseWriter, r *http.Request) {
+	res := CommonResp{
+		Data: consts.AppInfo,
 	}
 	if resp, err := json.Marshal(res); err == nil {
 		writer.Write(resp)
