@@ -1,17 +1,24 @@
 # Bililive-go
 [![Build Status](https://travis-ci.org/hr3lxphr6j/bililive-go.svg?branch=master)](https://travis-ci.org/hr3lxphr6j/bililive-go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/hr3lxphr6j/bililive-go)](https://goreportcard.com/report/github.com/hr3lxphr6j/bililive-go)
+[![Github release](https://img.shields.io/github/release/hr3lxphr6j/bililive-go.svg)](https://github.com/hr3lxphr6j/bililive-go/releases/latest)
+[![Docker Pulls](https://img.shields.io/docker/pulls/chigusa/bililive-go.svg)](https://hub.docker.com/r/chigusa/bililive-go/)
+[![Bilibili](https://img.shields.io/badge/%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9-%E6%9C%AA%E6%9D%A5%E7%A7%91%E6%8A%80%E7%8E%8B%E8%80%81%E8%8F%8A%E5%BD%95%E6%92%AD%E7%BB%84-ebb8d0.svg)](https://space.bilibili.com/18578203/)
 
-Bililive-go是一个跨平台、多直播间录制工具   
-By：[未来科技王老菊录播组](https://space.bilibili.com/18578203/)   
+Bililive-go是一个跨平台、多直播间录制工具    
 
 ![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/screenshot.png)
 
 
 ## 例子
-```
-./bililive-go -i https://www.panda.tv/10300 -i https://www.douyu.com/6655
-```
+- 本地
+    ```
+    ./bililive-go -i https://www.panda.tv/10300 -i https://www.douyu.com/6655
+    ```
+- docker
+    ```
+    docker run -v ~/Movies:/srv/bililive --rm chigusa/bililive-go -o /srv/bililive -i https://www.panda.tv/10300
+    ```
 
 ## 支持网站
 

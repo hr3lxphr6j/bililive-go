@@ -68,7 +68,7 @@ release-windows-amd64: mkdir
 
 .PHONY: release-docker
 release-docker: release-linux-amd64
-	docker build -t 'bililive-go:${VERSION}' .
+	docker build -t 'chigusa/bililive-go' .
 
 .PHONY: test
 test:
