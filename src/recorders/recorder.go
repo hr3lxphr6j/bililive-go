@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/hr3lxphr6j/bililive-go/src/api"
@@ -21,12 +22,14 @@ type Recorder struct {
 	Live       api.Live
 	OutPutPath string
 
+	ed                   events.IEventDispatcher
+	logger               *interfaces.Logger
+	startOnce, closeOnce *sync.Once
+	stop                 chan struct{}
+
 	cmd       *exec.Cmd
 	cmdStdIn  io.WriteCloser
 	cmdStdErr io.ReadCloser
-	ed        events.IEventDispatcher
-	logger    *interfaces.Logger
-	stop      chan struct{}
 }
 
 func NewRecorder(ctx context.Context, live api.Live) (*Recorder, error) {
@@ -36,6 +39,8 @@ func NewRecorder(ctx context.Context, live api.Live) (*Recorder, error) {
 		OutPutPath: instance.GetInstance(ctx).Config.OutPutPath,
 		ed:         inst.EventDispatcher.(events.IEventDispatcher),
 		logger:     inst.Logger,
+		startOnce:  new(sync.Once),
+		closeOnce:  new(sync.Once),
 	}, nil
 }
 
@@ -89,16 +94,20 @@ func (r *Recorder) run() {
 }
 
 func (r *Recorder) Start() error {
-	r.stop = make(chan struct{})
-	go r.run()
-	r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde Start")
-	r.ed.DispatchEvent(events.NewEvent(RecorderStart, r.Live))
+	r.startOnce.Do(func() {
+		r.stop = make(chan struct{})
+		go r.run()
+		r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde Start")
+		r.ed.DispatchEvent(events.NewEvent(RecorderStart, r.Live))
+	})
 	return nil
 }
 
 func (r *Recorder) Close() {
-	close(r.stop)
-	r.cmdStdIn.Write([]byte("q"))
-	r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde End")
-	r.ed.DispatchEvent(events.NewEvent(RecorderStop, r.Live))
+	r.closeOnce.Do(func() {
+		close(r.stop)
+		r.cmdStdIn.Write([]byte("q"))
+		r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde End")
+		r.ed.DispatchEvent(events.NewEvent(RecorderStop, r.Live))
+	})
 }

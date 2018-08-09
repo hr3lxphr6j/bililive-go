@@ -111,11 +111,15 @@ func (s *Server) Start(ctx context.Context) error {
 	go func() {
 		if config.RPC.TLS.Enable {
 			if err := s.server.ListenAndServeTLS(config.RPC.TLS.CertFile, config.RPC.TLS.KeyFile); err != nil {
-				inst.Logger.Error(err)
+				if err != http.ErrServerClosed {
+					inst.Logger.Error(err)
+				}
 			}
 		} else {
 			if err := s.server.ListenAndServe(); err != nil {
-				inst.Logger.Error(err)
+				if err != http.ErrServerClosed {
+					inst.Logger.Error(err)
+				}
 			}
 		}
 	}()

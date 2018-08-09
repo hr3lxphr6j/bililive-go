@@ -36,7 +36,7 @@ func (r *RecorderManager) Start(ctx context.Context) error {
 	if inst.Config.RPC.Enable || len(inst.Lives) > 0 {
 		inst.WaitGroup.Add(1)
 	}
-	inst.Logger.Debug("RecorderManager Start")
+	inst.Logger.Info("RecorderManager Start")
 	ed := inst.EventDispatcher.(events.IEventDispatcher)
 
 	// 开播事件
@@ -58,9 +58,15 @@ func (r *RecorderManager) Start(ctx context.Context) error {
 }
 
 func (r *RecorderManager) Close(ctx context.Context) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	for id, recorder := range r.savers {
+		recorder.Close()
+		delete(r.savers, id)
+	}
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Done()
-	inst.Logger.Debug("RecorderManager End")
+	inst.Logger.Info("RecorderManager Closed")
 }
 
 func (r *RecorderManager) AddRecorder(ctx context.Context, live api.Live) error {

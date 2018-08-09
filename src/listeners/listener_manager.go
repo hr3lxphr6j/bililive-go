@@ -35,19 +35,20 @@ func (l *ListenerManager) Start(ctx context.Context) error {
 	if inst.Config.RPC.Enable || len(inst.Lives) > 0 {
 		inst.WaitGroup.Add(1)
 	}
-	instance.GetInstance(ctx).Logger.Debug("ListenerManager Start")
+	instance.GetInstance(ctx).Logger.Info("ListenerManager Start")
 	return nil
 }
 
 func (l *ListenerManager) Close(ctx context.Context) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	for _, listener := range l.savers {
-		go listener.Close()
+	for id, listener := range l.savers {
+		listener.Close()
+		delete(l.savers, id)
 	}
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Done()
-	instance.GetInstance(ctx).Logger.Debug("ListenerManager Closed")
+	instance.GetInstance(ctx).Logger.Info("ListenerManager Closed")
 }
 
 func (l *ListenerManager) AddListener(ctx context.Context, live api.Live) error {

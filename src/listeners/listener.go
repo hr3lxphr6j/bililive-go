@@ -2,6 +2,7 @@ package listeners
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/hr3lxphr6j/bililive-go/src/api"
@@ -13,36 +14,43 @@ import (
 func NewListener(ctx context.Context, live api.Live) *Listener {
 	inst := instance.GetInstance(ctx)
 	return &Listener{
-		Live:   live,
-		status: false,
-		ticker: time.NewTicker(time.Duration(inst.Config.Interval) * time.Second),
-		stop:   make(chan struct{}),
-		ed:     inst.EventDispatcher.(events.IEventDispatcher),
-		logger: inst.Logger,
+		Live:      live,
+		status:    false,
+		ticker:    time.NewTicker(time.Duration(inst.Config.Interval) * time.Second),
+		stop:      make(chan struct{}),
+		ed:        inst.EventDispatcher.(events.IEventDispatcher),
+		logger:    inst.Logger,
+		startOnce: new(sync.Once),
+		closeOnce: new(sync.Once),
 	}
 }
 
 type Listener struct {
-	Live   api.Live
-	status bool
-	ticker *time.Ticker
-	stop   chan struct{}
-	ed     events.IEventDispatcher
-	logger *interfaces.Logger
+	Live                 api.Live
+	status               bool
+	ticker               *time.Ticker
+	stop                 chan struct{}
+	ed                   events.IEventDispatcher
+	logger               *interfaces.Logger
+	startOnce, closeOnce *sync.Once
 }
 
 func (l *Listener) Start() error {
-	l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Start")
-	l.ed.DispatchEvent(events.NewEvent(ListenStart, l.Live))
-	l.refresh()
-	go l.run()
+	l.startOnce.Do(func() {
+		l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Start")
+		l.ed.DispatchEvent(events.NewEvent(ListenStart, l.Live))
+		l.refresh()
+		go l.run()
+	})
 	return nil
 }
 
 func (l *Listener) Close() {
-	l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Close")
-	l.ed.DispatchEvent(events.NewEvent(ListenStop, l.Live))
-	close(l.stop)
+	l.closeOnce.Do(func() {
+		l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Close")
+		l.ed.DispatchEvent(events.NewEvent(ListenStop, l.Live))
+		close(l.stop)
+	})
 }
 
 func (l *Listener) refresh() {
