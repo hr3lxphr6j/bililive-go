@@ -5,20 +5,9 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/chigusa/bililive-go.svg)](https://hub.docker.com/r/chigusa/bililive-go/)
 [![Bilibili](https://img.shields.io/badge/%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9-%E6%9C%AA%E6%9D%A5%E7%A7%91%E6%8A%80%E7%8E%8B%E8%80%81%E8%8F%8A%E5%BD%95%E6%92%AD%E7%BB%84-ebb8d0.svg)](https://space.bilibili.com/18578203/)
 
-Bililive-go是一个跨平台、多直播间录制工具    
+Bililive-go是一个支持多种直播平台的直播录制工具，运行在 CLI 上   
 
 ![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/screenshot.png)
-
-
-## 例子
-- 本地
-    ```
-    ./bililive-go -i https://www.panda.tv/10300 -i https://www.douyu.com/6655
-    ```
-- docker
-    ```
-    docker run -v ~/Movies:/srv/bililive --rm chigusa/bililive-go -o /srv/bililive -i https://www.panda.tv/10300
-    ```
 
 ## 支持网站
 
@@ -93,14 +82,15 @@ Bililive-go是一个跨平台、多直播间录制工具
 ## 依赖
 * [ffmpeg](https://ffmpeg.org/)
 
-## 下载&安装
-* 安装ffmpeg
-    * Windows：[FFmpeg Builds](https://ffmpeg.zeranoe.com/builds/)
-    * macOS: [FFmpeg Builds](https://ffmpeg.zeranoe.com/builds/) or `brew install ffmpeg`
-    * Linux: 从对应的包管理器上安装或从源码构建
-
-* 下载Bililive-go 
-    * [releases](https://github.com/hr3lxphr6j/bililive-go/releases)
+## 使用例子
+- 本地
+    ```
+    ./bililive-go -i https://www.panda.tv/10300 -i https://www.douyu.com/6655
+    ```
+- docker
+    ```
+    docker run -v ~/Movies:/srv/bililive --rm chigusa/bililive-go -o /srv/bililive -i https://www.panda.tv/10300
+    ```
 
 ## 获取&编译
 ```
@@ -109,47 +99,8 @@ $ $GOPATH/src/github.com/hr3lxphr6j/bililive-go
 $ make
 ```
 
-## 使用
-```
-usage: BiliLive-go [<flags>]
-
-A command-line live stream save tools.
-
-Flags:
-      --help                 Show context-sensitive help (also try --help-long and --help-man).
-      --version              Show application version.
-      --debug                Enable debug mode.
-  -t, --interval=20          Interval of query live status
-  -o, --output="./"          Output file path.
-  -i, --input=INPUT ...      Live room urls
-  -c, --config=CONFIG        Config file.
-      --enable-rpc           Enable RPC server.
-      --rpc-addr=":8080"     RPC server listen port
-      --rpc-token=RPC-TOKEN  RPC server token.
-      --enable-rpc-tls       Enable TLS for RPC server
-      --rpc-tls-cert-file=RPC-TLS-CERT-FILE  
-                             Cert file for TLS on RPC
-      --rpc-tls-key-file=RPC-TLS-KEY-FILE  
-                             Key file for TLS on RPC
-
-```
-
-## 配置文件
-```yaml
-rpc: 
-  enable: true            # 是否开启API
-  port: 127.0.0.1:8080    # 监听地址
-  token: ""               # token
-  tls:                    # tls配置
-    enable: false
-    cert_file: ""
-    key_file: ""
-debug: false              # debug模式
-interval: 15              # 直播间状态查询间隔时间（秒）
-out_put_path: ./          # 输出文件路径
-live_rooms:               # 直播间url
-- https://www.panda.tv/10300
-```
+## Wiki
+[Wiki](https://github.com/hr3lxphr6j/bililive-go/wiki)
 
 ## API
 [API doc](https://github.com/hr3lxphr6j/bililive-go/blob/master/docs/API.md)
