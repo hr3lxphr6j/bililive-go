@@ -34,7 +34,13 @@ func (b *BiliBiliLive) parseRealId() error {
 	}
 }
 
-func (b *BiliBiliLive) GetInfo() (*Info, error) {
+func (b *BiliBiliLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	// Parse the short id from URL to full id
 	if b.realId == "" {
 		if err := b.parseRealId(); err != nil {
@@ -52,7 +58,7 @@ func (b *BiliBiliLive) GetInfo() (*Info, error) {
 		return nil, &RoomNotExistsError{b.Url}
 	}
 
-	info := &Info{
+	info = &Info{
 		Live:     b,
 		RoomName: gjson.GetBytes(body, "data.title").String(),
 		Status:   gjson.GetBytes(body, "data.live_status").Int() == 1,
@@ -70,7 +76,13 @@ func (b *BiliBiliLive) GetInfo() (*Info, error) {
 	return info, nil
 }
 
-func (b *BiliBiliLive) GetStreamUrls() ([]*url.URL, error) {
+func (b *BiliBiliLive) GetStreamUrls() (us []*url.URL, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	if b.realId == "" {
 		if err := b.parseRealId(); err != nil {
 			return nil, err
@@ -87,7 +99,7 @@ func (b *BiliBiliLive) GetStreamUrls() ([]*url.URL, error) {
 
 	urls := gjson.GetBytes(body, "data.durl.#.url").Array()
 
-	us := make([]*url.URL, 0, 4)
+	us = make([]*url.URL, 0, 4)
 	for _, u := range urls {
 		url_, _ := url.Parse(u.String())
 		us = append(us, url_)

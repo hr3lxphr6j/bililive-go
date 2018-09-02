@@ -39,7 +39,13 @@ func (t *TwitchLive) parseInfo() error {
 
 }
 
-func (t *TwitchLive) GetInfo() (*Info, error) {
+func (t *TwitchLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	if t.hostName == "" || t.roomName == "" {
 		if err := t.parseInfo(); err != nil {
 			return nil, err
@@ -53,7 +59,7 @@ func (t *TwitchLive) GetInfo() (*Info, error) {
 	if status {
 		t.roomName = gjson.GetBytes(body, "stream.channel.status").String()
 	}
-	info := &Info{
+	info = &Info{
 		Live:     t,
 		HostName: t.hostName,
 		RoomName: t.roomName,
@@ -63,7 +69,13 @@ func (t *TwitchLive) GetInfo() (*Info, error) {
 	return info, nil
 }
 
-func (t *TwitchLive) GetStreamUrls() ([]*url.URL, error) {
+func (t *TwitchLive) GetStreamUrls() (us []*url.URL, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	if t.hostName == "" || t.roomName == "" {
 		if err := t.parseInfo(); err != nil {
 			return nil, err

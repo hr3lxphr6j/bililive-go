@@ -38,13 +38,19 @@ func (p *PandaLive) requestRoomInfo() ([]byte, error) {
 	}
 }
 
-func (p *PandaLive) GetInfo() (*Info, error) {
+func (p *PandaLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	data, err := p.requestRoomInfo()
 	if err != nil {
 		return nil, err
 	}
 
-	info := &Info{
+	info = &Info{
 		Live:     p,
 		HostName: gjson.GetBytes(data, "data.hostinfo.name").String(),
 		RoomName: gjson.GetBytes(data, "data.roominfo.name").String(),
@@ -54,7 +60,13 @@ func (p *PandaLive) GetInfo() (*Info, error) {
 	return info, nil
 }
 
-func (p *PandaLive) GetStreamUrls() ([]*url.URL, error) {
+func (p *PandaLive) GetStreamUrls() (us []*url.URL, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	data, err := p.requestRoomInfo()
 	if err != nil {
 		return nil, err

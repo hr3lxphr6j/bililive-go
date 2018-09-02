@@ -36,12 +36,18 @@ func (d *DouyuLive) requestRoomInfo() ([]byte, error) {
 	return body, nil
 }
 
-func (d *DouyuLive) GetInfo() (*Info, error) {
+func (d *DouyuLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	data, err := d.requestRoomInfo()
 	if err != nil {
 		return nil, err
 	}
-	info := &Info{
+	info = &Info{
 		Live:     d,
 		HostName: gjson.GetBytes(data, "data.nickname").String(),
 		RoomName: gjson.GetBytes(data, "data.room_name").String(),
@@ -52,7 +58,13 @@ func (d *DouyuLive) GetInfo() (*Info, error) {
 
 }
 
-func (d *DouyuLive) GetStreamUrls() ([]*url.URL, error) {
+func (d *DouyuLive) GetStreamUrls() (us []*url.URL, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	data, err := d.requestRoomInfo()
 	if err != nil {
 		return nil, err

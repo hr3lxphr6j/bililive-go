@@ -26,12 +26,18 @@ func (q *QuanMinLive) requestRoomInfo() (string, error) {
 
 }
 
-func (q *QuanMinLive) GetInfo() (*Info, error) {
+func (q *QuanMinLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	roomModel, err := q.requestRoomInfo()
 	if err != nil {
 		return nil, err
 	}
-	info := &Info{
+	info = &Info{
 		Live:     q,
 		HostName: gjson.Get(roomModel, "nick").String(),
 		RoomName: gjson.Get(roomModel, "title").String(),
@@ -41,12 +47,18 @@ func (q *QuanMinLive) GetInfo() (*Info, error) {
 	return info, nil
 }
 
-func (q *QuanMinLive) GetStreamUrls() ([]*url.URL, error) {
+func (q *QuanMinLive) GetStreamUrls() (us []*url.URL, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	roomModel, err := q.requestRoomInfo()
 	if err != nil {
 		return nil, err
 	}
-	us := make([]*url.URL, 0)
+	us = make([]*url.URL, 0)
 	gjson.Get(roomModel, "room_lines").ForEach(func(key, value gjson.Result) bool {
 		level := value.Get("flv.main_pc").String()
 		src := value.Get(fmt.Sprintf("flv.%s.src", level)).String()

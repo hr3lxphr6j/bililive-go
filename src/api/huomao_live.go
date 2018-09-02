@@ -17,7 +17,13 @@ type HuoMaoLive struct {
 	isDuanbo bool
 }
 
-func (h *HuoMaoLive) GetInfo() (*Info, error) {
+func (h *HuoMaoLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	dom, err := http.Get(h.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err
@@ -35,7 +41,7 @@ func (h *HuoMaoLive) GetInfo() (*Info, error) {
 		roomNameReg = `"channel":"([^"]*)"`
 		statusReg = `"is_live":"?(\d*)"?,`
 	}
-	info := &Info{
+	info = &Info{
 		Live:     h,
 		HostName: utils.ParseUnicode(regexp.MustCompile(hostNameReg).FindStringSubmatch(string(dom))[1]),
 		RoomName: utils.ParseUnicode(regexp.MustCompile(roomNameReg).FindStringSubmatch(string(dom))[1]),

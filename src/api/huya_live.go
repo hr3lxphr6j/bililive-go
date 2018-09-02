@@ -16,7 +16,13 @@ type HuYaLive struct {
 	abstractLive
 }
 
-func (h *HuYaLive) GetInfo() (*Info, error) {
+func (h *HuYaLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	dom, err := http.Get(h.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err
@@ -24,7 +30,7 @@ func (h *HuYaLive) GetInfo() (*Info, error) {
 	if res := regexp.MustCompile("哎呀，虎牙君找不到这个主播，要不搜索看看？").FindStringSubmatch(string(dom)); res != nil {
 		return nil, &RoomNotExistsError{h.Url}
 	}
-	info := &Info{
+	info = &Info{
 		Live:     h,
 		HostName: utils.ParseUnicode(regexp.MustCompile(`"nick":"([^"]*)"`).FindStringSubmatch(string(dom))[1]),
 		RoomName: utils.ParseUnicode(regexp.MustCompile(`"introduction":"([^"]*)"`).FindStringSubmatch(string(dom))[1]),
@@ -34,7 +40,13 @@ func (h *HuYaLive) GetInfo() (*Info, error) {
 	return info, nil
 }
 
-func (h *HuYaLive) GetStreamUrls() ([]*url.URL, error) {
+func (h *HuYaLive) GetStreamUrls() (us []*url.URL, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	dom, err := http.Get(h.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err

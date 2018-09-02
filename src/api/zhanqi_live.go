@@ -31,12 +31,18 @@ func (z *ZhanQiLive) requestRoomInfo() ([]byte, error) {
 	}
 }
 
-func (z *ZhanQiLive) GetInfo() (*Info, error) {
+func (z *ZhanQiLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	body, err := z.requestRoomInfo()
 	if err != nil {
 		return nil, err
 	}
-	info := &Info{
+	info = &Info{
 		Live:     z,
 		HostName: gjson.GetBytes(body, "data.nickname").String(),
 		RoomName: gjson.GetBytes(body, "data.title").String(),
@@ -46,7 +52,13 @@ func (z *ZhanQiLive) GetInfo() (*Info, error) {
 	return info, nil
 }
 
-func (z *ZhanQiLive) GetStreamUrls() ([]*url.URL, error) {
+func (z *ZhanQiLive) GetStreamUrls() (us []*url.URL, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	body, err := z.requestRoomInfo()
 	if err != nil {
 		return nil, err

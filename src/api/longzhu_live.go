@@ -36,7 +36,13 @@ func (l *LongzhuLive) parseRealId() error {
 	return nil
 }
 
-func (l *LongzhuLive) GetInfo() (*Info, error) {
+func (l *LongzhuLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	if l.realId == "" {
 		if err := l.parseRealId(); err != nil {
 			return nil, err
@@ -46,7 +52,7 @@ func (l *LongzhuLive) GetInfo() (*Info, error) {
 	if err != nil {
 		return nil, err
 	}
-	info := &Info{
+	info = &Info{
 		Live:     l,
 		HostName: gjson.GetBytes(body, "userName").String(),
 		RoomName: gjson.GetBytes(body, "title").String(),
@@ -57,7 +63,13 @@ func (l *LongzhuLive) GetInfo() (*Info, error) {
 
 }
 
-func (l *LongzhuLive) GetStreamUrls() ([]*url.URL, error) {
+func (l *LongzhuLive) GetStreamUrls() (us []*url.URL, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	if l.realId == "" {
 		if err := l.parseRealId(); err != nil {
 			return nil, err
@@ -68,7 +80,7 @@ func (l *LongzhuLive) GetStreamUrls() ([]*url.URL, error) {
 		return nil, err
 	}
 	urls := gjson.GetBytes(body, "playLines.0.urls.#.securityUrl").Array()
-	us := make([]*url.URL, 0, 4)
+	us = make([]*url.URL, 0, 4)
 	for _, u := range urls {
 		url_, _ := url.Parse(u.String())
 		us = append(us, url_)

@@ -13,12 +13,18 @@ type OpenRecLive struct {
 	abstractLive
 }
 
-func (o *OpenRecLive) GetInfo() (*Info, error) {
+func (o *OpenRecLive) GetInfo() (info *Info, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	dom, err := http.Get(o.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	info := &Info{
+	info = &Info{
 		Live:     o,
 		RoomName: strings.TrimSpace(regexp.MustCompile(`"title":"([^:]*)",`).FindStringSubmatch(string(dom))[1]),
 		HostName: utils.ParseUnicode(regexp.MustCompile(`"name":"([^:]*)",`).FindStringSubmatch(string(dom))[1]),
@@ -28,12 +34,18 @@ func (o *OpenRecLive) GetInfo() (*Info, error) {
 	return info, nil
 }
 
-func (o *OpenRecLive) GetStreamUrls() ([]*url.URL, error) {
+func (o *OpenRecLive) GetStreamUrls() (us []*url.URL, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+
 	dom, err := http.Get(o.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
 	u1, _ := url.Parse(regexp.MustCompile(`{"url":"(\S*m3u8)",`).FindStringSubmatch(string(dom))[1])
-	us := []*url.URL{u1}
+	us = []*url.URL{u1}
 	return us, nil
 }
