@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -58,8 +59,9 @@ func initMux(ctx context.Context) *mux.Router {
 		// Content-Type
 		func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if strings.Split(r.RequestURI, "/")[1] != "files" {
+				if prefix := strings.Split(r.RequestURI, "/")[1]; prefix != "files" && prefix != "debug" {
 					w.Header().Add("Content-Type", "application/json")
+					fmt.Printf("rua")
 				}
 				handler.ServeHTTP(w, r)
 			})
@@ -80,6 +82,7 @@ func initMux(ctx context.Context) *mux.Router {
 				}
 			})
 		})
+	// api
 	m.HandleFunc("/info", getInfo).Methods("GET", "OPTIONS")
 	m.HandleFunc("/config", getConfig).Methods("GET", "OPTIONS")
 	m.HandleFunc("/config", putConfig).Methods("PUT", "OPTIONS")
@@ -88,7 +91,14 @@ func initMux(ctx context.Context) *mux.Router {
 	m.HandleFunc("/lives/{id}", getLive).Methods("GET", "OPTIONS")
 	m.HandleFunc("/lives/{id}", removeLive).Methods("DELETE", "OPTIONS")
 	m.HandleFunc("/lives/{id}/{action}", parseLiveAction).Methods("GET", "OPTIONS")
+
+	// file server
 	m.PathPrefix("/files/").Handler(http.StripPrefix("/files/", http.FileServer(http.Dir(instance.GetInstance(ctx).Config.OutPutPath))))
+
+	// pprof
+	if instance.GetInstance(ctx).Config.Debug {
+		m.PathPrefix("/debug/").Handler(http.DefaultServeMux)
+	}
 	return m
 }
 
