@@ -3,8 +3,8 @@ package recorders
 import (
 	"context"
 	"fmt"
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,6 +22,7 @@ type Recorder struct {
 	Live       api.Live
 	OutPutPath string
 
+	config               *configs.Config
 	ed                   events.IEventDispatcher
 	logger               *interfaces.Logger
 	startOnce, closeOnce *sync.Once
@@ -29,7 +30,7 @@ type Recorder struct {
 
 	cmd       *exec.Cmd
 	cmdStdIn  io.WriteCloser
-	cmdStdErr io.ReadCloser
+	cmdStderr io.ReadCloser
 }
 
 func NewRecorder(ctx context.Context, live api.Live) (*Recorder, error) {
@@ -37,6 +38,7 @@ func NewRecorder(ctx context.Context, live api.Live) (*Recorder, error) {
 	return &Recorder{
 		Live:       live,
 		OutPutPath: instance.GetInstance(ctx).Config.OutPutPath,
+		config:     inst.Config,
 		ed:         inst.EventDispatcher.(events.IEventDispatcher),
 		logger:     inst.Logger,
 		startOnce:  new(sync.Once),
@@ -80,17 +82,27 @@ func (r *Recorder) run() {
 				outfile,
 			)
 			r.cmdStdIn, _ = r.cmd.StdinPipe()
-			r.cmdStdErr, _ = r.cmd.StderrPipe()
+			if r.config.Debug {
+				r.cmdStderr, _ = r.cmd.StderrPipe()
+				go r.redirectTo(outfile)
+			}
 			r.cmd.Start()
 			r.logger.WithFields(r.Live.GetInfoMap()).WithField("stream_url", urls[0].String()).Debug("ffmpeg start")
-			if b, err := ioutil.ReadAll(r.cmdStdErr); err == nil {
-				r.logger.WithFields(r.Live.GetInfoMap()).WithField("std_err", string(b)).Debug("ffmpeg log info")
-			}
 			r.cmd.Wait()
 			r.logger.WithFields(r.Live.GetInfoMap()).WithField("stream_url", urls[0].String()).Debug("ffmpeg stop")
-
 		}
 	}
+}
+
+func (r *Recorder) redirectTo(file string) {
+	f, err := os.Create(fmt.Sprintf("%s.ffmpeg_stderr.log", file))
+	if err != nil {
+		r.logger.Debug(err)
+		return
+	}
+	buf := make([]byte, 1024)
+	io.CopyBuffer(f, r.cmdStderr, buf)
+	f.Close()
 }
 
 func (r *Recorder) Start() error {

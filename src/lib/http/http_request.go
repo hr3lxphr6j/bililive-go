@@ -19,10 +19,15 @@ var commonHeader = map[string]string{
 	"User-Agent":      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
 }
 
-func parseResponse(resp *request.Response) ([]byte, error) {
-	defer resp.Body.Close()
+var client = new(http.Client)
 
-	var reader io.Reader
+func parseResponse(resp *request.Response) ([]byte, error) {
+	var reader io.ReadCloser
+	defer func() {
+		if reader != nil {
+			reader.Close()
+		}
+	}()
 
 	switch resp.Header.Get("Content-Encoding") {
 	case "gzip":
@@ -43,9 +48,7 @@ func parseResponse(resp *request.Response) ([]byte, error) {
 }
 
 func Get(url string, query map[string]string, header map[string]string) ([]byte, error) {
-
-	c := new(http.Client)
-	req := request.NewRequest(c)
+	req := request.NewRequest(client)
 	if header != nil {
 		req.Headers = header
 	} else {
@@ -54,6 +57,7 @@ func Get(url string, query map[string]string, header map[string]string) ([]byte,
 	req.Params = query
 
 	if resp, err := req.Get(url); err == nil {
+		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
 			return nil, errors.New(resp.Status)
 		}
@@ -64,8 +68,7 @@ func Get(url string, query map[string]string, header map[string]string) ([]byte,
 }
 
 func Post(url string, query map[string]string, body []byte, header map[string]string) ([]byte, error) {
-	c := new(http.Client)
-	req := request.NewRequest(c)
+	req := request.NewRequest(client)
 	if header != nil {
 		req.Headers = header
 	} else {
@@ -75,6 +78,10 @@ func Post(url string, query map[string]string, body []byte, header map[string]st
 	req.Body = bytes.NewReader(body)
 
 	if resp, err := req.Post(url); err == nil {
+		defer resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return nil, errors.New(resp.Status)
+		}
 		return parseResponse(resp)
 	} else {
 		return nil, err
