@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sync"
 	"time"
@@ -58,7 +59,11 @@ func (r *Recorder) run() {
 				continue
 			}
 			t := time.Now()
-			outputPath := filepath.Join(r.OutPutPath, utils.ReplaceIllegalChar(r.Live.GetPlatformCNName()), utils.ReplaceIllegalChar(r.Live.GetCachedInfo().HostName))
+			outputPath := filepath.Join(
+				r.OutPutPath,
+				utils.ReplaceIllegalChar(r.Live.GetPlatformCNName()),
+				utils.ReplaceIllegalChar(r.Live.GetCachedInfo().HostName),
+			)
 			os.MkdirAll(outputPath, os.ModePerm)
 			outfile := filepath.Join(
 				outputPath,
@@ -84,7 +89,7 @@ func (r *Recorder) run() {
 			r.cmdStdIn, _ = r.cmd.StdinPipe()
 			if r.config.Debug {
 				r.cmdStderr, _ = r.cmd.StderrPipe()
-				go r.redirectTo(outfile)
+				go r.redirectTo(outputPath)
 			}
 			r.cmd.Start()
 			r.logger.WithFields(r.Live.GetInfoMap()).WithField("stream_url", urls[0].String()).Debug("ffmpeg start")
@@ -94,12 +99,14 @@ func (r *Recorder) run() {
 	}
 }
 
-func (r *Recorder) redirectTo(file string) {
-	f, err := os.Create(fmt.Sprintf("%s.ffmpeg_stderr.log", file))
+func (r *Recorder) redirectTo(outputPath string) {
+	f, err := os.OpenFile(path.Join(outputPath, "ffmpeg_debug.log"), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
-		r.logger.Debug(err)
+		r.logger.Warn(err)
 		return
 	}
+	r.logger.Debugf("ffmped stderr -> %s", f.Name())
+	fmt.Fprintf(f, "============= %s =============\n", time.Now().String())
 	buf := make([]byte, 1024)
 	io.CopyBuffer(f, r.cmdStderr, buf)
 	f.Close()
