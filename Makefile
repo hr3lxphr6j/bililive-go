@@ -45,7 +45,7 @@ release-linux-386: mkdir
 	CGO_ENABLED=0 GOOS=linux GOARCH=386 go build ${LD_FLAGS} -o ${BIN_PATH}/${BIN_NAME}-linux-386
 	@if [ ${UPX} = 1 ]; \
     then \
-		upx --no-progress ${BIN_PATH}/${BIN_NAME}-linux-386
+		upx --no-progress ${BIN_PATH}/${BIN_NAME}-linux-386; \
 	fi
 
 .PHONY: release-linux-amd64
@@ -53,7 +53,7 @@ release-linux-amd64: mkdir
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ${LD_FLAGS} -o ${BIN_PATH}/${BIN_NAME}-linux-amd64
 	@if [ ${UPX} = 1 ]; \
     then \
-		upx --no-progress ${BIN_PATH}/${BIN_NAME}-linux-amd64
+		upx --no-progress ${BIN_PATH}/${BIN_NAME}-linux-amd64; \
 	fi
 
 .PHONY: release-linux-arm
@@ -61,7 +61,7 @@ release-linux-arm: mkdir
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm go build ${LD_FLAGS} -o ${BIN_PATH}/${BIN_NAME}-linux-arm
 	@if [ ${UPX} = 1 ]; \
     then \
-		upx --no-progress ${BIN_PATH}/${BIN_NAME}-linux-arm
+		upx --no-progress ${BIN_PATH}/${BIN_NAME}-linux-arm; \
 	fi
 
 .PHONY: release-linux-arm64
@@ -69,7 +69,7 @@ release-linux-arm64: mkdir
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build ${LD_FLAGS} -o ${BIN_PATH}/${BIN_NAME}-linux-arm64
 	@if [ ${UPX} = 1 ]; \
     then \
-		upx --no-progress ${BIN_PATH}/${BIN_NAME}-linux-arm64
+		upx --no-progress ${BIN_PATH}/${BIN_NAME}-linux-arm64; \
 	fi
 
 .PHONY: release-windows-386
@@ -77,7 +77,7 @@ release-windows-386: mkdir
 	CGO_ENABLED=0 GOOS=windows GOARCH=386 go build ${LD_FLAGS} -o ${BIN_PATH}/${BIN_NAME}-windows-386.exe
 	@if [ ${UPX} = 1 ]; \
     then \
-		upx --no-progress ${BIN_PATH}/${BIN_NAME}-windows-386.exe
+		upx --no-progress ${BIN_PATH}/${BIN_NAME}-windows-386.exe; \
 	fi
 
 .PHONY: release-windows-amd64
@@ -85,7 +85,7 @@ release-windows-amd64: mkdir
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build ${LD_FLAGS} -o ${BIN_PATH}/${BIN_NAME}-windows-amd64.exe
 	@if [ ${UPX} = 1 ]; \
     then \
-		upx --no-progress ${BIN_PATH}/${BIN_NAME}-windows-amd64.exe
+		upx --no-progress ${BIN_PATH}/${BIN_NAME}-windows-amd64.exe; \
 	fi
 
 .PHONY: release-docker
