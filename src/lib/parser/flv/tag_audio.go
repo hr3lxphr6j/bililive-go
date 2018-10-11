@@ -51,6 +51,7 @@ func (p *Parser) parseAudioTag(length, timestamp uint32) (*AudioTagHeader, error
 		}
 		return nil, err
 	}
+	p.buf.Write(p.buf1)
 	head := uint8(p.buf1[0])
 	tag := new(AudioTagHeader)
 
@@ -59,24 +60,30 @@ func (p *Parser) parseAudioTag(length, timestamp uint32) (*AudioTagHeader, error
 	tag.SoundSize = SoundSize(head >> 1 & 1)
 	tag.SoundType = SoundType(head & 1)
 
-	offset := length - 1
+	l := length - 1
 	if tag.SoundFormat == AAC {
-		offset -= 1
+		l -= 1
 		if n, err := p.i.Read(p.buf1); err != nil || n != len(p.buf1) {
 			if err == nil {
 				err = io.EOF
 			}
 			return nil, err
 		}
+		p.buf.Write(p.buf1)
 		tag.AACPacketType = AACPacketType(p.buf1[0])
 	}
 
-	// body
-	buf := make([]byte, offset)
-	if n, err := p.i.Read(buf); err != nil || n != len(buf) {
-		if err == nil {
-			err = io.EOF
-		}
+	// write tag header
+	if err := p.doWrite(p.bufTH); err != nil {
+		return nil, err
+	}
+	// write audio tag header & AACPacketType
+	if err := p.doWrite(p.buf.Bytes()); err != nil {
+		return nil, err
+	}
+	p.buf.Reset()
+	// write body
+	if err := p.doCopy(l); err != nil {
 		return nil, err
 	}
 

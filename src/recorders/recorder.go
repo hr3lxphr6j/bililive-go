@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/parser/flv"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -75,28 +79,54 @@ func (r *Recorder) run() {
 					utils.ReplaceIllegalChar(r.Live.GetCachedInfo().RoomName),
 				),
 			)
-			r.cmd = exec.Command(
-				"ffmpeg",
-				"-loglevel", "warning",
-				"-y", "-re",
-				"-timeout", "60000000",
-				"-i", urls[0].String(),
-				"-c", "copy",
-				"-bsf:a", "aac_adtstoasc",
-				"-f", "flv",
-				outfile,
-			)
-			r.cmdStdIn, _ = r.cmd.StdinPipe()
-			if r.config.Debug {
-				r.cmdStderr, _ = r.cmd.StderrPipe()
-				go r.redirectTo(outputPath)
+			if strings.Contains(urls[0].Path, ".flv") && r.config.Feature.UseNativeFlvParser {
+				r.callNativeFlvParser(urls, outputPath, outfile)
+			} else {
+				r.callFFmpeg(urls, outputPath, outfile)
 			}
-			r.cmd.Start()
-			r.logger.WithFields(r.Live.GetInfoMap()).WithField("stream_url", urls[0].String()).Debug("ffmpeg start")
-			r.cmd.Wait()
-			r.logger.WithFields(r.Live.GetInfoMap()).WithField("stream_url", urls[0].String()).Debug("ffmpeg stop")
 		}
 	}
+}
+
+func (r *Recorder) callNativeFlvParser(urls []*url.URL, outputPath, outfile string) error {
+	// init input
+	resp, err := http.Get(urls[0].String())
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	// init output
+	f, err := os.OpenFile(outfile, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	parser, err := flv.NewParser(resp.Body, f)
+	if err != nil {
+
+	}
+	return parser.ParseFlv()
+}
+
+func (r *Recorder) callFFmpeg(urls []*url.URL, outputPath, outfile string) error {
+	r.cmd = exec.Command(
+		"ffmpeg",
+		"-loglevel", "warning",
+		"-y", "-re",
+		"-timeout", "60000000",
+		"-i", urls[0].String(),
+		"-c", "copy",
+		"-bsf:a", "aac_adtstoasc",
+		"-f", "flv",
+		outfile,
+	)
+	r.cmdStdIn, _ = r.cmd.StdinPipe()
+	if r.config.Debug {
+		r.cmdStderr, _ = r.cmd.StderrPipe()
+		go r.redirectTo(outputPath)
+	}
+	r.cmd.Start()
+	return r.cmd.Wait()
 }
 
 func (r *Recorder) redirectTo(outputPath string) {

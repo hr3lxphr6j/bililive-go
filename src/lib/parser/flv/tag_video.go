@@ -44,39 +44,56 @@ func (p *Parser) parseVideoTag(length, timestamp uint32) (*VideoTagHeader, error
 		}
 		return nil, err
 	}
+	p.buf.Write(p.buf1)
 	head := uint8(p.buf1[0])
 	tag := new(VideoTagHeader)
 	tag.FrameType = FrameType(head >> 4 & 15)
 	tag.CodeID = CodeID(head & 15)
 
-	offset := length - 1
+	l := length - 1
 	if tag.CodeID == AVCCode {
-		offset -= 1
+		// read AVCPacketType
+		l -= 1
 		if n, err := p.i.Read(p.buf1); err != nil || n != len(p.buf1) {
 			if err == nil {
 				err = io.EOF
 			}
 			return nil, err
 		}
+		p.buf.Write(p.buf1)
 		tag.AVCPacketType = AVCPacketType(p.buf1[0])
-		if tag.AVCPacketType == AVCNALU {
-			offset -= 3
+		switch tag.AVCPacketType {
+		case AVCNALU:
+			// read CompositionTime
+			l -= 3
 			if n, err := p.i.Read(p.buf3); err != nil || n != len(p.buf3) {
 				if err == nil {
 					err = io.EOF
 				}
 				return nil, err
 			}
+			p.buf.Write(p.buf3)
 			tag.CompositionTime = uint32(p.buf3[0])<<16 | uint32(p.buf3[1])<<8 | uint32(p.buf3[2])
+		case AVCSeqHeader:
+			p.avcHeaderCount++
+			if p.avcHeaderCount > 1 {
+				// new sps pps
+				return nil, io.EOF
+			}
 		}
 	}
 
-	// body
-	buf := make([]byte, offset)
-	if n, err := p.i.Read(buf); err != nil || n != len(buf) {
-		if err == nil {
-			err = io.EOF
-		}
+	// write tag header
+	if err := p.doWrite(p.bufTH); err != nil {
+		return nil, err
+	}
+	// write video tag header & AVCPacketType & CompositionTime
+	if err := p.doWrite(p.buf.Bytes()); err != nil {
+		return nil, err
+	}
+	p.buf.Reset()
+	// write body
+	if err := p.doCopy(l); err != nil {
 		return nil, err
 	}
 

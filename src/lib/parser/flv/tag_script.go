@@ -17,8 +17,16 @@ const (
 	LongString      DataType = 12
 )
 
-func (p *Parser) parseScriptTag(length uint32) {
+func (p *Parser) parseScriptTag(length uint32) error {
 	// TODO: parse script tag content
-	buf := make([]byte, length)
-	p.i.Read(buf)
+	// write tag header
+	if err := p.doWrite(p.bufTH); err != nil {
+		return err
+	}
+	p.buf.Reset()
+	// write body
+	if err := p.doCopy(length); err != nil {
+		return err
+	}
+	return nil
 }
