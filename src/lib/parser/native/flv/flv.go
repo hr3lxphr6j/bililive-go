@@ -5,6 +5,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"time"
 )
 
 const (
@@ -34,26 +38,58 @@ type Parser struct {
 	buf            *bytes.Buffer
 
 	buf1, buf2, buf3, buf4, bufTH []byte
+
+	hc     *http.Client
+	stopCh chan struct{}
 }
 
-func NewParser(i io.Reader, o io.Writer) (*Parser, error) {
-	if i == nil || o == nil {
-		return nil, IOError
-	}
+func NewParser() *Parser {
 	return &Parser{
 		Metadata: Metadata{},
-		i:        i,
-		o:        o,
 		buf:      bytes.NewBuffer(make([]byte, 2<<10)),
 		buf1:     make([]byte, 1),
 		buf2:     make([]byte, 2),
 		buf3:     make([]byte, 3),
 		buf4:     make([]byte, 4),
 		bufTH:    make([]byte, 15),
-	}, nil
+		hc: &http.Client{
+			Timeout: time.Minute,
+		},
+		stopCh: make(chan struct{}),
+	}
 }
 
-func (p *Parser) ParseFlv() error {
+func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
+	// init input
+	req, err := http.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := p.hc.Do(req)
+	if err != nil {
+		return err
+	}
+	p.i = resp.Body
+	defer resp.Body.Close()
+
+	// init output
+	f, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	p.o = f
+	defer f.Close()
+
+	// start parse
+	return p.doParse()
+}
+
+func (p *Parser) Stop() error {
+	close(p.stopCh)
+	return nil
+}
+
+func (p *Parser) doParse() error {
 	// header of flv
 	buf9 := make([]byte, 9)
 	if n, err := p.i.Read(buf9); err != nil || n != len(buf9) {
@@ -81,8 +117,13 @@ func (p *Parser) ParseFlv() error {
 	}
 
 	for {
-		if err := p.parseTag(); err != nil {
-			return err
+		select {
+		case <-p.stopCh:
+			return nil
+		default:
+			if err := p.parseTag(); err != nil {
+				return err
+			}
 		}
 	}
 }
