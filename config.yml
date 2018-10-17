@@ -10,5 +10,5 @@ debug: false
 interval: 15
 out_put_path: /Users/chigusa/Movies
 feature:
-  use_native_flv_parser: true
+  use_native_flv_parser: false
 live_rooms:

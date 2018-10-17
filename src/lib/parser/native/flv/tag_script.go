@@ -20,10 +20,10 @@ const (
 func (p *Parser) parseScriptTag(length uint32) error {
 	// TODO: parse script tag content
 	// write tag header
-	if err := p.doWrite(p.bufTH); err != nil {
+	if err := p.doWrite(p.i.AllBytes()); err != nil {
 		return err
 	}
-	p.buf.Reset()
+	p.i.Reset()
 	// write body
 	if err := p.doCopy(length); err != nil {
 		return err

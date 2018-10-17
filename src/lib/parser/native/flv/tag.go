@@ -1,22 +1,16 @@
 package flv
 
-import (
-	"io"
-)
-
 func (p *Parser) parseTag() error {
 	p.tagCount += 1
 
-	if n, err := p.i.Read(p.bufTH); err != nil || n != len(p.bufTH) {
-		if err == nil {
-			err = io.EOF
-		}
+	b, err := p.i.ReadN(15)
+	if err != nil {
 		return err
 	}
 
-	tagType := uint8(p.bufTH[4])
-	length := uint32(p.bufTH[5])<<16 | uint32(p.bufTH[6])<<8 | uint32(p.bufTH[7])
-	timeStamp := uint32(p.bufTH[8])<<16 | uint32(p.bufTH[9])<<8 | uint32(p.bufTH[10]) | uint32(p.bufTH[11])<<24
+	tagType := uint8(b[4])
+	length := uint32(b[5])<<16 | uint32(b[6])<<8 | uint32(b[7])
+	timeStamp := uint32(b[8])<<16 | uint32(b[9])<<8 | uint32(b[10]) | uint32(b[11])<<24
 
 	switch tagType {
 	case audioTag:
@@ -28,9 +22,7 @@ func (p *Parser) parseTag() error {
 			return err
 		}
 	case scriptTag:
-		if err := p.parseScriptTag(length); err != nil {
-			return err
-		}
+		return p.parseScriptTag(length)
 	default:
 		return UnknownTag
 	}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 	"io"
 	"net/http"
 	"net/url"
@@ -31,13 +32,10 @@ type Metadata struct {
 type Parser struct {
 	Metadata Metadata
 
-	i              io.Reader
+	i              *reader.BufferReader
 	o              io.Writer
 	avcHeaderCount uint8
 	tagCount       uint32
-	buf            *bytes.Buffer
-
-	buf1, buf2, buf3, buf4, bufTH []byte
 
 	hc     *http.Client
 	stopCh chan struct{}
@@ -46,12 +44,6 @@ type Parser struct {
 func NewParser() *Parser {
 	return &Parser{
 		Metadata: Metadata{},
-		buf:      bytes.NewBuffer(make([]byte, 2<<10)),
-		buf1:     make([]byte, 1),
-		buf2:     make([]byte, 2),
-		buf3:     make([]byte, 3),
-		buf4:     make([]byte, 4),
-		bufTH:    make([]byte, 15),
 		hc: &http.Client{
 			Timeout: time.Minute,
 		},
@@ -62,6 +54,7 @@ func NewParser() *Parser {
 func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
 	// init input
 	req, err := http.NewRequest("GET", url.String(), nil)
+	req.Header.Add("User-Agent", "Chrome/59.0.3071.115")
 	if err != nil {
 		return err
 	}
@@ -69,7 +62,7 @@ func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
 	if err != nil {
 		return err
 	}
-	p.i = resp.Body
+	p.i = reader.New(resp.Body)
 	defer resp.Body.Close()
 
 	// init output
@@ -91,30 +84,28 @@ func (p *Parser) Stop() error {
 
 func (p *Parser) doParse() error {
 	// header of flv
-	buf9 := make([]byte, 9)
-	if n, err := p.i.Read(buf9); err != nil || n != len(buf9) {
-		if err == nil {
-			err = io.EOF
-		}
+	b, err := p.i.ReadN(9)
+	if err != nil {
 		return err
 	}
 	// signature
-	if !bytes.Equal(buf9[:4], flvSign) {
+	if !bytes.Equal(b[:4], flvSign) {
 		return NotFlvStream
 	}
 	// flag
-	p.Metadata.HasVideo = uint8(buf9[4])&(1<<2) != 0
-	p.Metadata.HasAudio = uint8(buf9[4])&1 != 0
+	p.Metadata.HasVideo = uint8(b[4])&(1<<2) != 0
+	p.Metadata.HasAudio = uint8(b[4])&1 != 0
 
 	// offset must be 9
-	if binary.BigEndian.Uint32(buf9[5:]) != 9 {
+	if binary.BigEndian.Uint32(b[5:]) != 9 {
 		return NotFlvStream
 	}
 
 	// write flv header
-	if err := p.doWrite(buf9); err != nil {
+	if err := p.doWrite(p.i.AllBytes()); err != nil {
 		return err
 	}
+	p.i.Reset()
 
 	for {
 		select {

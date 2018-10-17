@@ -38,42 +38,32 @@ const (
 
 func (p *Parser) parseVideoTag(length, timestamp uint32) (*VideoTagHeader, error) {
 	// header
-	if n, err := p.i.Read(p.buf1); err != nil || n != len(p.buf1) {
-		if err == nil {
-			err = io.EOF
-		}
+	b, err := p.i.ReadByte()
+	l := length - 1
+	if err != nil {
 		return nil, err
 	}
-	p.buf.Write(p.buf1)
-	head := uint8(p.buf1[0])
 	tag := new(VideoTagHeader)
-	tag.FrameType = FrameType(head >> 4 & 15)
-	tag.CodeID = CodeID(head & 15)
+	tag.FrameType = FrameType(b >> 4 & 15)
+	tag.CodeID = CodeID(b & 15)
 
-	l := length - 1
 	if tag.CodeID == AVCCode {
 		// read AVCPacketType
+		b, err := p.i.ReadByte()
 		l -= 1
-		if n, err := p.i.Read(p.buf1); err != nil || n != len(p.buf1) {
-			if err == nil {
-				err = io.EOF
-			}
+		if err != nil {
 			return nil, err
 		}
-		p.buf.Write(p.buf1)
-		tag.AVCPacketType = AVCPacketType(p.buf1[0])
+		tag.AVCPacketType = AVCPacketType(b)
 		switch tag.AVCPacketType {
 		case AVCNALU:
 			// read CompositionTime
+			b, err := p.i.ReadN(3)
 			l -= 3
-			if n, err := p.i.Read(p.buf3); err != nil || n != len(p.buf3) {
-				if err == nil {
-					err = io.EOF
-				}
+			if err != nil {
 				return nil, err
 			}
-			p.buf.Write(p.buf3)
-			tag.CompositionTime = uint32(p.buf3[0])<<16 | uint32(p.buf3[1])<<8 | uint32(p.buf3[2])
+			tag.CompositionTime = uint32(b[0])<<16 | uint32(b[1])<<8 | uint32(b[2])
 		case AVCSeqHeader:
 			p.avcHeaderCount++
 			if p.avcHeaderCount > 1 {
@@ -83,15 +73,11 @@ func (p *Parser) parseVideoTag(length, timestamp uint32) (*VideoTagHeader, error
 		}
 	}
 
-	// write tag header
-	if err := p.doWrite(p.bufTH); err != nil {
+	// write tag header && video tag header & AVCPacketType & CompositionTime
+	if err := p.doWrite(p.i.AllBytes()); err != nil {
 		return nil, err
 	}
-	// write video tag header & AVCPacketType & CompositionTime
-	if err := p.doWrite(p.buf.Bytes()); err != nil {
-		return nil, err
-	}
-	p.buf.Reset()
+	p.i.Reset()
 	// write body
 	if err := p.doCopy(l); err != nil {
 		return nil, err

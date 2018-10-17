@@ -74,6 +74,9 @@ func (r *Recorder) run() {
 				r.parser = ffmpeg.New()
 			}
 			r.logger.Debugln(r.parser.ParseLiveStream(url, file).Error())
+			if stat, err := os.Stat(file); err == nil && stat.Size() == 0 {
+				os.Remove(file)
+			}
 		}
 	}
 }

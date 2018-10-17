@@ -1,7 +1,5 @@
 package flv
 
-import "io"
-
 type SoundFormat uint8
 type SoundRate uint8
 type SoundSize uint8
@@ -45,43 +43,32 @@ const (
 )
 
 func (p *Parser) parseAudioTag(length, timestamp uint32) (*AudioTagHeader, error) {
-	if n, err := p.i.Read(p.buf1); err != nil || n != len(p.buf1) {
-		if err == nil {
-			err = io.EOF
-		}
+	b, err := p.i.ReadByte()
+	l := length - 1
+	if err != nil {
 		return nil, err
 	}
-	p.buf.Write(p.buf1)
-	head := uint8(p.buf1[0])
 	tag := new(AudioTagHeader)
 
-	tag.SoundFormat = SoundFormat(head >> 4 & 15)
-	tag.SoundRate = SoundRate(head >> 2 & 3)
-	tag.SoundSize = SoundSize(head >> 1 & 1)
-	tag.SoundType = SoundType(head & 1)
+	tag.SoundFormat = SoundFormat(b >> 4 & 15)
+	tag.SoundRate = SoundRate(b >> 2 & 3)
+	tag.SoundSize = SoundSize(b >> 1 & 1)
+	tag.SoundType = SoundType(b & 1)
 
-	l := length - 1
 	if tag.SoundFormat == AAC {
+		b, err := p.i.ReadByte()
 		l -= 1
-		if n, err := p.i.Read(p.buf1); err != nil || n != len(p.buf1) {
-			if err == nil {
-				err = io.EOF
-			}
+		if err != nil {
 			return nil, err
 		}
-		p.buf.Write(p.buf1)
-		tag.AACPacketType = AACPacketType(p.buf1[0])
+		tag.AACPacketType = AACPacketType(b)
 	}
 
-	// write tag header
-	if err := p.doWrite(p.bufTH); err != nil {
+	// write tag header && audio tag header & AACPacketType
+	if err := p.doWrite(p.i.AllBytes()); err != nil {
 		return nil, err
 	}
-	// write audio tag header & AACPacketType
-	if err := p.doWrite(p.buf.Bytes()); err != nil {
-		return nil, err
-	}
-	p.buf.Reset()
+	p.i.Reset()
 	// write body
 	if err := p.doCopy(l); err != nil {
 		return nil, err
