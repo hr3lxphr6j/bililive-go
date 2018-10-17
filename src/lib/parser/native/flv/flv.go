@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
+
+	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 )
 
 const (
@@ -22,7 +23,6 @@ var (
 	flvSign      = []byte{0x46, 0x4c, 0x56, 0x01} // flv version01
 	NotFlvStream = errors.New("not flv stream")
 	UnknownTag   = errors.New("unknown tag")
-	IOError      = errors.New("io error")
 )
 
 type Metadata struct {
@@ -32,7 +32,7 @@ type Metadata struct {
 type Parser struct {
 	Metadata Metadata
 
-	i              *reader.BufferReader
+	i              *reader.BufferedReader
 	o              io.Writer
 	avcHeaderCount uint8
 	tagCount       uint32
@@ -62,8 +62,9 @@ func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
 	if err != nil {
 		return err
 	}
-	p.i = reader.New(resp.Body)
 	defer resp.Body.Close()
+	p.i = reader.New(resp.Body)
+	defer p.i.Free()
 
 	// init output
 	f, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE, 0666)

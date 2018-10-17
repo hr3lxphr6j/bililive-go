@@ -3,38 +3,32 @@ package reader
 import (
 	"errors"
 	"io"
+	"sync"
 )
 
 const (
-	minBufferSize     = 16
-	defaultBufferSize = 2048
+	defaultBufferSize = 1024
 )
 
 var (
 	OutOfBuffer = errors.New("n is bigger than len of buffer")
+	pool        = sync.Pool{New: func() interface{} { return make([]byte, defaultBufferSize) }}
 )
 
-type BufferReader struct {
+type BufferedReader struct {
 	io.Reader
 	buf  []byte
 	l, r int
 }
 
-func New(rd io.Reader) *BufferReader {
-	return NewWithSize(rd, defaultBufferSize)
-}
-
-func NewWithSize(rd io.Reader, size int) *BufferReader {
-	if size < minBufferSize {
-		size = minBufferSize
-	}
-	return &BufferReader{
+func New(rd io.Reader) *BufferedReader {
+	return &BufferedReader{
 		Reader: rd,
-		buf:    make([]byte, size),
+		buf:    pool.Get().([]byte),
 	}
 }
 
-func (b *BufferReader) ReadN(n int) ([]byte, error) {
+func (b *BufferedReader) ReadN(n int) ([]byte, error) {
 	if n > len(b.buf)-b.r {
 		return nil, OutOfBuffer
 	}
@@ -42,7 +36,7 @@ func (b *BufferReader) ReadN(n int) ([]byte, error) {
 	return b.readN(n, b.l)
 }
 
-func (b *BufferReader) readN(n, l int) ([]byte, error) {
+func (b *BufferedReader) readN(n, l int) ([]byte, error) {
 	c, err := b.Read(b.buf[l : l+n])
 	b.r += c
 	if err != nil {
@@ -54,24 +48,30 @@ func (b *BufferReader) readN(n, l int) ([]byte, error) {
 	return b.buf[b.l:b.r], nil
 }
 
-func (b *BufferReader) ReadByte() (byte, error) {
+func (b *BufferedReader) ReadByte() (byte, error) {
 	buf, err := b.ReadN(1)
 	return buf[0], err
 }
 
-func (b *BufferReader) Reset() {
+func (b *BufferedReader) Reset() {
 	b.l = 0
 	b.r = 0
 }
 
-func (b *BufferReader) Cap() int {
+func (b *BufferedReader) Cap() int {
 	return len(b.buf)
 }
 
-func (b *BufferReader) AllBytes() []byte {
+func (b *BufferedReader) AllBytes() []byte {
 	return b.buf[:b.r]
 }
 
-func (b *BufferReader) LastBytes() []byte {
+func (b *BufferedReader) LastBytes() []byte {
 	return b.buf[b.l:b.r]
+}
+
+func (b *BufferedReader) Free() {
+	b.Reset()
+	pool.Put(b.buf)
+	b.buf = nil
 }
