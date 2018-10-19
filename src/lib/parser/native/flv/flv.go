@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"time"
-
-	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 )
 
 const (
@@ -44,10 +42,8 @@ type Parser struct {
 func NewParser() *Parser {
 	return &Parser{
 		Metadata: Metadata{},
-		hc: &http.Client{
-			Timeout: time.Minute,
-		},
-		stopCh: make(chan struct{}),
+		hc:       &http.Client{},
+		stopCh:   make(chan struct{}),
 	}
 }
 
