@@ -10,3 +10,8 @@ debug: false
 interval: 15
 out_put_path: ./
 live_rooms:
+
+ffmpeg_in_args:
+
+ffmpeg_out_args:
+

@@ -70,17 +70,26 @@ func (r *Recorder) run() {
 					utils.ReplaceIllegalChar(r.Live.GetCachedInfo().RoomName),
 				),
 			)
-			r.cmd = exec.Command(
-				"ffmpeg",
+
+			tmpcmd := []string{
 				"-loglevel", "warning",
 				"-y", "-re",
 				"-timeout", "60000000",
+			}
+			tmpcmd = append(tmpcmd, r.config.FFmpegInArgs...)
+			tmpcmd = append(tmpcmd,
 				"-i", urls[0].String(),
+				//"-segment_atclocktime", "1",
+				//"-segment_time", "900",
 				"-c", "copy",
 				"-bsf:a", "aac_adtstoasc",
 				"-f", "flv",
-				outfile,
 			)
+			tmpcmd = append(tmpcmd, r.config.FFmpegOutArgs...)
+			tmpcmd = append(tmpcmd, outfile)
+			r.logger.WithField("ffmpeg_arguments", tmpcmd).Debug("before ffmpeg exe")
+
+			r.cmd = exec.Command("ffmpeg", tmpcmd...)
 			r.cmdStdIn, _ = r.cmd.StdinPipe()
 			if r.config.Debug {
 				r.cmdStderr, _ = r.cmd.StderrPipe()

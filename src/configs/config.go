@@ -22,12 +22,14 @@ type RPC struct {
 	TLS    TLS    `yaml:"tls"`
 }
 type Config struct {
-	RPC        RPC      `yaml:"rpc"`
-	Debug      bool     `yaml:"debug"`
-	Interval   int      `yaml:"interval"`
-	OutPutPath string   `yaml:"out_put_path"`
-	LiveRooms  []string `yaml:"live_rooms"`
-	file       string
+	RPC           RPC      `yaml:"rpc"`
+	Debug         bool     `yaml:"debug"`
+	Interval      int      `yaml:"interval"`
+	OutPutPath    string   `yaml:"out_put_path"`
+	LiveRooms     []string `yaml:"live_rooms"`
+	FFmpegInArgs  []string `yaml:"ffmpeg_in_args"`
+	FFmpegOutArgs []string `yaml:"ffmpeg_out_args"`
+	file          string
 }
 
 func VerifyConfig(config *Config) error {

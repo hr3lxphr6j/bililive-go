@@ -34,6 +34,8 @@ var (
 	rpcTLS   = app.Flag("enable-rpc-tls", "Enable TLS for RPC server").Bool()
 	certFile = app.Flag("rpc-tls-cert-file", "Cert file for TLS on RPC").String()
 	keyFile  = app.Flag("rpc-tls-key-file", "Key file for TLS on RPC").String()
+	inArgs   = app.Flag("ffmpeg-in-args", "Arguments for ffmpeg infile").Strings()
+	outArgs  = app.Flag("ffmpeg-out-args", "Arguments for ffmpeg outfile").Strings()
 )
 
 func getConfig() (*configs.Config, error) {
@@ -57,10 +59,12 @@ func getConfig() (*configs.Config, error) {
 					KeyFile:  *keyFile,
 				},
 			},
-			Debug:      *debug,
-			Interval:   *interval,
-			OutPutPath: *output,
-			LiveRooms:  *input,
+			Debug:         *debug,
+			Interval:      *interval,
+			OutPutPath:    *output,
+			LiveRooms:     *input,
+			FFmpegInArgs:  *inArgs,
+			FFmpegOutArgs: *outArgs,
 		}
 	}
 	if err := configs.VerifyConfig(config); err != nil {
@@ -83,6 +87,7 @@ func main() {
 
 	inst := new(instance.Instance)
 	inst.Config = config
+
 	ctx := context.WithValue(context.Background(), instance.InstanceKey, inst)
 
 	logger := log.NewLogger(ctx)
