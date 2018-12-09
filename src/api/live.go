@@ -27,6 +27,21 @@ var LivePlatformCNNameMap = map[string]string{
 	"www.openrec.tv":    "openrec",
 }
 
+var LivePlatformENNameMap = map[string]string{
+	"www.panda.tv":      "panda",
+	"live.bilibili.com": "bilibili",
+	"www.zhanqi.tv":     "zhanqi",
+	"www.douyu.com":     "douyu",
+	"star.longzhu.com":  "longzhu",
+	"www.huomao.com":    "huomao",
+	"www.yizhibo.com":   "yizhibo",
+	"www.twitch.tv":     "twitch",
+	"www.huya.com":      "huya",
+	"www.quanmin.tv":    "quanmin",
+	"cc.163.com":        "163CC",
+	"www.openrec.tv":    "openrec",
+}
+
 type Info struct {
 	Live                        Live
 	HostName, RoomName          string
@@ -38,6 +53,8 @@ func (i *Info) MarshalJSON() ([]byte, error) {
 		Id                LiveId `json:"id"`
 		LiveUrl           string `json:"live_url"`
 		PlatformCNName    string `json:"platform_cn_name"`
+		PlatformENName    string `json:"platform_en_name"`
+		RoomNickName      string `json:"room_nickname"`
 		HostName          string `json:"host_name"`
 		RoomName          string `json:"room_name"`
 		Status            bool   `json:"status"`
@@ -49,6 +66,8 @@ func (i *Info) MarshalJSON() ([]byte, error) {
 		Id:             i.Live.GetLiveId(),
 		LiveUrl:        i.Live.GetRawUrl(),
 		PlatformCNName: i.Live.GetPlatformCNName(),
+		PlatformENName: i.Live.GetPlatformENName(),
+		RoomNickName  : i.Live.GetRoomNickName(),
 		HostName:       i.HostName,
 		RoomName:       i.RoomName,
 		Status:         i.Status,
@@ -65,11 +84,13 @@ func (i *Info) MarshalJSON() ([]byte, error) {
 type Live interface {
 	GetLiveId() LiveId
 	GetRawUrl() string
+	GetRoomNickName() string
 	GetInfo() (*Info, error)
 	GetInfoMap() map[string]interface{}
 	GetCachedInfo() *Info
 	GetStreamUrls() ([]*url.URL, error)
 	GetPlatformCNName() string
+	GetPlatformENName() string
 	GetLastStartTime() time.Time
 	SetLastStartTime(time.Time)
 }

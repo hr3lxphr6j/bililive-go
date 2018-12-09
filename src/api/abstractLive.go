@@ -3,6 +3,7 @@ package api
 import (
 	"net/url"
 	"time"
+	"strings"
 )
 
 type abstractLive struct {
@@ -18,6 +19,10 @@ func (a *abstractLive) GetLiveId() LiveId {
 
 func (a *abstractLive) GetRawUrl() string {
 	return a.Url.String()
+}
+
+func (a *abstractLive) GetRoomNickName() string {
+	return strings.Split(a.Url.Path, "/")[1]
 }
 
 func (a *abstractLive) GetCachedInfo() *Info {
@@ -36,6 +41,10 @@ func (a *abstractLive) GetInfoMap() map[string]interface{} {
 
 func (a *abstractLive) GetPlatformCNName() string {
 	return LivePlatformCNNameMap[a.Url.Host]
+}
+
+func (a *abstractLive) GetPlatformENName() string {
+	return LivePlatformENNameMap[a.Url.Host]
 }
 
 func (a *abstractLive) GetLastStartTime() time.Time {
