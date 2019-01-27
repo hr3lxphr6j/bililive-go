@@ -18,6 +18,10 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 )
 
+const (
+	userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
+)
+
 type Recorder struct {
 	Live       api.Live
 	OutPutPath string
@@ -74,6 +78,7 @@ func (r *Recorder) run() {
 				"ffmpeg",
 				"-loglevel", "warning",
 				"-y", "-re",
+				"-user_agent", userAgent,
 				"-timeout", "60000000",
 				"-i", urls[0].String(),
 				"-c", "copy",
