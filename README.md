@@ -23,11 +23,6 @@ Bililive-go是一个支持多种直播平台的直播录制工具，运行在 CL
         <td>滋瓷</td>
     </tr>
     <tr align="center">
-        <td>熊猫直播</td>
-        <td>www.panda.tv</td>
-        <td>滋瓷</td>
-    </tr>
-    <tr align="center">
         <td>战旗直播</td>
         <td>www.zhanqi.tv</td>
         <td>滋瓷</td>
@@ -85,11 +80,11 @@ Bililive-go是一个支持多种直播平台的直播录制工具，运行在 CL
 ## 使用例子
 - 本地
     ```
-    ./bililive-go -i https://www.panda.tv/10300 -i https://www.douyu.com/6655
+    ./bililive-go -i https://live.bilibili.com/1030 -i https://www.douyu.com/6655
     ```
 - docker
     ```
-    docker run -v ~/Movies:/srv/bililive --rm chigusa/bililive-go -o /srv/bililive -i https://www.panda.tv/10300
+    docker run -v ~/Movies:/srv/bililive --rm chigusa/bililive-go -o /srv/bililive -i https://live.bilibili.com/1030
     ```
 
 ## 获取&编译

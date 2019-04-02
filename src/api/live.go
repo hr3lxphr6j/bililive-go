@@ -13,7 +13,6 @@ import (
 type LiveId string
 
 var LivePlatformCNNameMap = map[string]string{
-	"www.panda.tv":      "熊猫",
 	"live.bilibili.com": "哔哩哔哩",
 	"www.zhanqi.tv":     "战旗",
 	"www.douyu.com":     "斗鱼",
@@ -81,8 +80,6 @@ func NewLive(url *url.URL) (Live, error) {
 	}
 	var live Live
 	switch url.Host {
-	case "www.panda.tv":
-		live = &PandaLive{abstractLive: baseLive}
 	case "live.bilibili.com":
 		live = &BiliBiliLive{abstractLive: baseLive}
 	case "www.zhanqi.tv":
