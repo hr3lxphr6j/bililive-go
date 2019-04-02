@@ -21,7 +21,6 @@ var LivePlatformCNNameMap = map[string]string{
 	"www.yizhibo.com":   "一直播",
 	"www.twitch.tv":     "twitch",
 	"www.huya.com":      "虎牙",
-	"www.quanmin.tv":    "全民",
 	"cc.163.com":        "CC直播",
 	"www.openrec.tv":    "openrec",
 }
@@ -96,8 +95,6 @@ func NewLive(url *url.URL) (Live, error) {
 		live = &TwitchLive{abstractLive: baseLive}
 	case "www.huya.com":
 		live = &HuYaLive{abstractLive: baseLive}
-	case "www.quanmin.tv":
-		live = &QuanMinLive{abstractLive: baseLive}
 	case "cc.163.com":
 		live = &CCLive{abstractLive: baseLive}
 	case "www.openrec.tv":

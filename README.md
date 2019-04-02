@@ -48,11 +48,6 @@ Bililive-go是一个支持多种直播平台的直播录制工具，运行在 CL
         <td>滋瓷</td>
     </tr>
     <tr align="center">
-        <td>全民直播</td>
-        <td>www.quanmin.tv</td>
-        <td>滋瓷</td>
-    </tr>
-    <tr align="center">
         <td>CC直播</td>
         <td>cc.163.com</td>
         <td>滋瓷</td>
