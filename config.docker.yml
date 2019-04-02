@@ -9,4 +9,6 @@ rpc:
 debug: false
 interval: 20
 out_put_path: /srv/bililive
+feature:
+  use_native_flv_parser: false
 live_rooms:

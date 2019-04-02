@@ -21,11 +21,15 @@ type RPC struct {
 	Token  string `yaml:"token"`
 	TLS    TLS    `yaml:"tls"`
 }
+type Feature struct {
+	UseNativeFlvParser bool `yaml:"use_native_flv_parser"`
+}
 type Config struct {
 	RPC        RPC      `yaml:"rpc"`
 	Debug      bool     `yaml:"debug"`
 	Interval   int      `yaml:"interval"`
 	OutPutPath string   `yaml:"out_put_path"`
+	Feature    Feature  `yaml:"feature"`
 	LiveRooms  []string `yaml:"live_rooms"`
 	file       string
 }

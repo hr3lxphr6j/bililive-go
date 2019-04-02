@@ -61,7 +61,6 @@ func initMux(ctx context.Context) *mux.Router {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if prefix := strings.Split(r.RequestURI, "/")[1]; prefix != "files" && prefix != "debug" {
 					w.Header().Add("Content-Type", "application/json")
-					fmt.Printf("rua")
 				}
 				handler.ServeHTTP(w, r)
 			})
