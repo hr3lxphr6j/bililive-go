@@ -2,38 +2,52 @@ package api
 
 import (
 	"fmt"
+	"github.com/robertkrimen/otto"
+	"github.com/satori/go.uuid"
+	"github.com/tidwall/gjson"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/tidwall/gjson"
-
 	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 )
 
 const (
-	douyuLiveApiUrl = "http://www.douyutv.com/api/v1/"
-	salt            = "zNzMV1y4EMxOHS6I5WKm"
+	douyuLiveInfoUrl = "https://open.douyucdn.cn/api/RoomApi/room"
+	douyuLiveEncUrl  = "https://www.douyu.com/swf_api/homeH5Enc"
+	douyuLiveAPIUrl  = "https://www.douyu.com/lapi/live/getH5Play"
 )
 
-var header = map[string]string{"user-agent": "Mozilla/5.0 (iPad; CPU OS 8_1_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B466 Safari/600.1.4"}
+var (
+	cryptoJS []byte
+	header   = map[string]string{
+		"Referer":      "https://www.douyu.com",
+		"content-type": "application/x-www-form-urlencoded",
+	}
+)
+
+func loadCryptoJS() {
+	body, err := http.Get("https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js", nil, nil)
+	if err != nil {
+		// TODO: not panic
+		panic(err)
+	}
+	cryptoJS = body
+}
+
+func getEngineWithCryptoJS() (*otto.Otto, error) {
+	if cryptoJS == nil {
+		loadCryptoJS()
+	}
+	engine := otto.New()
+	if _, err := engine.Eval(cryptoJS); err != nil {
+		return nil, err
+	}
+	return engine, nil
+}
 
 type DouyuLive struct {
 	abstractLive
-}
-
-func (d *DouyuLive) requestRoomInfo() ([]byte, error) {
-	args := fmt.Sprintf("room/%s?aid=wp&client_sys=wp&time=%d", strings.Split(d.Url.Path, "/")[1], time.Now().Unix())
-	authMd5 := utils.GetMd5String([]byte(fmt.Sprintf("%s%s", args, salt)))
-	body, err := http.Get(fmt.Sprintf("%s%s&auth=%s", douyuLiveApiUrl, args, authMd5), nil, header)
-	if err != nil {
-		return nil, err
-	}
-	if gjson.GetBytes(body, "error").Int() != 0 {
-		return nil, &RoomNotExistsError{d.Url}
-	}
-	return body, nil
 }
 
 func (d *DouyuLive) GetInfo() (info *Info, err error) {
@@ -43,33 +57,74 @@ func (d *DouyuLive) GetInfo() (info *Info, err error) {
 		}
 	}()
 
-	data, err := d.requestRoomInfo()
+	body, err := http.Get(fmt.Sprintf("%s/%s", douyuLiveInfoUrl, strings.Split(d.Url.Path, "/")[1]), nil, nil)
 	if err != nil {
 		return nil, err
 	}
+	if gjson.GetBytes(body, "error").Int() != 0 {
+		return nil, &RoomNotExistsError{d.Url}
+	}
 	info = &Info{
 		Live:     d,
-		HostName: gjson.GetBytes(data, "data.nickname").String(),
-		RoomName: gjson.GetBytes(data, "data.room_name").String(),
-		Status:   gjson.GetBytes(data, "data.show_status").String() == "1",
+		HostName: gjson.GetBytes(body, "data.owner_name").String(),
+		RoomName: gjson.GetBytes(body, "data.room_name").String(),
+		Status:   gjson.GetBytes(body, "data.room_status").String() == "1",
 	}
 	d.cachedInfo = info
 	return info, nil
 
 }
 
-func (d *DouyuLive) GetStreamUrls() (us []*url.URL, err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			err = e.(error)
-		}
-	}()
-
-	data, err := d.requestRoomInfo()
+func (d *DouyuLive) getSignParams() (url.Values, error) {
+	roomID := strings.Split(d.Url.Path, "/")[1]
+	body, err := http.Get(douyuLiveEncUrl, map[string]string{
+		"rids": roomID,
+	}, nil)
 	if err != nil {
 		return nil, err
 	}
-	u, err := url.Parse(fmt.Sprintf("%s/%s", gjson.GetBytes(data, "data.rtmp_url"), gjson.GetBytes(data, "data.rtmp_live")))
+	jsEnc := gjson.GetBytes(body, fmt.Sprintf("data.room%s", roomID)).String()
+	engine, err := getEngineWithCryptoJS()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := engine.Eval(jsEnc); err != nil {
+		return nil, err
+	}
+	did := strings.ReplaceAll(uuid.Must(uuid.NewV4()).String(), "-", "")
+	ts := time.Now()
+	res, err := engine.Call("ub98484234", nil, roomID, did, ts.Unix())
+	if err != nil {
+		return nil, err
+	}
+
+	values := url.Values{
+		"cdn":  {""},
+		"iar":  {"0"},
+		"ive":  {"0"},
+		"rate": {"0"},
+	}
+	for _, entry := range strings.Split(res.String(), "&") {
+		if entry == "" {
+			continue
+		}
+		strs := strings.SplitN(entry, "=", 2)
+		values.Set(strs[0], strs[1])
+	}
+	return values, nil
+}
+
+func (d *DouyuLive) GetStreamUrls() (us []*url.URL, err error) {
+	roomID := strings.Split(d.Url.Path, "/")[1]
+	params, err := d.getSignParams()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.Post(fmt.Sprintf("%s/%s", douyuLiveAPIUrl, roomID), nil, []byte(params.Encode()), header)
+	if gjson.GetBytes(resp, "error").Int() != 0 {
+		return nil, fmt.Errorf("get stream error")
+	}
+	u, err := url.Parse(gjson.GetBytes(resp, "data.rtmp_url").String() + "/" + gjson.GetBytes(resp, "data.rtmp_live").String())
 	if err != nil {
 		return nil, err
 	}
