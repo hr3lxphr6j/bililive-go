@@ -1,8 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"net/url"
 	"regexp"
+	"time"
 
 	"github.com/tidwall/gjson"
 
@@ -10,7 +12,10 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 )
 
-const huomaoLiveApiUrl = "http://www.huomao.com/swf/live_data"
+const (
+	huomaoLiveApiUrl = "http://www.huomao.com/swf/live_data"
+	huomaoSalt       = "6FE26D855E1AEAE090E243EB1AF73685"
+)
 
 type HuoMaoLive struct {
 	abstractLive
@@ -62,12 +67,17 @@ func (h *HuoMaoLive) GetStreamUrls() ([]*url.URL, error) {
 	} else {
 		streamReg = `getFlash\("\d*","([^"]*)","\d*"\);`
 	}
+	from := "huomaoh5room"
+	t := fmt.Sprintf("%d", time.Now().Unix())
 	streamID := regexp.MustCompile(streamReg).FindStringSubmatch(string(dom))[1]
+	token := utils.GetMd5String([]byte(fmt.Sprintf("%s%s%s%s", streamID, from, t, huomaoSalt)))
 	body, err := http.Post(huomaoLiveApiUrl, map[string]string{
 		"VideoIDS":   streamID,
 		"streamtype": "live",
 		"cdns":       "1",
-		"from":       "huomaoh5room",
+		"from":       from,
+		"time":       t,
+		"token":      token,
 	}, nil, nil)
 	us := make([]*url.URL, 0, 4)
 	gjson.GetBytes(body, "streamList.#.list.#.url").ForEach(func(key, value gjson.Result) bool {
