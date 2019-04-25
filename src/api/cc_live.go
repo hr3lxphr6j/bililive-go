@@ -30,12 +30,12 @@ func (c *CCLive) GetInfo() (info *Info, err error) {
 	if err != nil {
 		return nil, err
 	}
-	c.ccid = regexp.MustCompile(`anchorCcId:\s+'(\d*)'`).FindStringSubmatch(string(dom))[1]
+	c.ccid = regexp.MustCompile(`anchorCcId\s*:\s*'(\d*)'`).FindStringSubmatch(string(dom))[1]
 	info = &Info{
 		Live:     c,
-		HostName: regexp.MustCompile(`anchorName:\s+'([^']*)',`).FindStringSubmatch(string(dom))[1],
-		RoomName: regexp.MustCompile(`title:\s+'([^']*)',`).FindStringSubmatch(string(dom))[1],
-		Status:   regexp.MustCompile(`isLive:\s+(\d+),`).FindStringSubmatch(string(dom))[1] == "1",
+		HostName: regexp.MustCompile(`anchorName\s*:\s*'([^']*)',`).FindStringSubmatch(string(dom))[1],
+		RoomName: regexp.MustCompile(`js-live-title nick" title\s*=\s*"([^"]*)"`).FindStringSubmatch(string(dom))[1],
+		Status:   len(regexp.MustCompile(`isLive\s*:\s*\d+,`).FindAll(dom, -1)) > 0,
 	}
 	c.cachedInfo = info
 	return info, nil
