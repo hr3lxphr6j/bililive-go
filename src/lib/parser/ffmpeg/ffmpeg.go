@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"io"
 	"net/url"
 	"os/exec"
 )
@@ -10,7 +11,8 @@ const (
 )
 
 type Parser struct {
-	cmd *exec.Cmd
+	cmd      *exec.Cmd
+	cmdStdIn io.WriteCloser
 }
 
 func New() *Parser {
@@ -30,15 +32,18 @@ func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
 		"-f", "flv",
 		file,
 	)
+	stdIn, err := p.cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+	p.cmdStdIn = stdIn
 	p.cmd.Start()
 	return p.cmd.Wait()
 }
 
 func (p *Parser) Stop() error {
-	if stdIn, err := p.cmd.StdinPipe(); err != nil {
-		return err
-	} else {
-		stdIn.Write([]byte("q"))
+	if p.cmd.ProcessState == nil {
+		p.cmdStdIn.Write([]byte("q"))
 	}
 	return nil
 }
