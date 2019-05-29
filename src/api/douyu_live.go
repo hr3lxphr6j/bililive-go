@@ -2,12 +2,13 @@ package api
 
 import (
 	"fmt"
-	"github.com/robertkrimen/otto"
-	"github.com/satori/go.uuid"
-	"github.com/tidwall/gjson"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/robertkrimen/otto"
+	"github.com/satori/go.uuid"
+	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
 )

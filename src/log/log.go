@@ -4,9 +4,10 @@ import (
 	"context"
 	"os"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
-	"github.com/sirupsen/logrus"
 )
 
 func NewLogger(ctx context.Context) *interfaces.Logger {

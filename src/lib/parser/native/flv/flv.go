@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 )
 
 const (

@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
+
 	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/consts"
