@@ -94,3 +94,8 @@ $ make
 
 ## API
 [API doc](https://github.com/hr3lxphr6j/bililive-go/blob/master/docs/API.md)
+
+## 参考
+- [you-get](https://github.com/soimort/you-get)
+- [ykdl](https://github.com/zhangn1985/ykdl)
+- [youtube-dl](https://github.com/ytdl-org/youtube-dl)

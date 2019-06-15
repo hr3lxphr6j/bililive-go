@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"math/rand"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -40,4 +41,21 @@ func ParseUnicode(str string) string {
 func ReplaceIllegalChar(str string) string {
 	reg := regexp.MustCompile(`[\/\\\:\*\?\"\<\>\|]`)
 	return reg.ReplaceAllString(str, "_")
+}
+
+var (
+	lowercaseRunes = []rune("abcdefghijklmnopqrstuvwxyz")
+	uppercaseRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	lettersRunes   = append(lowercaseRunes, uppercaseRunes...)
+	digitsRunes    = []rune("0123456789")
+	allRunes       = append(lettersRunes, digitsRunes...)
+)
+
+func GenRandomName(n int) string {
+	b := make([]rune, n)
+	b[0] = lowercaseRunes[rand.Intn(len(lowercaseRunes))]
+	for i := 1; i < n; i++ {
+		b[i] = allRunes[rand.Intn(len(allRunes))]
+	}
+	return string(b)
 }
