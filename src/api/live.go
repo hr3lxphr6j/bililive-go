@@ -23,6 +23,7 @@ var LivePlatformCNNameMap = map[string]string{
 	"www.huya.com":      "虎牙",
 	"cc.163.com":        "CC直播",
 	"www.openrec.tv":    "openrec",
+	"egame.qq.com":      "企鹅电竞",
 }
 
 type Info struct {
@@ -99,6 +100,8 @@ func NewLive(url *url.URL) (Live, error) {
 		live = &CCLive{abstractLive: baseLive}
 	case "www.openrec.tv":
 		live = &OpenRecLive{abstractLive: baseLive}
+	case "egame.qq.com":
+		live = &QQLive{abstractLive: baseLive}
 	default:
 		live = nil
 	}
