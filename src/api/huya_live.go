@@ -66,6 +66,6 @@ func (h *HuYaLive) GetStreamUrls() (us []*url.URL, err error) {
 	value.Add("type", "web")
 	value.Add("ver", "1805071653")
 	value.Add("uid", fmt.Sprintf("%d", uid))
-	u.RawQuery = fmt.Sprintf("%s&%s", value.Encode(), sFlvAntiCode)
+	u.RawQuery = fmt.Sprintf("%s&%s", value.Encode(), strings.ReplaceAll(sFlvAntiCode, "&amp;", "&"))
 	return []*url.URL{u}, nil
 }
