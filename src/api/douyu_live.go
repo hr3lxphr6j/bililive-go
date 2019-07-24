@@ -172,13 +172,18 @@ func (d *DouyuLive) getSignParams() (url.Values, error) {
 		return nil, err
 	}
 	jsEnc := gjson.GetBytes(body, fmt.Sprintf("data.room%s", d.roomID)).String()
-
+	fmt.Print(workflowReg.FindStringSubmatch(jsEnc))
+	workflow := ""
+	workflowMatch := workflowReg.FindStringSubmatch(jsEnc)
+	if len(workflowMatch) == 2 {
+		workflow = workflowMatch[1]
+	}
 	context := context{
 		DebugMessages:  utils.GenRandomName(8),
 		DecryptedCodes: utils.GenRandomName(8),
 		Resoult:        utils.GenRandomName(8),
 		Ub98484234:     utils.GenRandomName(8),
-		Workflow:       workflowReg.FindStringSubmatch(jsEnc)[1],
+		Workflow:       workflow,
 	}
 	jsDom, err := render(jsDomTmpl, context)
 	if err != nil {
