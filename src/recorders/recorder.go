@@ -7,30 +7,40 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/parser"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/parser/ffmpeg"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/parser/native/flv"
 	"github.com/hr3lxphr6j/bililive-go/src/api"
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/parser"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/parser/ffmpeg"
+	"github.com/hr3lxphr6j/bililive-go/src/lib/parser/native/flv"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
+)
+
+const (
+	begin uint32 = iota
+	pending
+	running
+	stopped
 )
 
 type Recorder struct {
 	Live       api.Live
 	OutPutPath string
 
-	config               *configs.Config
-	ed                   events.IEventDispatcher
-	logger               *interfaces.Logger
-	startOnce, closeOnce *sync.Once
-	stop                 chan struct{}
+	config *configs.Config
+	ed     events.IEventDispatcher
+	logger *interfaces.Logger
 
-	parser parser.Parser
+	parser     parser.Parser
+	parserLock *sync.RWMutex
+
+	stop  chan struct{}
+	state uint32
 }
 
 func NewRecorder(ctx context.Context, live api.Live) (*Recorder, error) {
@@ -41,9 +51,9 @@ func NewRecorder(ctx context.Context, live api.Live) (*Recorder, error) {
 		config:     inst.Config,
 		ed:         inst.EventDispatcher.(events.IEventDispatcher),
 		logger:     inst.Logger,
-		startOnce:  new(sync.Once),
-		closeOnce:  new(sync.Once),
+		state:      begin,
 		stop:       make(chan struct{}),
+		parserLock: new(sync.RWMutex),
 	}, nil
 }
 
@@ -69,9 +79,9 @@ func (r *Recorder) run() {
 			)
 			os.MkdirAll(outputPath, os.ModePerm)
 			if strings.Contains(url.Path, ".flv") && r.config.Feature.UseNativeFlvParser {
-				r.parser = flv.NewParser()
+				r.setAndCloseParser(flv.NewParser())
 			} else {
-				r.parser = ffmpeg.New()
+				r.setAndCloseParser(ffmpeg.New())
 			}
 			r.logger.Debugln(r.parser.ParseLiveStream(url, file))
 			if stat, err := os.Stat(file); err == nil && stat.Size() == 0 {
@@ -81,20 +91,40 @@ func (r *Recorder) run() {
 	}
 }
 
+func (r *Recorder) getParser() parser.Parser {
+	r.parserLock.RLock()
+	defer r.parserLock.RUnlock()
+	return r.parser
+}
+
+func (r *Recorder) setAndCloseParser(p parser.Parser) {
+	r.parserLock.Lock()
+	defer r.parserLock.Unlock()
+	if r.parser != nil {
+		r.parser.Stop()
+	}
+	r.parser = p
+}
+
 func (r *Recorder) Start() error {
-	r.startOnce.Do(func() {
-		go r.run()
-		r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde Start")
-		r.ed.DispatchEvent(events.NewEvent(RecorderStart, r.Live))
-	})
+	if !atomic.CompareAndSwapUint32(&r.state, begin, pending) {
+		return fmt.Errorf("recorder in error state")
+	}
+	go r.run()
+	r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde Start")
+	r.ed.DispatchEvent(events.NewEvent(RecorderStart, r.Live))
+	atomic.CompareAndSwapUint32(&r.state, pending, running)
 	return nil
 }
 
 func (r *Recorder) Close() {
-	r.closeOnce.Do(func() {
-		close(r.stop)
-		r.parser.Stop()
-		r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde End")
-		r.ed.DispatchEvent(events.NewEvent(RecorderStop, r.Live))
-	})
+	if !atomic.CompareAndSwapUint32(&r.state, running, stopped) {
+		return
+	}
+	close(r.stop)
+	if p := r.getParser(); p != nil {
+		p.Stop()
+	}
+	r.logger.WithFields(r.Live.GetInfoMap()).Info("Recorde End")
+	r.ed.DispatchEvent(events.NewEvent(RecorderStop, r.Live))
 }

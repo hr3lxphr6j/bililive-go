@@ -41,17 +41,38 @@ func (r *RecorderManager) Start(ctx context.Context) error {
 
 	// 开播事件
 	ed.AddEventListener(listeners.LiveStart, events.NewEventListener(func(event *events.Event) {
-		r.AddRecorder(ctx, event.Object.(api.Live))
+		live := event.Object.(api.Live)
+		if err := r.AddRecorder(ctx, live); err != nil {
+			instance.GetInstance(ctx).Logger.
+				WithFields(live.GetInfoMap()).
+				Errorf("failed to add recorder, err: %v", err)
+		}
 	}))
 
 	// 下播事件
 	ed.AddEventListener(listeners.LiveEnd, events.NewEventListener(func(event *events.Event) {
-		r.RemoveRecorder(ctx, event.Object.(api.Live).GetLiveId())
+		live := event.Object.(api.Live)
+		if !r.HasRecorder(ctx, live.GetLiveId()) {
+			return
+		}
+		if err := r.RemoveRecorder(ctx, live.GetLiveId()); err != nil {
+			instance.GetInstance(ctx).Logger.
+				WithFields(live.GetInfoMap()).
+				Errorf("failed to remove recorder, err: %v", err)
+		}
 	}))
 
 	// 监听关闭事件
 	ed.AddEventListener(listeners.ListenStop, events.NewEventListener(func(event *events.Event) {
-		r.RemoveRecorder(ctx, event.Object.(api.Live).GetLiveId())
+		live := event.Object.(api.Live)
+		if !r.HasRecorder(ctx, live.GetLiveId()) {
+			return
+		}
+		if err := r.RemoveRecorder(ctx, live.GetLiveId()); err != nil {
+			instance.GetInstance(ctx).Logger.
+				WithFields(live.GetInfoMap()).
+				Errorf("failed to remove recorder, err: %v", err)
+		}
 	}))
 
 	return nil

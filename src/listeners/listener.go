@@ -2,55 +2,68 @@ package listeners
 
 import (
 	"context"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/hr3lxphr6j/bililive-go/src/api"
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
 )
 
+const (
+	begin uint32 = iota
+	pending
+	running
+	stopped
+)
+
 func NewListener(ctx context.Context, live api.Live) *Listener {
 	inst := instance.GetInstance(ctx)
 	return &Listener{
-		Live:      live,
-		status:    false,
-		ticker:    time.NewTicker(time.Duration(inst.Config.Interval) * time.Second),
-		stop:      make(chan struct{}),
-		ed:        inst.EventDispatcher.(events.IEventDispatcher),
-		logger:    inst.Logger,
-		startOnce: new(sync.Once),
-		closeOnce: new(sync.Once),
+		Live:   live,
+		status: false,
+		config: inst.Config,
+		stop:   make(chan struct{}),
+		ed:     inst.EventDispatcher.(events.IEventDispatcher),
+		logger: inst.Logger,
+		state:  begin,
 	}
 }
 
 type Listener struct {
-	Live                 api.Live
-	status               bool
-	ticker               *time.Ticker
-	stop                 chan struct{}
-	ed                   events.IEventDispatcher
-	logger               *interfaces.Logger
-	startOnce, closeOnce *sync.Once
+	Live   api.Live
+	status bool
+
+	config *configs.Config
+	ed     events.IEventDispatcher
+	logger *interfaces.Logger
+
+	state uint32
+	stop  chan struct{}
 }
 
 func (l *Listener) Start() error {
-	l.startOnce.Do(func() {
-		l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Start")
-		l.ed.DispatchEvent(events.NewEvent(ListenStart, l.Live))
-		l.refresh()
-		go l.run()
-	})
+	if !atomic.CompareAndSwapUint32(&l.state, begin, pending) {
+		return nil
+	}
+	defer atomic.CompareAndSwapUint32(&l.state, pending, running)
+
+	l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Start")
+	l.ed.DispatchEvent(events.NewEvent(ListenStart, l.Live))
+	l.refresh()
+	go l.run()
 	return nil
 }
 
 func (l *Listener) Close() {
-	l.closeOnce.Do(func() {
-		l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Close")
-		l.ed.DispatchEvent(events.NewEvent(ListenStop, l.Live))
-		close(l.stop)
-	})
+	if !atomic.CompareAndSwapUint32(&l.state, running, stopped) {
+		return
+	}
+	l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Close")
+	l.ed.DispatchEvent(events.NewEvent(ListenStop, l.Live))
+	close(l.stop)
 }
 
 func (l *Listener) refresh() {
@@ -73,15 +86,14 @@ func (l *Listener) refresh() {
 }
 
 func (l *Listener) run() {
-	defer func() {
-		l.ticker.Stop()
-	}()
+	ticker := time.NewTicker(time.Duration(l.config.Interval) * time.Second)
+	defer ticker.Stop()
 
 	for {
 		select {
 		case <-l.stop:
 			return
-		case <-l.ticker.C:
+		case <-ticker.C:
 			l.refresh()
 		}
 	}

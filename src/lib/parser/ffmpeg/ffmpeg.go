@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/url"
 	"os/exec"
+	"sync"
 )
 
 const (
@@ -11,12 +12,15 @@ const (
 )
 
 type Parser struct {
-	cmd      *exec.Cmd
-	cmdStdIn io.WriteCloser
+	cmd       *exec.Cmd
+	cmdStdIn  io.WriteCloser
+	closeOnce *sync.Once
 }
 
 func New() *Parser {
-	return new(Parser)
+	return &Parser{
+		closeOnce: new(sync.Once),
+	}
 }
 
 func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
@@ -37,13 +41,18 @@ func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
 		return err
 	}
 	p.cmdStdIn = stdIn
-	p.cmd.Start()
+	if err := p.cmd.Start(); err != nil {
+		p.cmd.Process.Kill()
+		return err
+	}
 	return p.cmd.Wait()
 }
 
 func (p *Parser) Stop() error {
-	if p.cmd.ProcessState == nil {
-		p.cmdStdIn.Write([]byte("q"))
-	}
+	p.closeOnce.Do(func() {
+		if p.cmd.ProcessState == nil {
+			p.cmdStdIn.Write([]byte("q"))
+		}
+	})
 	return nil
 }

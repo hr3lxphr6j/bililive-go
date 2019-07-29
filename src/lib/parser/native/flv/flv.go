@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sync"
 
 	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 )
@@ -36,15 +37,17 @@ type Parser struct {
 	avcHeaderCount uint8
 	tagCount       uint32
 
-	hc     *http.Client
-	stopCh chan struct{}
+	hc        *http.Client
+	stopCh    chan struct{}
+	closeOnce *sync.Once
 }
 
 func NewParser() *Parser {
 	return &Parser{
-		Metadata: Metadata{},
-		hc:       &http.Client{},
-		stopCh:   make(chan struct{}),
+		Metadata:  Metadata{},
+		hc:        &http.Client{},
+		stopCh:    make(chan struct{}),
+		closeOnce: new(sync.Once),
 	}
 }
 
@@ -76,7 +79,9 @@ func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
 }
 
 func (p *Parser) Stop() error {
-	close(p.stopCh)
+	p.closeOnce.Do(func() {
+		close(p.stopCh)
+	})
 	return nil
 }
 
