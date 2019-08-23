@@ -4,13 +4,13 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
 )
 
 func NewIListenerManager(ctx context.Context) IListenerManager {
 	lm := &ListenerManager{
-		savers: make(map[api.LiveId]*Listener),
+		savers: make(map[live.ID]*Listener),
 		lock:   new(sync.RWMutex),
 	}
 	instance.GetInstance(ctx).ListenerManager = lm
@@ -19,14 +19,14 @@ func NewIListenerManager(ctx context.Context) IListenerManager {
 
 // 监听管理器接口
 type IListenerManager interface {
-	AddListener(ctx context.Context, live api.Live) error
-	RemoveListener(ctx context.Context, liveId api.LiveId) error
-	GetListener(ctx context.Context, liveId api.LiveId) (*Listener, error)
-	HasListener(ctx context.Context, liveId api.LiveId) bool
+	AddListener(ctx context.Context, live live.Live) error
+	RemoveListener(ctx context.Context, liveId live.ID) error
+	GetListener(ctx context.Context, liveId live.ID) (*Listener, error)
+	HasListener(ctx context.Context, liveId live.ID) bool
 }
 
 type ListenerManager struct {
-	savers map[api.LiveId]*Listener
+	savers map[live.ID]*Listener
 	lock   *sync.RWMutex
 }
 
@@ -35,7 +35,6 @@ func (l *ListenerManager) Start(ctx context.Context) error {
 	if inst.Config.RPC.Enable || len(inst.Lives) > 0 {
 		inst.WaitGroup.Add(1)
 	}
-	instance.GetInstance(ctx).Logger.Info("ListenerManager Start")
 	return nil
 }
 
@@ -48,10 +47,9 @@ func (l *ListenerManager) Close(ctx context.Context) {
 	}
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Done()
-	instance.GetInstance(ctx).Logger.Info("ListenerManager Closed")
 }
 
-func (l *ListenerManager) AddListener(ctx context.Context, live api.Live) error {
+func (l *ListenerManager) AddListener(ctx context.Context, live live.Live) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -64,7 +62,7 @@ func (l *ListenerManager) AddListener(ctx context.Context, live api.Live) error 
 	return nil
 }
 
-func (l *ListenerManager) RemoveListener(ctx context.Context, liveId api.LiveId) error {
+func (l *ListenerManager) RemoveListener(ctx context.Context, liveId live.ID) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -77,7 +75,7 @@ func (l *ListenerManager) RemoveListener(ctx context.Context, liveId api.LiveId)
 	}
 }
 
-func (l *ListenerManager) GetListener(ctx context.Context, liveId api.LiveId) (*Listener, error) {
+func (l *ListenerManager) GetListener(ctx context.Context, liveId live.ID) (*Listener, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	if r, ok := l.savers[liveId]; !ok {
@@ -87,7 +85,7 @@ func (l *ListenerManager) GetListener(ctx context.Context, liveId api.LiveId) (*
 	}
 }
 
-func (l *ListenerManager) HasListener(ctx context.Context, liveId api.LiveId) bool {
+func (l *ListenerManager) HasListener(ctx context.Context, liveId live.ID) bool {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	_, ok := l.savers[liveId]

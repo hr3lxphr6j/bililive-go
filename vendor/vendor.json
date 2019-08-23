@@ -33,6 +33,12 @@
 			"revisionTime": "2017-10-23T17:51:54Z"
 		},
 		{
+			"checksumSHA1": "m6NT4xzNfAH9Ll5M06Ln3eMRzmc=",
+			"path": "github.com/bluele/gcache",
+			"revision": "bc40bd6538339bd4be8cb0b48fc33fdf012ddb6e",
+			"revisionTime": "2019-05-18T03:11:35Z"
+		},
+		{
 			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
 			"path": "github.com/gorilla/context",
 			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
@@ -43,12 +49,6 @@
 			"path": "github.com/gorilla/mux",
 			"revision": "ded0c29b24f96f46cf349e6701b099db601cf8ec",
 			"revisionTime": "2018-05-01T03:11:36Z"
-		},
-		{
-			"checksumSHA1": "ICYaSJwFHCFaePFsK5cjSaVdKNw=",
-			"path": "github.com/mozillazg/request",
-			"revision": "f66876a1e3667af79d0cafa29a14ab7e667588ac",
-			"revisionTime": "2017-10-23T23:58:38Z"
 		},
 		{
 			"checksumSHA1": "WdorbyEJiNbjIOiQzM4TLb/XA7Q=",

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"net/url"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -58,4 +59,28 @@ func GenRandomName(n int) string {
 		b[i] = allRunes[rand.Intn(len(allRunes))]
 	}
 	return string(b)
+}
+
+func Match1(re, str string) string {
+	reg, err := regexp.Compile(re)
+	if err != nil {
+		return ""
+	}
+	match := reg.FindStringSubmatch(str)
+	if match == nil || len(match) < 2 {
+		return ""
+	}
+	return match[1]
+}
+
+func GenUrls(strs ...string) ([]*url.URL, error) {
+	urls := make([]*url.URL, 0, len(strs))
+	for _, str := range strs {
+		u, err := url.Parse(str)
+		if err != nil {
+			return nil, err
+		}
+		urls = append(urls, u)
+	}
+	return urls, nil
 }

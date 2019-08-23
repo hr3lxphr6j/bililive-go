@@ -5,22 +5,32 @@ import (
 	"net/url"
 	"os/exec"
 	"sync"
+
+	"github.com/hr3lxphr6j/bililive-go/src/lib/parser"
 )
 
 const (
+	Name = "ffmpeg"
+
 	userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
 )
+
+func init() {
+	parser.Register(Name, new(builder))
+}
+
+type builder struct{}
+
+func (b *builder) Build() (parser.Parser, error) {
+	return &Parser{
+		closeOnce: new(sync.Once),
+	}, nil
+}
 
 type Parser struct {
 	cmd       *exec.Cmd
 	cmdStdIn  io.WriteCloser
 	closeOnce *sync.Once
-}
-
-func New() *Parser {
-	return &Parser{
-		closeOnce: new(sync.Once),
-	}
 }
 
 func (p *Parser) ParseLiveStream(url *url.URL, file string) error {

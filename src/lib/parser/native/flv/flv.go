@@ -10,10 +10,13 @@ import (
 	"os"
 	"sync"
 
+	"github.com/hr3lxphr6j/bililive-go/src/lib/parser"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 )
 
 const (
+	Name = "native"
+
 	audioTag  uint8 = 8
 	videoTag  uint8 = 9
 	scriptTag uint8 = 18
@@ -24,6 +27,21 @@ var (
 	NotFlvStream = errors.New("not flv stream")
 	UnknownTag   = errors.New("unknown tag")
 )
+
+func init() {
+	parser.Register(Name, new(builder))
+}
+
+type builder struct{}
+
+func (b *builder) Build() (parser.Parser, error) {
+	return &Parser{
+		Metadata:  Metadata{},
+		hc:        &http.Client{},
+		stopCh:    make(chan struct{}),
+		closeOnce: new(sync.Once),
+	}, nil
+}
 
 type Metadata struct {
 	HasVideo, HasAudio bool
@@ -40,15 +58,6 @@ type Parser struct {
 	hc        *http.Client
 	stopCh    chan struct{}
 	closeOnce *sync.Once
-}
-
-func NewParser() *Parser {
-	return &Parser{
-		Metadata:  Metadata{},
-		hc:        &http.Client{},
-		stopCh:    make(chan struct{}),
-		closeOnce: new(sync.Once),
-	}
 }
 
 func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
