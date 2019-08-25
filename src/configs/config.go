@@ -15,15 +15,18 @@ type TLS struct {
 	CertFile string `yaml:"cert_file"`
 	KeyFile  string `yaml:"key_file"`
 }
+
 type RPC struct {
 	Enable bool   `yaml:"enable"`
 	Port   string `yaml:"port"`
 	Token  string `yaml:"token"`
 	TLS    TLS    `yaml:"tls"`
 }
+
 type Feature struct {
 	UseNativeFlvParser bool `yaml:"use_native_flv_parser"`
 }
+
 type Config struct {
 	RPC        RPC      `yaml:"rpc"`
 	Debug      bool     `yaml:"debug"`
@@ -34,19 +37,22 @@ type Config struct {
 	file       string
 }
 
-func VerifyConfig(config *Config) error {
-	if config.Interval <= 0 {
-		return errors.New(fmt.Sprintf(`the interval can not <= 0`))
+func (c *Config) Verify() error {
+	if c == nil {
+		return fmt.Errorf("config is null")
 	}
-	if _, err := os.Stat(config.OutPutPath); err != nil {
-		return errors.New(fmt.Sprintf(`the out put path: "%s" is not exist`, config.OutPutPath))
+	if c.Interval <= 0 {
+		return fmt.Errorf("the interval can not <= 0")
 	}
-	if config.RPC.Enable {
-		if config.RPC.Port == "" {
-			return errors.New("rpc listen port can not be null")
+	if _, err := os.Stat(c.OutPutPath); err != nil {
+		return fmt.Errorf(`the out put path: "%s" is not exist`, c.OutPutPath)
+	}
+	if c.RPC.Enable {
+		if c.RPC.Port == "" {
+			return fmt.Errorf("rpc listen port can not be null")
 		}
-		if config.RPC.TLS.Enable {
-			if _, err := tls.LoadX509KeyPair(config.RPC.TLS.CertFile, config.RPC.TLS.KeyFile); err != nil {
+		if c.RPC.TLS.Enable {
+			if _, err := tls.LoadX509KeyPair(c.RPC.TLS.CertFile, c.RPC.TLS.KeyFile); err != nil {
 				return err
 			}
 		}
@@ -68,10 +74,10 @@ func NewConfigWithFile(configFilePath string) (*Config, error) {
 	return config, nil
 }
 
-func (config *Config) Marshal() error {
-	b, err := yaml.Marshal(config)
+func (c *Config) Marshal() error {
+	b, err := yaml.Marshal(c)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(config.file, b, os.ModeAppend)
+	return ioutil.WriteFile(c.file, b, os.ModeAppend)
 }

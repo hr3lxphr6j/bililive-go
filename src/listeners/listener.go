@@ -29,7 +29,7 @@ func NewListener(ctx context.Context, live live.Live) *Listener {
 		config: inst.Config,
 		cache:  inst.Cache,
 		stop:   make(chan struct{}),
-		ed:     inst.EventDispatcher.(events.IEventDispatcher),
+		ed:     inst.EventDispatcher.(events.Dispatcher),
 		logger: inst.Logger,
 		state:  begin,
 	}
@@ -40,7 +40,7 @@ type Listener struct {
 	status bool
 
 	config *configs.Config
-	ed     events.IEventDispatcher
+	ed     events.Dispatcher
 	logger *interfaces.Logger
 	cache  gcache.Cache
 
@@ -71,6 +71,10 @@ func (l *Listener) Close() {
 func (l *Listener) refresh() {
 	info, err := l.Live.GetInfo()
 	if err != nil {
+		l.logger.
+			WithError(err).
+			WithField("url", l.Live.GetRawUrl()).
+			Error("failed to load room info")
 		return
 	}
 	l.cache.Set(l.Live, info)
@@ -80,6 +84,7 @@ func (l *Listener) refresh() {
 	l.status = info.Status
 
 	var (
+		evtTyp  events.EventType
 		logInfo string
 		fields  = map[string]interface{}{
 			"room": info.RoomName,
@@ -88,12 +93,13 @@ func (l *Listener) refresh() {
 	)
 	if l.status {
 		l.Live.SetLastStartTime(time.Now())
-		l.ed.DispatchEvent(events.NewEvent(LiveStart, l.Live))
+		evtTyp = LiveStart
 		logInfo = "Live Start"
 	} else {
-		l.ed.DispatchEvent(events.NewEvent(LiveEnd, l.Live))
+		evtTyp = LiveEnd
 		logInfo = "Live end"
 	}
+	l.ed.DispatchEvent(events.NewEvent(evtTyp, l.Live))
 	l.logger.WithFields(fields).Info(logInfo)
 }
 

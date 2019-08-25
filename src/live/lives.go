@@ -35,7 +35,7 @@ type Live interface {
 	SetLastStartTime(time.Time)
 }
 
-func NewLive(url *url.URL) (live Live, err error) {
+func New(url *url.URL) (live Live, err error) {
 	builder, ok := getBuilder(url.Host)
 	if !ok {
 		return nil, errors.New("not support this url")

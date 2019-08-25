@@ -2,5 +2,8 @@ package recorders
 
 import "errors"
 
-var recorderExistError = errors.New("this recorder is exist")
-var recorderNotExistError = errors.New("this recorder is not exist")
+var (
+	ErrRecorderExist    = errors.New("recorder is exist")
+	ErrRecorderNotExist = errors.New("recorder is not exist")
+	ErrStateUnknown     = errors.New("recorder in unknown state")
+)

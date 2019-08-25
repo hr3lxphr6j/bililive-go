@@ -4,15 +4,18 @@ import (
 	"io"
 )
 
-type FrameType uint8
-type CodeID uint8
-type AVCPacketType uint8
-type VideoTagHeader struct {
-	FrameType       FrameType
-	CodeID          CodeID
-	AVCPacketType   AVCPacketType
-	CompositionTime uint32
-}
+type (
+	FrameType     uint8
+	CodeID        uint8
+	AVCPacketType uint8
+
+	VideoTagHeader struct {
+		FrameType       FrameType
+		CodeID          CodeID
+		AVCPacketType   AVCPacketType
+		CompositionTime uint32
+	}
+)
 
 const (
 	// Frame Type

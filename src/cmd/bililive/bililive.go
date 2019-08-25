@@ -10,7 +10,7 @@ import (
 
 	"github.com/bluele/gcache"
 
-	_ "github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal" // load all live plugins
+	_ "github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal/flag"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/consts"
@@ -24,44 +24,28 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/servers"
 )
 
+func init() {
+	if !utils.IsFFmpegExist() {
+		fmt.Fprintf(os.Stderr, "FFmpeg binary not found, Please Check.\n")
+		os.Exit(1)
+	}
+}
+
 func getConfig() (*configs.Config, error) {
 	var config *configs.Config
 	if *flag.Conf != "" {
-		if c, err := configs.NewConfigWithFile(*flag.Conf); err == nil {
-			config = c
-		} else {
+		c, err := configs.NewConfigWithFile(*flag.Conf)
+		if err != nil {
 			return nil, err
 		}
+		config = c
 	} else {
-		config = &configs.Config{
-			RPC: configs.RPC{
-				Enable: *flag.Rpc,
-				Port:   *flag.RpcAddr,
-				Token:  *flag.RpcToken,
-				TLS: configs.TLS{
-					Enable:   *flag.RpcTLS,
-					CertFile: *flag.CertFile,
-					KeyFile:  *flag.KeyFile,
-				},
-			},
-			Debug:      *flag.Debug,
-			Interval:   *flag.Interval,
-			OutPutPath: *flag.Output,
-			LiveRooms:  *flag.Input,
-		}
+		config = flag.GenConfigFromFlags()
 	}
-	if err := configs.VerifyConfig(config); err != nil {
-		return nil, err
-	}
-	return config, nil
+	return config, config.Verify()
 }
 
 func main() {
-	if !utils.IsFFmpegExist() {
-		fmt.Fprintf(os.Stderr, "FFmpeg binary not found, Please Check.\n")
-		os.Exit(3)
-	}
-
 	config, err := getConfig()
 	if err != nil {
 		fmt.Fprint(os.Stderr, err.Error())
@@ -78,32 +62,40 @@ func main() {
 	logger.Debugf("%+v", consts.AppInfo)
 	logger.Debugf("%+v", inst.Config)
 
-	events.NewIEventDispatcher(ctx)
+	events.NewDispatcher(ctx)
 
 	inst.Lives = make(map[live.ID]live.Live)
 	for _, room := range inst.Config.LiveRooms {
 		u, err := url.Parse(room)
 		if err != nil {
 			logger.WithField("url", room).Error(err)
+			continue
 		}
-		if l, err := live.NewLive(u); err == nil {
-			if _, ok := inst.Lives[l.GetLiveId()]; ok {
-				logger.Errorf("%s is exist!", room)
-			} else {
-				inst.Lives[l.GetLiveId()] = l
-			}
-		} else {
+		l, err := live.New(u)
+		if err != nil {
 			logger.WithField("url", room).Error(err.Error())
+			continue
 		}
+		if _, ok := inst.Lives[l.GetLiveId()]; ok {
+			logger.Errorf("%s is exist!", room)
+			continue
+		}
+		inst.Lives[l.GetLiveId()] = l
 	}
 
 	if inst.Config.RPC.Enable {
-		servers.NewServer(ctx).Start(ctx)
+		if err := servers.NewServer(ctx).Start(ctx); err != nil {
+			logger.WithError(err).Fatalf("failed to init server")
+		}
 	}
-	lm := listeners.NewIListenerManager(ctx)
-	recorders.NewIRecorderManager(ctx)
-	inst.ListenerManager.Start(ctx)
-	inst.RecorderManager.Start(ctx)
+	lm := listeners.NewManager(ctx)
+	rm := recorders.NewManager(ctx)
+	if err := lm.Start(ctx); err != nil {
+		logger.Fatalf("failed to init listener manager, error: %s", err)
+	}
+	if err := rm.Start(ctx); err != nil {
+		logger.Fatalf("failed to init recorder manager, error: %s", err)
+	}
 
 	for _, _live := range inst.Lives {
 		if err := lm.AddListener(ctx, _live); err != nil {

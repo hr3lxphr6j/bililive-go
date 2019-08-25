@@ -11,8 +11,9 @@ const (
 )
 
 var (
-	OutOfBuffer = errors.New("n is bigger than len of buffer")
-	pool        = sync.Pool{New: func() interface{} { return make([]byte, defaultBufferSize) }}
+	ErrOutOfBuffer = errors.New("n is bigger than len of buffer")
+
+	pool = sync.Pool{New: func() interface{} { return make([]byte, defaultBufferSize) }}
 )
 
 type BufferedReader struct {
@@ -30,7 +31,7 @@ func New(rd io.Reader) *BufferedReader {
 
 func (b *BufferedReader) ReadN(n int) ([]byte, error) {
 	if n > len(b.buf)-b.r {
-		return nil, OutOfBuffer
+		return nil, ErrOutOfBuffer
 	}
 	b.l = b.r
 	return b.readN(n, b.l)
