@@ -9,26 +9,28 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 )
 
+// for test
+var newListener = NewListener
+
 func NewManager(ctx context.Context) Manager {
 	lm := &manager{
-		savers: make(map[live.ID]*Listener),
+		savers: make(map[live.ID]Listener),
 	}
 	instance.GetInstance(ctx).ListenerManager = lm
 	return lm
 }
 
-// 监听管理器接口
 type Manager interface {
 	interfaces.Module
 	AddListener(ctx context.Context, live live.Live) error
 	RemoveListener(ctx context.Context, liveId live.ID) error
-	GetListener(ctx context.Context, liveId live.ID) (*Listener, error)
+	GetListener(ctx context.Context, liveId live.ID) (Listener, error)
 	HasListener(ctx context.Context, liveId live.ID) bool
 }
 
 type manager struct {
 	lock   sync.RWMutex
-	savers map[live.ID]*Listener
+	savers map[live.ID]Listener
 }
 
 func (m *manager) Start(ctx context.Context) error {
@@ -57,7 +59,7 @@ func (m *manager) AddListener(ctx context.Context, live live.Live) error {
 	if _, ok := m.savers[live.GetLiveId()]; ok {
 		return ErrListenerExist
 	}
-	listener := NewListener(ctx, live)
+	listener := newListener(ctx, live)
 	m.savers[live.GetLiveId()] = listener
 	return listener.Start()
 }
@@ -74,7 +76,7 @@ func (m *manager) RemoveListener(ctx context.Context, liveId live.ID) error {
 	return nil
 }
 
-func (m *manager) GetListener(ctx context.Context, liveId live.ID) (*Listener, error) {
+func (m *manager) GetListener(ctx context.Context, liveId live.ID) (Listener, error) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	listener, ok := m.savers[liveId]

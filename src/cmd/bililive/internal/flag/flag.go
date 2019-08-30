@@ -33,7 +33,7 @@ func GenConfigFromFlags() *configs.Config {
 	return &configs.Config{
 		RPC: configs.RPC{
 			Enable: *Rpc,
-			Port:   *RpcAddr,
+			Bind:   *RpcAddr,
 			Token:  *RpcToken,
 			TLS: configs.TLS{
 				Enable:   *RpcTLS,

@@ -105,7 +105,7 @@ func NewServer(ctx context.Context) *Server {
 	inst := instance.GetInstance(ctx)
 	config := inst.Config
 	httpServer := &http.Server{
-		Addr:    config.RPC.Port,
+		Addr:    config.RPC.Bind,
 		Handler: initMux(ctx),
 	}
 	server := &Server{server: httpServer}

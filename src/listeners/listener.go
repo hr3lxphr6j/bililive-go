@@ -1,3 +1,4 @@
+//go:generate mockgen -package listeners -destination mock_test.go github.com/hr3lxphr6j/bililive-go/src/listeners Listener,Manager
 package listeners
 
 import (
@@ -21,9 +22,14 @@ const (
 	stopped
 )
 
-func NewListener(ctx context.Context, live live.Live) *Listener {
+type Listener interface {
+	Start() error
+	Close()
+}
+
+func NewListener(ctx context.Context, live live.Live) Listener {
 	inst := instance.GetInstance(ctx)
-	return &Listener{
+	return &listener{
 		Live:   live,
 		status: false,
 		config: inst.Config,
@@ -35,7 +41,7 @@ func NewListener(ctx context.Context, live live.Live) *Listener {
 	}
 }
 
-type Listener struct {
+type listener struct {
 	Live   live.Live
 	status bool
 
@@ -48,7 +54,7 @@ type Listener struct {
 	stop  chan struct{}
 }
 
-func (l *Listener) Start() error {
+func (l *listener) Start() error {
 	if !atomic.CompareAndSwapUint32(&l.state, begin, pending) {
 		return nil
 	}
@@ -60,7 +66,7 @@ func (l *Listener) Start() error {
 	return nil
 }
 
-func (l *Listener) Close() {
+func (l *listener) Close() {
 	if !atomic.CompareAndSwapUint32(&l.state, running, stopped) {
 		return
 	}
@@ -68,7 +74,7 @@ func (l *Listener) Close() {
 	close(l.stop)
 }
 
-func (l *Listener) refresh() {
+func (l *listener) refresh() {
 	info, err := l.Live.GetInfo()
 	if err != nil {
 		l.logger.
@@ -103,7 +109,7 @@ func (l *Listener) refresh() {
 	l.logger.WithFields(fields).Info(logInfo)
 }
 
-func (l *Listener) run() {
+func (l *listener) run() {
 	ticker := time.NewTicker(time.Duration(l.config.Interval) * time.Second)
 	defer ticker.Stop()
 

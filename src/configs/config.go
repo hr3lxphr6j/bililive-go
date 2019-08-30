@@ -2,9 +2,9 @@ package configs
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 
 	"gopkg.in/yaml.v2"
@@ -16,11 +16,40 @@ type TLS struct {
 	KeyFile  string `yaml:"key_file"`
 }
 
+func (t *TLS) Verify() error {
+	if t == nil {
+		return nil
+	}
+	if !t.Enable {
+		return nil
+	}
+	if _, err := tls.LoadX509KeyPair(t.CertFile, t.KeyFile); err != nil {
+		return err
+	}
+	return nil
+}
+
 type RPC struct {
 	Enable bool   `yaml:"enable"`
-	Port   string `yaml:"port"`
+	Bind   string `yaml:"port"`
 	Token  string `yaml:"token"`
 	TLS    TLS    `yaml:"tls"`
+}
+
+func (r *RPC) Verify() error {
+	if r == nil {
+		return nil
+	}
+	if !r.Enable {
+		return nil
+	}
+	if _, err := net.ResolveTCPAddr("tcp", r.Bind); err != nil {
+		return err
+	}
+	if err := r.TLS.Verify(); err != nil {
+		return err
+	}
+	return nil
 }
 
 type Feature struct {
@@ -41,36 +70,28 @@ func (c *Config) Verify() error {
 	if c == nil {
 		return fmt.Errorf("config is null")
 	}
+	if err := c.RPC.Verify(); err != nil {
+		return err
+	}
 	if c.Interval <= 0 {
 		return fmt.Errorf("the interval can not <= 0")
 	}
 	if _, err := os.Stat(c.OutPutPath); err != nil {
 		return fmt.Errorf(`the out put path: "%s" is not exist`, c.OutPutPath)
 	}
-	if c.RPC.Enable {
-		if c.RPC.Port == "" {
-			return fmt.Errorf("rpc listen port can not be null")
-		}
-		if c.RPC.TLS.Enable {
-			if _, err := tls.LoadX509KeyPair(c.RPC.TLS.CertFile, c.RPC.TLS.KeyFile); err != nil {
-				return err
-			}
-		}
-	}
 	return nil
 }
 
-func NewConfigWithFile(configFilePath string) (*Config, error) {
-	b, err := ioutil.ReadFile(configFilePath)
+func NewConfigWithFile(file string) (*Config, error) {
+	b, err := ioutil.ReadFile(file)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("can`t open file: %s", configFilePath))
+		return nil, fmt.Errorf("can`t open file: %s", file)
 	}
 	config := new(Config)
-	err = yaml.Unmarshal(b, config)
-	if err != nil {
+	if err = yaml.Unmarshal(b, config); err != nil {
 		return nil, err
 	}
-	config.file = configFilePath
+	config.file = file
 	return config, nil
 }
 

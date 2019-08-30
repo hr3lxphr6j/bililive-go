@@ -1,3 +1,4 @@
+//go:generate mockgen -package mock -destination mock/mock.go github.com/hr3lxphr6j/bililive-go/src/lib/events Dispatcher
 package events
 
 import (
@@ -6,17 +7,22 @@ import (
 	"sync"
 
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 )
 
 func NewDispatcher(ctx context.Context) Dispatcher {
 	ed := &dispatcher{
 		saver: make(map[EventType]*list.List),
 	}
-	instance.GetInstance(ctx).EventDispatcher = ed
+	inst := instance.GetInstance(ctx)
+	if inst != nil {
+		inst.EventDispatcher = ed
+	}
 	return ed
 }
 
 type Dispatcher interface {
+	interfaces.Module
 	AddEventListener(eventType EventType, listener *EventListener)
 	RemoveEventListener(eventType EventType, listener *EventListener)
 	RemoveAllEventListener(eventType EventType)
@@ -75,13 +81,19 @@ func (e *dispatcher) DispatchEvent(event *Event) {
 		return
 	}
 	e.RLock()
-	defer e.RUnlock()
 	listeners, ok := e.saver[event.Type]
 	if !ok || listeners == nil {
+		e.RUnlock()
 		return
 	}
+	hs := make([]*EventListener, 0)
 	for e := listeners.Front(); e != nil; e = e.Next() {
-		handler := e.Value.(*EventListener)
-		go handler.Handler(event)
+		hs = append(hs, e.Value.(*EventListener))
 	}
+	e.RUnlock()
+	go func() {
+		for _, h := range hs {
+			h.Handler(event)
+		}
+	}()
 }
