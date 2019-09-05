@@ -1,7 +1,9 @@
 language: go
 sudo: required
 go:
-  - 1.12.9
+  - "1.13"
+env:
+  - GO111MODULE=on
 script:
   - make
   - make test
