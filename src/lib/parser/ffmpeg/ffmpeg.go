@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/hr3lxphr6j/bililive-go/src/lib/parser"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
 )
 
 const (
@@ -33,12 +34,13 @@ type Parser struct {
 	closeOnce *sync.Once
 }
 
-func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
+func (p *Parser) ParseLiveStream(url *url.URL, live live.Live, file string) error {
 	p.cmd = exec.Command(
 		"ffmpeg",
 		"-loglevel", "warning",
 		"-y", "-re",
 		"-user_agent", userAgent,
+		"-referer", live.GetRawUrl(),
 		"-timeout", "60000000",
 		"-i", url.String(),
 		"-c", "copy",

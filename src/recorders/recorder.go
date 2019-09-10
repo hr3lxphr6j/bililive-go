@@ -96,7 +96,7 @@ func (r *Recorder) tryRecode() {
 		return
 	}
 	r.setAndCloseParser(p)
-	r.getLogger().Debugln(r.parser.ParseLiveStream(url, file))
+	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, file))
 	if stat, err := os.Stat(file); err == nil && stat.Size() == 0 {
 		os.Remove(file)
 	}

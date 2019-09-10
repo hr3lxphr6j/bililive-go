@@ -12,6 +12,7 @@ import (
 
 	"github.com/hr3lxphr6j/bililive-go/src/lib/parser"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
 )
 
 const (
@@ -61,7 +62,7 @@ type Parser struct {
 	closeOnce *sync.Once
 }
 
-func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
+func (p *Parser) ParseLiveStream(url *url.URL, live live.Live, file string) error {
 	// init input
 	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
