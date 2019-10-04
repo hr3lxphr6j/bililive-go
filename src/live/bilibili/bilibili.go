@@ -99,7 +99,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 	body, err := http.Get(liveApiUrl, nil, map[string]string{
 		"cid":      l.realID,
-		"quality":  "0",
+		"quality":  "4",
 		"platform": "web",
 	})
 	if err != nil {
