@@ -90,7 +90,7 @@ func (b *BiliBiliLive) GetStreamUrls() (us []*url.URL, err error) {
 	}
 	body, err := http.Get(biliBiliLiveApiUrl, map[string]string{
 		"cid":      b.realId,
-		"quality":  "0",
+		"quality":  "4",
 		"platform": "web",
 	}, nil)
 	if err != nil {
