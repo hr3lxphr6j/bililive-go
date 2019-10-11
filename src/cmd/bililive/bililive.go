@@ -71,7 +71,7 @@ func main() {
 			logger.WithField("url", room).Error(err)
 			continue
 		}
-		l, err := live.New(u)
+		l, err := live.New(u, inst.Cache)
 		if err != nil {
 			logger.WithField("url", room).Error(err.Error())
 			continue

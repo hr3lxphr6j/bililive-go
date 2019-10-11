@@ -15,6 +15,7 @@ import (
 
 const (
 	domain = "www.huomao.com"
+	cnName = "火猫"
 
 	liveApiUrl = "http://www.huomao.com/swf/live_data"
 	salt       = "6FE26D855E1AEAE090E243EB1AF73685"
@@ -28,12 +29,12 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 	isDuanbo bool
 }
 
@@ -110,4 +111,8 @@ func (l *Live) GetStreamUrls() ([]*url.URL, error) {
 		return true
 	})
 	return utils.GenUrls(urls...)
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

@@ -6,8 +6,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/bluele/gcache"
-
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
@@ -33,7 +31,6 @@ func NewListener(ctx context.Context, live live.Live) Listener {
 		Live:   live,
 		status: false,
 		config: inst.Config,
-		cache:  inst.Cache,
 		stop:   make(chan struct{}),
 		ed:     inst.EventDispatcher.(events.Dispatcher),
 		logger: inst.Logger,
@@ -48,7 +45,6 @@ type listener struct {
 	config *configs.Config
 	ed     events.Dispatcher
 	logger *interfaces.Logger
-	cache  gcache.Cache
 
 	state uint32
 	stop  chan struct{}
@@ -83,7 +79,6 @@ func (l *listener) refresh() {
 			Error("failed to load room info")
 		return
 	}
-	l.cache.Set(l.Live, info)
 	if info.Status == l.status {
 		return
 	}

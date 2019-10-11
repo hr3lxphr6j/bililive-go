@@ -22,10 +22,8 @@ func TestRefresh(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ed := evtmock.NewMockDispatcher(ctrl)
-	cache := gcache.New(4).LRU().Build()
 	ctx := context.WithValue(context.Background(), instance.InstanceKey, &instance.Instance{
 		EventDispatcher: ed,
-		Cache:           cache,
 		Config:          new(configs.Config),
 	})
 	log.New(ctx)
@@ -43,18 +41,12 @@ func TestRefresh(t *testing.T) {
 	ed.EXPECT().DispatchEvent(events.NewEvent(LiveStart, live))
 	l.refresh()
 	assert.True(t, l.status)
-	info, err := cache.Get(live)
-	assert.NoError(t, err)
-	assert.True(t, info.(*livepkg.Info).Status)
 
 	// true -> false
 	live.EXPECT().GetInfo().Return(&livepkg.Info{Status: false}, nil)
 	ed.EXPECT().DispatchEvent(events.NewEvent(LiveEnd, live))
 	l.refresh()
 	assert.False(t, l.status)
-	info, err = cache.Get(live)
-	assert.NoError(t, err)
-	assert.False(t, info.(*livepkg.Info).Status)
 }
 
 func TestRefreshWithError(t *testing.T) {

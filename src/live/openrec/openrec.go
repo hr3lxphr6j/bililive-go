@@ -10,10 +10,13 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 )
 
-const domain = "www.openrec.tv"
+const (
+	domain = "www.openrec.tv"
+	cnName = "openrec"
+)
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 }
 
 func init() {
@@ -24,7 +27,7 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
@@ -56,4 +59,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, err
 	}
 	return utils.GenUrls(utils.Match1(`{"url":"(\S*m3u8)",`, string(dom)))
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

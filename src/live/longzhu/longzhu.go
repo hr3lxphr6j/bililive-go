@@ -15,6 +15,7 @@ import (
 
 const (
 	domain = "star.longzhu.com"
+	cnName = "龙珠"
 
 	mobileUrl  = "http://m.longzhu.com/"
 	roomApiUrl = "http://liveapi.plu.cn/liveapp/roomstatus"
@@ -29,12 +30,12 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 	realId string
 }
 
@@ -91,4 +92,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return true
 	})
 	return utils.GenUrls(urls...)
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

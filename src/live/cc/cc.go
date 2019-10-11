@@ -15,6 +15,7 @@ import (
 
 const (
 	domain = "cc.163.com"
+	cnName = "CC直播"
 
 	apiUrl = "http://cgi.v.cc.163.com/video_play_url/"
 )
@@ -27,12 +28,12 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 	ccid string
 }
 
@@ -87,4 +88,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		gjson.GetBytes(data, "videourl").String(),
 		gjson.GetBytes(data, "bakvideourl").String(),
 	)
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

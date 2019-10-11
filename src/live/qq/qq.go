@@ -14,6 +14,7 @@ import (
 
 const (
 	domain    = "egame.qq.com"
+	cnName    = "企鹅电竞"
 	mobileUrl = "https://m.egame.qq.com/live"
 )
 
@@ -25,12 +26,12 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
@@ -74,4 +75,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, live.ErrInternalError
 	}
 	return utils.GenUrls(gjson.Get(result, "#[bitrate==0].playUrl").String())
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

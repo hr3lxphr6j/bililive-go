@@ -14,6 +14,8 @@ import (
 
 const (
 	domain = "www.yizhibo.com"
+	cnName = "一直播"
+
 	apiUrl = "http://www.yizhibo.com/live/h5api/get_basic_live_info"
 )
 
@@ -25,12 +27,12 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 }
 
 func (l *Live) requestRoomInfo() ([]byte, error) {
@@ -66,4 +68,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, err
 	}
 	return utils.GenUrls(gjson.GetBytes(data, "data.play_url").String())
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

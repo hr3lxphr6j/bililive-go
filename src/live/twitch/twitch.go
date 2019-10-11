@@ -15,6 +15,7 @@ import (
 
 const (
 	domain = "www.twitch.tv"
+	cnName = "twitch"
 
 	clientId      = "jzkbprff40iqj646a697cyrvl0zt2m6"
 	channelApiUrl = "https://api.twitch.tv/kraken/channels/%s"
@@ -31,20 +32,20 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
 var headers = map[string]string{"client-id": clientId}
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 	hostName, roomName string
 }
 
 // 在hostName, roomName为空执行，在live有效时再从steam api解析
-func (t *Live) parseInfo() error {
-	paths := strings.Split(t.Url.Path, "/")
+func (l *Live) parseInfo() error {
+	paths := strings.Split(l.Url.Path, "/")
 	if len(paths) < 2 {
 		return live.ErrRoomUrlIncorrect
 	}
@@ -53,41 +54,41 @@ func (t *Live) parseInfo() error {
 	if err != nil {
 		return live.ErrRoomNotExist
 	}
-	t.hostName = gjson.GetBytes(body, "name").String()
-	t.roomName = gjson.GetBytes(body, "status").String()
+	l.hostName = gjson.GetBytes(body, "name").String()
+	l.roomName = gjson.GetBytes(body, "status").String()
 	return nil
 }
 
-func (t *Live) GetInfo() (info *live.Info, err error) {
-	if t.hostName == "" || t.roomName == "" {
-		if err := t.parseInfo(); err != nil {
+func (l *Live) GetInfo() (info *live.Info, err error) {
+	if l.hostName == "" || l.roomName == "" {
+		if err := l.parseInfo(); err != nil {
 			return nil, err
 		}
 	}
-	body, err := http.Get(fmt.Sprintf(streamApiUrl, t.hostName), headers, nil)
+	body, err := http.Get(fmt.Sprintf(streamApiUrl, l.hostName), headers, nil)
 	if err != nil {
 		return nil, err
 	}
 	status := gjson.GetBytes(body, "stream").String() != ""
 	if status {
-		t.roomName = gjson.GetBytes(body, "stream.channel.status").String()
+		l.roomName = gjson.GetBytes(body, "stream.channel.status").String()
 	}
 	info = &live.Info{
-		Live:     t,
-		HostName: t.hostName,
-		RoomName: t.roomName,
+		Live:     l,
+		HostName: l.hostName,
+		RoomName: l.roomName,
 		Status:   status,
 	}
 	return info, nil
 }
 
-func (t *Live) GetStreamUrls() (us []*url.URL, err error) {
-	if t.hostName == "" || t.roomName == "" {
-		if err := t.parseInfo(); err != nil {
+func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
+	if l.hostName == "" || l.roomName == "" {
+		if err := l.parseInfo(); err != nil {
 			return nil, err
 		}
 	}
-	body, err := http.Get(fmt.Sprintf(tokenApiUrl, t.hostName), headers, nil)
+	body, err := http.Get(fmt.Sprintf(tokenApiUrl, l.hostName), headers, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +97,7 @@ func (t *Live) GetStreamUrls() (us []*url.URL, err error) {
 		sig   = gjson.GetBytes(body, "sig").String()
 		p     = fmt.Sprintf("%d", rand.Intn(9000000)+1000000)
 	)
-	u, err := url.Parse(fmt.Sprintf(liveBaseUrl, t.hostName))
+	u, err := url.Parse(fmt.Sprintf(liveBaseUrl, l.hostName))
 	if err != nil {
 		return nil, err
 	}
@@ -111,4 +112,8 @@ func (t *Live) GetStreamUrls() (us []*url.URL, err error) {
 	v.Add("token", token)
 	u.RawQuery = v.Encode()
 	return []*url.URL{u}, nil
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

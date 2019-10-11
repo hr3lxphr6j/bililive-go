@@ -20,12 +20,14 @@ func TestManagerAddAndRemoveListener(t *testing.T) {
 
 	ctx := context.WithValue(context.Background(), instance.InstanceKey, &instance.Instance{})
 	m := NewManager(ctx)
+	backup := newListener
 	newListener = func(ctx context.Context, live live.Live) Listener {
 		ln := NewMockListener(ctrl)
 		ln.EXPECT().Start().Return(nil)
 		ln.EXPECT().Close()
 		return ln
 	}
+	defer func() { newListener = backup }()
 	l := livemock.NewMockLive(ctrl)
 	l.EXPECT().GetLiveId().Return(live.ID("test")).Times(3)
 	assert.NoError(t, m.AddListener(context.Background(), l))
@@ -49,12 +51,14 @@ func TestManagerStartAndClose(t *testing.T) {
 			RPC: configs.RPC{Enable: true},
 		},
 	})
+	backup := newListener
 	newListener = func(ctx context.Context, live live.Live) Listener {
 		ln := NewMockListener(ctrl)
 		ln.EXPECT().Start().Return(nil)
 		ln.EXPECT().Close()
 		return ln
 	}
+	defer func() { newListener = backup }()
 	m := NewManager(ctx)
 	assert.NoError(t, m.Start(ctx))
 	for i := 0; i < 3; i++ {

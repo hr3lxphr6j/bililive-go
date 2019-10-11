@@ -1,4 +1,4 @@
-UPX ?= 0
+UPX_ENABLE ?= 0
 PLATFORM ?= $(shell go env GOHOSTOS)
 ARCH ?= $(shell go env GOHOSTARCH)
 
@@ -11,7 +11,7 @@ $(notdir $(abspath $(wildcard src/cmd/*/))):
 		GOARCH=$(ARCH) \
 		CGO_ENABLED=0 \
 		GOFLAGS=$(GOFLAGS) \
-		UPX_ENABLE=$(UPX) \
+		UPX_ENABLE=$(UPX_ENABLE) \
 		./src/hack/build.sh $@
 
 .PHONY: release

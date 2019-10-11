@@ -27,6 +27,7 @@ import (
 */
 const (
 	domain = "www.douyu.com"
+	cnName = "斗鱼"
 
 	liveInfoUrl = "https://open.douyucdn.cn/api/RoomApi/room"
 	liveEncUrl  = "https://www.douyu.com/swf_api/homeH5Enc"
@@ -41,7 +42,7 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
@@ -126,7 +127,7 @@ func getEngineWithCryptoJS() (*otto.Otto, error) {
 }
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 	roomID string
 }
 
@@ -264,4 +265,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 			gjson.GetBytes(resp, "data.rtmp_live").String(),
 		),
 	)
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

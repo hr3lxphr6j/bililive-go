@@ -13,7 +13,7 @@ import (
 
 func NewManager(ctx context.Context) Manager {
 	rm := &manager{
-		savers: make(map[live.ID]*Recorder),
+		savers: make(map[live.ID]Recorder),
 	}
 	instance.GetInstance(ctx).RecorderManager = rm
 	return rm
@@ -23,13 +23,18 @@ type Manager interface {
 	interfaces.Module
 	AddRecorder(ctx context.Context, live live.Live) error
 	RemoveRecorder(ctx context.Context, liveId live.ID) error
-	GetRecorder(ctx context.Context, liveId live.ID) (*Recorder, error)
+	GetRecorder(ctx context.Context, liveId live.ID) (Recorder, error)
 	HasRecorder(ctx context.Context, liveId live.ID) bool
 }
 
+// for test
+var (
+	newRecorder = NewRecorder
+)
+
 type manager struct {
 	lock   sync.RWMutex
-	savers map[live.ID]*Recorder
+	savers map[live.ID]Recorder
 }
 
 func (m *manager) registryListener(ctx context.Context, ed events.Dispatcher) {
@@ -81,7 +86,7 @@ func (m *manager) AddRecorder(ctx context.Context, live live.Live) error {
 	if _, ok := m.savers[live.GetLiveId()]; ok {
 		return ErrRecorderExist
 	}
-	recorder, err := NewRecorder(ctx, live)
+	recorder, err := newRecorder(ctx, live)
 	if err != nil {
 		return err
 	}
@@ -102,7 +107,7 @@ func (m *manager) RemoveRecorder(ctx context.Context, liveId live.ID) error {
 	return nil
 }
 
-func (m *manager) GetRecorder(ctx context.Context, liveId live.ID) (*Recorder, error) {
+func (m *manager) GetRecorder(ctx context.Context, liveId live.ID) (Recorder, error) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	r, ok := m.savers[liveId]

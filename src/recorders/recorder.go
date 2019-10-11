@@ -1,8 +1,10 @@
+//go:generate mockgen -package recorders -destination mock_test.go github.com/hr3lxphr6j/bililive-go/src/recorders Recorder,Manager
 package recorders
 
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,7 +33,33 @@ const (
 	stopped
 )
 
-type Recorder struct {
+// for test
+var (
+	newParser = func(u *url.URL, useNativeFlvParser bool) (parser.Parser, error) {
+		parserName := ffmpeg.Name
+		if strings.Contains(u.Path, ".flv") && useNativeFlvParser {
+			parserName = flv.Name
+		}
+		return parser.New(parserName)
+	}
+
+	mkdir = func(path string) error {
+		return os.MkdirAll(path, os.ModePerm)
+	}
+
+	removeEmptyFile = func(file string) {
+		if stat, err := os.Stat(file); err == nil && stat.Size() == 0 {
+			os.Remove(file)
+		}
+	}
+)
+
+type Recorder interface {
+	Start() error
+	Close()
+}
+
+type recorder struct {
 	Live       live.Live
 	OutPutPath string
 
@@ -47,9 +75,9 @@ type Recorder struct {
 	state uint32
 }
 
-func NewRecorder(ctx context.Context, live live.Live) (*Recorder, error) {
+func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 	inst := instance.GetInstance(ctx)
-	return &Recorder{
+	return &recorder{
 		Live:       live,
 		OutPutPath: instance.GetInstance(ctx).Config.OutPutPath,
 		config:     inst.Config,
@@ -62,7 +90,7 @@ func NewRecorder(ctx context.Context, live live.Live) (*Recorder, error) {
 	}, nil
 }
 
-func (r *Recorder) tryRecode() {
+func (r *recorder) tryRecode() {
 	urls, err := r.Live.GetStreamUrls()
 	if err != nil || len(urls) == 0 {
 		r.getLogger().WithError(err).Warn("failed to get stream url, will retry after 5s...")
@@ -82,27 +110,21 @@ func (r *Recorder) tryRecode() {
 		file         = filepath.Join(outputPath, fileName)
 		url          = urls[0]
 	)
-	if err := os.MkdirAll(outputPath, os.ModePerm); err != nil {
+	if err := mkdir(outputPath); err != nil {
 		r.getLogger().WithError(err).Errorf("failed to create output path[%s]", outputPath)
 		return
 	}
-	parserName := ffmpeg.Name
-	if strings.Contains(url.Path, ".flv") && r.config.Feature.UseNativeFlvParser {
-		parserName = flv.Name
-	}
-	p, err := parser.New(parserName)
+	p, err := newParser(url, r.config.Feature.UseNativeFlvParser)
 	if err != nil {
 		r.getLogger().WithError(err).Error("failed to init parse")
 		return
 	}
 	r.setAndCloseParser(p)
 	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, file))
-	if stat, err := os.Stat(file); err == nil && stat.Size() == 0 {
-		os.Remove(file)
-	}
+	removeEmptyFile(file)
 }
 
-func (r *Recorder) run() {
+func (r *recorder) run() {
 	for {
 		select {
 		case <-r.stop:
@@ -113,13 +135,13 @@ func (r *Recorder) run() {
 	}
 }
 
-func (r *Recorder) getParser() parser.Parser {
+func (r *recorder) getParser() parser.Parser {
 	r.parserLock.RLock()
 	defer r.parserLock.RUnlock()
 	return r.parser
 }
 
-func (r *Recorder) setAndCloseParser(p parser.Parser) {
+func (r *recorder) setAndCloseParser(p parser.Parser) {
 	r.parserLock.Lock()
 	defer r.parserLock.Unlock()
 	if r.parser != nil {
@@ -128,9 +150,9 @@ func (r *Recorder) setAndCloseParser(p parser.Parser) {
 	r.parser = p
 }
 
-func (r *Recorder) Start() error {
+func (r *recorder) Start() error {
 	if !atomic.CompareAndSwapUint32(&r.state, begin, pending) {
-		return ErrStateUnknown
+		return nil
 	}
 	go r.run()
 	r.getLogger().Info("Record Start")
@@ -139,7 +161,7 @@ func (r *Recorder) Start() error {
 	return nil
 }
 
-func (r *Recorder) Close() {
+func (r *recorder) Close() {
 	if !atomic.CompareAndSwapUint32(&r.state, running, stopped) {
 		return
 	}
@@ -151,11 +173,11 @@ func (r *Recorder) Close() {
 	r.ed.DispatchEvent(events.NewEvent(RecorderStop, r.Live))
 }
 
-func (r *Recorder) getLogger() *logrus.Entry {
+func (r *recorder) getLogger() *logrus.Entry {
 	return r.logger.WithFields(r.getFields())
 }
 
-func (r *Recorder) getFields() map[string]interface{} {
+func (r *recorder) getFields() map[string]interface{} {
 	obj, err := r.cache.Get(r.Live)
 	if err != nil {
 		return nil

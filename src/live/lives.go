@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/url"
 	"time"
+
+	"github.com/bluele/gcache"
 )
 
 var (
@@ -36,7 +38,30 @@ type Live interface {
 	SetLastStartTime(time.Time)
 }
 
-func New(url *url.URL) (live Live, err error) {
+type wrappedLive struct {
+	Live
+	cache gcache.Cache
+}
+
+func newWrappedLive(live Live, cache gcache.Cache) Live {
+	return &wrappedLive{
+		Live:  live,
+		cache: cache,
+	}
+}
+
+func (w *wrappedLive) GetInfo() (*Info, error) {
+	i, err := w.Live.GetInfo()
+	if err != nil {
+		return nil, err
+	}
+	if w.cache != nil {
+		w.cache.Set(w, i)
+	}
+	return i, nil
+}
+
+func New(url *url.URL, cache gcache.Cache) (live Live, err error) {
 	builder, ok := getBuilder(url.Host)
 	if !ok {
 		return nil, errors.New("not support this url")
@@ -45,6 +70,7 @@ func New(url *url.URL) (live Live, err error) {
 	if err != nil {
 		return
 	}
+	live = newWrappedLive(live, cache)
 	for i := 0; i < 3; i++ {
 		if _, err = live.GetInfo(); err == nil {
 			break

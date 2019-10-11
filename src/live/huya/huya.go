@@ -13,7 +13,10 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 )
 
-const domain = "www.huya.com"
+const (
+	domain = "www.huya.com"
+	cnName = "虎牙"
+)
 
 func init() {
 	live.Register(domain, new(builder))
@@ -23,12 +26,12 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
@@ -83,4 +86,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	value.Add("uid", fmt.Sprintf("%d", uid))
 	u.RawQuery = fmt.Sprintf("%s&%s", value.Encode(), strings.ReplaceAll(sFlvAntiCode, "&amp;", "&"))
 	return []*url.URL{u}, nil
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

@@ -14,6 +14,7 @@ import (
 
 const (
 	domain = "live.bilibili.com"
+	cnName = "哔哩哔哩"
 
 	roomInitUrl = "https://api.live.bilibili.com/room/v1/Room/room_init"
 	roomApiUrl  = "https://api.live.bilibili.com/room/v1/Room/get_info"
@@ -29,12 +30,12 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 	realID string
 }
 
@@ -111,4 +112,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return true
 	})
 	return utils.GenUrls(urls...)
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }

@@ -16,6 +16,7 @@ import (
 
 const (
 	domain = "www.zhanqi.tv"
+	cnName = "战旗"
 
 	apiUrl = "https://www.zhanqi.tv/api/static/v2.1/room/domain/%s.json"
 )
@@ -28,12 +29,12 @@ type builder struct{}
 
 func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		AbstractLive: internal.NewAbstractLive(url),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
 type Live struct {
-	internal.AbstractLive
+	internal.BaseLive
 }
 
 func (l *Live) requestRoomInfo() ([]byte, error) {
@@ -73,4 +74,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, err
 	}
 	return utils.GenUrls(gjson.GetBytes(data, "streamUrl").String())
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }
