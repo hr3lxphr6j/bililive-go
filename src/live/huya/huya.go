@@ -84,7 +84,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	value.Add("type", "web")
 	value.Add("ver", "1805071653")
 	value.Add("uid", fmt.Sprintf("%d", uid))
-	u.RawQuery = fmt.Sprintf("%s&%s", value.Encode(), strings.ReplaceAll(sFlvAntiCode, "&amp;", "&"))
+	u.RawQuery = fmt.Sprintf("%s&%s", value.Encode(), utils.UnescapeHTMLEntity(sFlvAntiCode))
 	return []*url.URL{u}, nil
 }
 

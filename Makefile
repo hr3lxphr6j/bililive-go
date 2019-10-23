@@ -30,3 +30,7 @@ test:
 clean:
 	@rm -rf bin
 	@echo "All clean"
+
+.PHONY: generate
+generate:
+	go generate ./...

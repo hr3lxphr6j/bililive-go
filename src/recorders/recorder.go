@@ -101,9 +101,10 @@ func (r *recorder) tryRecode() {
 	obj, _ := r.cache.Get(r.Live)
 	info := obj.(*live.Info)
 	var (
-		platformName = utils.ReplaceIllegalChar(r.Live.GetPlatformCNName())
-		hostName     = utils.ReplaceIllegalChar(info.HostName)
-		roomName     = utils.ReplaceIllegalChar(info.RoomName)
+		strFilter    = utils.NewStringFilterChain(utils.ReplaceIllegalChar, utils.UnescapeHTMLEntity)
+		platformName = strFilter.Do(r.Live.GetPlatformCNName())
+		hostName     = strFilter.Do(info.HostName)
+		roomName     = strFilter.Do(info.RoomName)
 		ts           = time.Now().Format("2006-01-02 15-04-05")
 		fileName     = fmt.Sprintf("[%s][%s][%s].flv", ts, hostName, roomName)
 		outputPath   = filepath.Join(r.OutPutPath, platformName, hostName)
