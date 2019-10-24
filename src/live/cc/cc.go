@@ -57,8 +57,8 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	}
 
 	var (
-		hostName = utils.Match1(`anchorName\s*:\s*'([^']*)',`, string(dom))
-		roomName = utils.Match1(`js-live-title nick" title\s*=\s*"([^"]*)"`, string(dom))
+		hostName = utils.UnescapeHTMLEntity(utils.Match1(`anchorName\s*:\s*'([^']*)',`, string(dom)))
+		roomName = utils.UnescapeHTMLEntity(utils.Match1(`js-live-title nick" title\s*=\s*"([^"]*)"`, string(dom)))
 	)
 
 	if hostName == "" || roomName == "" {

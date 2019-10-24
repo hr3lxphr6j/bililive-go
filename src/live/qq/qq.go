@@ -44,8 +44,8 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	if err != nil {
 		return nil, err
 	}
-	roomName := utils.Match1(`title:"([^"]*)"`, string(dom))
-	hostName := utils.Match1(`nickName:"([^"]+)"`, string(dom))
+	roomName := utils.UnescapeHTMLEntity(utils.Match1(`title:"([^"]*)"`, string(dom)))
+	hostName := utils.UnescapeHTMLEntity(utils.Match1(`nickName:"([^"]+)"`, string(dom)))
 	dom2, err := http.Get(mobileUrl, nil, map[string]string{
 		"anchorid": anchorID,
 	})

@@ -37,9 +37,17 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		return nil, err
 	}
 	var (
-		roomName = strings.TrimSpace(utils.Match1(`"title":"([^:]*)",`, string(dom)))
-		hostName = utils.ParseUnicode(utils.Match1(`"name":"([^:]*)",`, string(dom)))
-		status   = utils.Match1(`"onairStatus":(\d),`, string(dom))
+		roomName = utils.ParseString(
+			utils.Match1(`"title":"([^:]*)",`, string(dom)),
+			utils.StringFilterFunc(strings.TrimSpace),
+			utils.UnescapeHTMLEntity,
+		)
+		hostName = utils.ParseString(
+			utils.Match1(`"name":"([^:]*)",`, string(dom)),
+			utils.ParseUnicode,
+			utils.UnescapeHTMLEntity,
+		)
+		status = utils.Match1(`"onairStatus":(\d),`, string(dom))
 	)
 	if roomName == "" || hostName == "" || status == "" {
 		return nil, live.ErrInternalError

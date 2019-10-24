@@ -44,9 +44,10 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	}
 
 	var (
-		hostName = utils.ParseUnicode(utils.Match1(`"nick":"([^"]*)"`, string(dom)))
-		roomName = utils.ParseUnicode(utils.Match1(`"introduction":"([^"]*)"`, string(dom)))
-		status   = utils.ParseUnicode(utils.Match1(`"isOn":([^,]*),`, string(dom)))
+		strFilter = utils.NewStringFilterChain(utils.ParseUnicode, utils.UnescapeHTMLEntity)
+		hostName  = strFilter.Do(utils.Match1(`"nick":"([^"]*)"`, string(dom)))
+		roomName  = strFilter.Do(utils.Match1(`"introduction":"([^"]*)"`, string(dom)))
+		status    = strFilter.Do(utils.Match1(`"isOn":([^,]*),`, string(dom)))
 	)
 
 	if hostName == "" || roomName == "" || status == "" {
