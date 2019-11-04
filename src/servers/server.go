@@ -105,7 +105,7 @@ func NewServer(ctx context.Context) *Server {
 	inst := instance.GetInstance(ctx)
 	config := inst.Config
 	httpServer := &http.Server{
-		Addr:    config.RPC.Port,
+		Addr:    config.RPC.Bind,
 		Handler: initMux(ctx),
 	}
 	server := &Server{server: httpServer}
@@ -118,18 +118,16 @@ func (s *Server) Start(ctx context.Context) error {
 	inst.WaitGroup.Add(1)
 	config := inst.Config
 	go func() {
+		var err error
 		if config.RPC.TLS.Enable {
-			if err := s.server.ListenAndServeTLS(config.RPC.TLS.CertFile, config.RPC.TLS.KeyFile); err != nil {
-				if err != http.ErrServerClosed {
-					inst.Logger.Error(err)
-				}
-			}
+			err = s.server.ListenAndServeTLS(config.RPC.TLS.CertFile, config.RPC.TLS.KeyFile)
 		} else {
-			if err := s.server.ListenAndServe(); err != nil {
-				if err != http.ErrServerClosed {
-					inst.Logger.Error(err)
-				}
-			}
+			err = s.server.ListenAndServe()
+		}
+		switch err {
+		case nil, http.ErrServerClosed:
+		default:
+			inst.Logger.Error(err)
 		}
 	}()
 	inst.Logger.Infof("Server start at %s", s.server.Addr)

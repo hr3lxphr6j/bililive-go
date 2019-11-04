@@ -11,10 +11,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tidwall/gjson"
 
-	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/consts"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/recorders"
 )
 
@@ -24,17 +24,18 @@ type CommonResp struct {
 	Data   interface{} `json:"data"`
 }
 
-func parseInfo(ctx context.Context, live api.Live) *api.Info {
+func parseInfo(ctx context.Context, l live.Live) *live.Info {
 	inst := instance.GetInstance(ctx)
-	info := live.GetCachedInfo()
-	info.Listening = inst.ListenerManager.(listeners.IListenerManager).HasListener(ctx, api.LiveId(live.GetLiveId()))
-	info.Recoding = inst.RecorderManager.(recorders.IRecorderManager).HasRecorder(ctx, api.LiveId(live.GetLiveId()))
+	obj, _ := inst.Cache.Get(l)
+	info := obj.(*live.Info)
+	info.Listening = inst.ListenerManager.(listeners.Manager).HasListener(ctx, l.GetLiveId())
+	info.Recoding = inst.RecorderManager.(recorders.Manager).HasRecorder(ctx, l.GetLiveId())
 	return info
 }
 
 func getAllLives(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(r.Context())
-	info := make([]*api.Info, 0)
+	info := make([]*live.Info, 0)
 	for _, v := range inst.Lives {
 		info = append(info, parseInfo(r.Context(), v))
 	}
@@ -50,7 +51,7 @@ func getLive(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(r.Context())
 	vars := mux.Vars(r)
 	resp := CommonResp{}
-	if live, ok := inst.Lives[api.LiveId(vars["id"])]; ok {
+	if live, ok := inst.Lives[live.ID(vars["id"])]; ok {
 		resp.Data = parseInfo(r.Context(), live)
 	} else {
 		resp.ErrNo = 404
@@ -66,13 +67,13 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(r.Context())
 	vars := mux.Vars(r)
 	resp := CommonResp{}
-	if live, ok := inst.Lives[api.LiveId(vars["id"])]; ok {
+	if live, ok := inst.Lives[live.ID(vars["id"])]; ok {
 		switch vars["action"] {
 		case "start":
-			inst.ListenerManager.(listeners.IListenerManager).AddListener(r.Context(), live)
+			inst.ListenerManager.(listeners.Manager).AddListener(r.Context(), live)
 			resp.Data = parseInfo(r.Context(), live)
 		case "stop":
-			inst.ListenerManager.(listeners.IListenerManager).RemoveListener(r.Context(), live.GetLiveId())
+			inst.ListenerManager.(listeners.Manager).RemoveListener(r.Context(), live.GetLiveId())
 			resp.Data = parseInfo(r.Context(), live)
 		default:
 			resp.ErrNo = 400
@@ -106,16 +107,16 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 */
 func addLives(writer http.ResponseWriter, r *http.Request) {
 	b, _ := ioutil.ReadAll(r.Body)
-	info := make([]*api.Info, 0)
+	info := make([]*live.Info, 0)
 	gjson.GetBytes(b, "lives").ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
 		u, _ := url.Parse(value.Get("url").String())
-		if live, err := api.NewLive(u); err == nil {
+		if live, err := live.New(u, instance.GetInstance(r.Context()).Cache); err == nil {
 			inst := instance.GetInstance(r.Context())
 			if _, ok := inst.Lives[live.GetLiveId()]; !ok {
 				inst.Lives[live.GetLiveId()] = live
 				if isListen {
-					inst.ListenerManager.(listeners.IListenerManager).AddListener(r.Context(), live)
+					inst.ListenerManager.(listeners.Manager).AddListener(r.Context(), live)
 				}
 				info = append(info, parseInfo(r.Context(), live))
 			}
@@ -163,8 +164,8 @@ func removeLive(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(r.Context())
 	vars := mux.Vars(r)
 	res := CommonResp{}
-	if live, ok := inst.Lives[api.LiveId(vars["id"])]; ok {
-		inst.ListenerManager.(listeners.IListenerManager).RemoveListener(r.Context(), live.GetLiveId())
+	if live, ok := inst.Lives[live.ID(vars["id"])]; ok {
+		inst.ListenerManager.(listeners.Manager).RemoveListener(r.Context(), live.GetLiveId())
 		delete(inst.Lives, live.GetLiveId())
 		res.Data = "OK"
 	} else {

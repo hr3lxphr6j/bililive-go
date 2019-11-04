@@ -1,8 +1,20 @@
 language: go
-
+sudo: required
 go:
-- master
-
+  - "1.13"
+env:
+  - GO111MODULE=on
 script:
   - make
   - make test
+before_deploy:
+  - make release
+deploy:
+  provider: releases
+  api_key:
+    secure: xfefGaJVPyP2y+wvtosX7c0YmNw85ANfCIrUyfIY56++XlKLNSTUl3l38pXV0D9/MZyk4jOj+UPqfPoUskjB9uX7oVLLH3X7ESh/XlqP0J+VVxpVtL+iYyZ4BkuxzolZFV8nMJ5X6XfUnzG4Z3FFJUagpQN4acfX+WAP2zw5ILGrdcgWwun3kLvi2SuybAApHhEzsty7wOdmczVQYKLkU066jtG2Zs1gPl1IVg4k/U8mVEgiHwZdsB4QTg01lL4+qPd9xC7f+EHY33FQ+o4MkO6ZKnR3VjKfS4ufJp6KoVdat/m9RP8ykDpVL3n0fKtu+bYWjvetxGroFm75es8lD5vKpXAE/8mKLI+MltJgknzJlOep/i38i+6SDHZhLLa+6uCgNSZxd7ie5f2rsrFHp7X8pnevuUS4jGU/XwKuoKF9fGRa3AA6w3QEgWkn+sjECk9zyk9c5ADNTmoNaux6kLjg+acTYQHpnIApQEsGd/WK0bdCibs93FFqPQrXpr29gtC+w3ivSSzevVSNLdDmwm6AgtJbNAS+1M/hXAQDo7pZ5sxpoXAuZ2c3jAgz7htEolz0QCZX3SwMEaBQuem5jMW/nbrFGfrhN6y4a4vYr9z3V+VAhdF5q+s67kHs7+p1uZai/d8uPu2e17Yj7sIDbPPk4LU/gsrJKCCP9bgcT3k=
+  skip_cleanup: true
+  file_glob: true
+  file: "bin/*"
+  on:
+    tags: true

@@ -1,17 +1,20 @@
 package flv
 
-type SoundFormat uint8
-type SoundRate uint8
-type SoundSize uint8
-type SoundType uint8
-type AACPacketType uint8
-type AudioTagHeader struct {
-	SoundFormat   SoundFormat
-	SoundRate     SoundRate
-	SoundSize     SoundSize
-	SoundType     SoundType
-	AACPacketType AACPacketType
-}
+type (
+	SoundFormat   uint8
+	SoundRate     uint8
+	SoundSize     uint8
+	SoundType     uint8
+	AACPacketType uint8
+
+	AudioTagHeader struct {
+		SoundFormat   SoundFormat
+		SoundRate     SoundRate
+		SoundSize     SoundSize
+		SoundType     SoundType
+		AACPacketType AACPacketType
+	}
+)
 
 const (
 	// SoundFormat

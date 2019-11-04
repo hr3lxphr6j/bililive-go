@@ -24,7 +24,7 @@ func (p *Parser) parseTag() error {
 	case scriptTag:
 		return p.parseScriptTag(length)
 	default:
-		return UnknownTag
+		return ErrUnknownTag
 	}
 
 	return nil

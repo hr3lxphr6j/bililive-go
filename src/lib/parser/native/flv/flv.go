@@ -10,20 +10,40 @@ import (
 	"os"
 	"sync"
 
+	"github.com/hr3lxphr6j/bililive-go/src/lib/parser"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
 )
 
 const (
+	Name = "native"
+
 	audioTag  uint8 = 8
 	videoTag  uint8 = 9
 	scriptTag uint8 = 18
 )
 
 var (
-	flvSign      = []byte{0x46, 0x4c, 0x56, 0x01} // flv version01
-	NotFlvStream = errors.New("not flv stream")
-	UnknownTag   = errors.New("unknown tag")
+	flvSign = []byte{0x46, 0x4c, 0x56, 0x01} // flv version01
+
+	ErrNotFlvStream = errors.New("not flv stream")
+	ErrUnknownTag   = errors.New("unknown tag")
 )
+
+func init() {
+	parser.Register(Name, new(builder))
+}
+
+type builder struct{}
+
+func (b *builder) Build() (parser.Parser, error) {
+	return &Parser{
+		Metadata:  Metadata{},
+		hc:        &http.Client{},
+		stopCh:    make(chan struct{}),
+		closeOnce: new(sync.Once),
+	}, nil
+}
 
 type Metadata struct {
 	HasVideo, HasAudio bool
@@ -42,22 +62,13 @@ type Parser struct {
 	closeOnce *sync.Once
 }
 
-func NewParser() *Parser {
-	return &Parser{
-		Metadata:  Metadata{},
-		hc:        &http.Client{},
-		stopCh:    make(chan struct{}),
-		closeOnce: new(sync.Once),
-	}
-}
-
-func (p *Parser) ParseLiveStream(url *url.URL, file string) error {
+func (p *Parser) ParseLiveStream(url *url.URL, live live.Live, file string) error {
 	// init input
 	req, err := http.NewRequest("GET", url.String(), nil)
-	req.Header.Add("User-Agent", "Chrome/59.0.3071.115")
 	if err != nil {
 		return err
 	}
+	req.Header.Add("User-Agent", "Chrome/59.0.3071.115")
 	resp, err := p.hc.Do(req)
 	if err != nil {
 		return err
@@ -93,7 +104,7 @@ func (p *Parser) doParse() error {
 	}
 	// signature
 	if !bytes.Equal(b[:4], flvSign) {
-		return NotFlvStream
+		return ErrNotFlvStream
 	}
 	// flag
 	p.Metadata.HasVideo = uint8(b[4])&(1<<2) != 0
@@ -101,7 +112,7 @@ func (p *Parser) doParse() error {
 
 	// offset must be 9
 	if binary.BigEndian.Uint32(b[5:]) != 9 {
-		return NotFlvStream
+		return ErrNotFlvStream
 	}
 
 	// write flv header

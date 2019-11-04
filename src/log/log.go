@@ -10,7 +10,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 )
 
-func NewLogger(ctx context.Context) *interfaces.Logger {
+func New(ctx context.Context) *interfaces.Logger {
 	inst := instance.GetInstance(ctx)
 	logLevel := logrus.InfoLevel
 	if inst.Config.Debug {

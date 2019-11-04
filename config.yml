@@ -8,7 +8,7 @@ rpc:
     key_file: ""
 debug: false
 interval: 15
-out_put_path: /Users/chigusa/Movies
+out_put_path: ./
 feature:
   use_native_flv_parser: false
 live_rooms:

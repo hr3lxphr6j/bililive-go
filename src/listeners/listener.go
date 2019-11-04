@@ -1,3 +1,4 @@
+//go:generate mockgen -package listeners -destination mock_test.go github.com/hr3lxphr6j/bililive-go/src/listeners Listener,Manager
 package listeners
 
 import (
@@ -5,11 +6,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hr3lxphr6j/bililive-go/src/api"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
 )
 
 const (
@@ -19,73 +20,91 @@ const (
 	stopped
 )
 
-func NewListener(ctx context.Context, live api.Live) *Listener {
+type Listener interface {
+	Start() error
+	Close()
+}
+
+func NewListener(ctx context.Context, live live.Live) Listener {
 	inst := instance.GetInstance(ctx)
-	return &Listener{
+	return &listener{
 		Live:   live,
 		status: false,
 		config: inst.Config,
 		stop:   make(chan struct{}),
-		ed:     inst.EventDispatcher.(events.IEventDispatcher),
+		ed:     inst.EventDispatcher.(events.Dispatcher),
 		logger: inst.Logger,
 		state:  begin,
 	}
 }
 
-type Listener struct {
-	Live   api.Live
+type listener struct {
+	Live   live.Live
 	status bool
 
 	config *configs.Config
-	ed     events.IEventDispatcher
+	ed     events.Dispatcher
 	logger *interfaces.Logger
 
 	state uint32
 	stop  chan struct{}
 }
 
-func (l *Listener) Start() error {
+func (l *listener) Start() error {
 	if !atomic.CompareAndSwapUint32(&l.state, begin, pending) {
 		return nil
 	}
 	defer atomic.CompareAndSwapUint32(&l.state, pending, running)
 
-	l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Start")
 	l.ed.DispatchEvent(events.NewEvent(ListenStart, l.Live))
 	l.refresh()
 	go l.run()
 	return nil
 }
 
-func (l *Listener) Close() {
+func (l *listener) Close() {
 	if !atomic.CompareAndSwapUint32(&l.state, running, stopped) {
 		return
 	}
-	l.logger.WithFields(l.Live.GetInfoMap()).Info("Listener Close")
 	l.ed.DispatchEvent(events.NewEvent(ListenStop, l.Live))
 	close(l.stop)
 }
 
-func (l *Listener) refresh() {
+func (l *listener) refresh() {
 	info, err := l.Live.GetInfo()
 	if err != nil {
+		l.logger.
+			WithError(err).
+			WithField("url", l.Live.GetRawUrl()).
+			Error("failed to load room info")
 		return
 	}
 	if info.Status == l.status {
 		return
 	}
 	l.status = info.Status
+
+	var (
+		evtTyp  events.EventType
+		logInfo string
+		fields  = map[string]interface{}{
+			"room": info.RoomName,
+			"host": info.HostName,
+		}
+	)
 	if l.status {
 		l.Live.SetLastStartTime(time.Now())
-		l.logger.WithFields(l.Live.GetInfoMap()).Info("Live Start")
-		l.ed.DispatchEvent(events.NewEvent(LiveStart, l.Live))
+		evtTyp = LiveStart
+		logInfo = "Live Start"
 	} else {
-		l.logger.WithFields(l.Live.GetInfoMap()).Info("Live End")
-		l.ed.DispatchEvent(events.NewEvent(LiveEnd, l.Live))
+		evtTyp = LiveEnd
+		logInfo = "Live end"
 	}
+	l.ed.DispatchEvent(events.NewEvent(evtTyp, l.Live))
+	l.logger.WithFields(fields).Info(logInfo)
 }
 
-func (l *Listener) run() {
+func (l *listener) run() {
 	ticker := time.NewTicker(time.Duration(l.config.Interval) * time.Second)
 	defer ticker.Stop()
 
