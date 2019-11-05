@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sort"
 
 	"github.com/gorilla/mux"
 	"github.com/tidwall/gjson"
@@ -33,12 +34,25 @@ func parseInfo(ctx context.Context, l live.Live) *live.Info {
 	return info
 }
 
+type liveSlice []*live.Info
+
+func (c liveSlice) Len() int {
+	return len(c)
+}
+func (c liveSlice) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+func (c liveSlice) Less(i, j int) bool {
+	return c[i].Live.GetLiveId() < c[j].Live.GetLiveId()
+}
+
 func getAllLives(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(r.Context())
-	info := make([]*live.Info, 0)
+	info := liveSlice(make([]*live.Info, 0))
 	for _, v := range inst.Lives {
 		info = append(info, parseInfo(r.Context(), v))
 	}
+	sort.Sort(info)
 	resp := CommonResp{
 		Data: info,
 	}
@@ -107,7 +121,7 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 */
 func addLives(writer http.ResponseWriter, r *http.Request) {
 	b, _ := ioutil.ReadAll(r.Body)
-	info := make([]*live.Info, 0)
+	info := liveSlice(make([]*live.Info, 0))
 	gjson.GetBytes(b, "lives").ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
 		u, _ := url.Parse(value.Get("url").String())
@@ -123,6 +137,7 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 		}
 		return true
 	})
+	sort.Sort(info)
 	resp := CommonResp{
 		Data: info,
 	}
