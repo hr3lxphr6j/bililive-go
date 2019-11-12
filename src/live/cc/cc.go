@@ -3,7 +3,6 @@ package cc
 import (
 	"fmt"
 	"net/url"
-	"regexp"
 
 	"github.com/tidwall/gjson"
 
@@ -18,6 +17,7 @@ const (
 	cnName = "CC直播"
 
 	apiUrl = "http://cgi.v.cc.163.com/video_play_url/"
+	dataRe = `<script id="__NEXT_DATA__" type="application/json" crossorigin="anonymous">(.*?)</script>`
 )
 
 func init() {
@@ -34,31 +34,37 @@ func (b *builder) Build(url *url.URL) (live.Live, error) {
 
 type Live struct {
 	internal.BaseLive
-	ccid string
 }
 
-func (l *Live) parseCCId() error {
-	dom, err := http.Get(l.Url.String(), nil, nil)
-	if err != nil {
-		return err
-	}
-	ccid := utils.Match1(`anchorCcId\s*:\s*'(\d*)'`, string(dom))
-	if ccid == "" {
-		return live.ErrInternalError
-	}
-	l.ccid = ccid
-	return nil
-}
-
-func (l *Live) GetInfo() (info *live.Info, err error) {
+func (l *Live) getData() (*gjson.Result, error) {
 	dom, err := http.Get(l.Url.String(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
+	data := utils.UnescapeHTMLEntity(utils.Match1(dataRe, string(dom)))
+	if data == "" {
+		return nil, live.ErrInternalError
+	}
+	result := gjson.Parse(data)
+	return &result, nil
+}
 
+func (l *Live) getCcID() (string, error) {
+	data, err := l.getData()
+	if err != nil {
+		return "", err
+	}
+	return data.Get("props.pageProps.roomInfoInitData.micfirst.ccid").String(), nil
+}
+
+func (l *Live) GetInfo() (info *live.Info, err error) {
+	data, err := l.getData()
+	if err != nil {
+		return nil, err
+	}
 	var (
-		hostName = utils.UnescapeHTMLEntity(utils.Match1(`anchorName\s*:\s*'([^']*)',`, string(dom)))
-		roomName = utils.UnescapeHTMLEntity(utils.Match1(`js-live-title nick" title\s*=\s*"([^"]*)"`, string(dom)))
+		hostName = data.Get("props.pageProps.roomInfoInitData.micfirst.nickname").String()
+		roomName = data.Get("props.pageProps.roomInfoInitData.live.title").String()
 	)
 
 	if hostName == "" || roomName == "" {
@@ -69,18 +75,17 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		Live:     l,
 		HostName: hostName,
 		RoomName: roomName,
-		Status:   len(regexp.MustCompile(`isLive\s*:\s*\d+,`).FindAll(dom, -1)) > 0,
+		Status:   data.Get("props.pageProps.roomInfoInitData.live.ccid").Int() != 0,
 	}
 	return info, nil
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	if l.ccid == "" {
-		if err := l.parseCCId(); err != nil {
-			return nil, err
-		}
+	ccid, err := l.getCcID()
+	if err != nil {
+		return nil, err
 	}
-	data, err := http.Get(fmt.Sprintf("%s%s", apiUrl, l.ccid), nil, nil)
+	data, err := http.Get(fmt.Sprintf("%s%s", apiUrl, ccid), nil, nil)
 	if err != nil {
 		return nil, err
 	}
