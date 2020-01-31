@@ -11,11 +11,11 @@ import (
 
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
-	evtmock "github.com/hr3lxphr6j/bililive-go/src/lib/events/mock"
 	livepkg "github.com/hr3lxphr6j/bililive-go/src/live"
 	livemock "github.com/hr3lxphr6j/bililive-go/src/live/mock"
 	"github.com/hr3lxphr6j/bililive-go/src/log"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
+	evtmock "github.com/hr3lxphr6j/bililive-go/src/pkg/events/mock"
 )
 
 func TestRefresh(t *testing.T) {

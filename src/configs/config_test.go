@@ -15,15 +15,6 @@ func TestNewConfig(t *testing.T) {
 
 }
 
-func TestTLS_Verify(t *testing.T) {
-	var tls *TLS
-	assert.NoError(t, tls.Verify())
-	tls = new(TLS)
-	assert.NoError(t, tls.Verify())
-	tls.Enable = true
-	assert.Error(t, tls.Verify())
-}
-
 func TestRPC_Verify(t *testing.T) {
 	var rpc *RPC
 	assert.NoError(t, rpc.Verify())

@@ -169,7 +169,10 @@ class LiveList extends React.Component<Props, IState> {
     requestListData() {
         api.getRoomList()
             .then(function (rsp: any) {
-                return rsp.data.map((item: any, index: number) => {
+                if (rsp.length == 0) {
+                    return [];
+                }
+                return rsp.map((item: any, index: number) => {
                     //判断标签状态
                     let tags;
                     if (item.listening === true) {

@@ -1,0 +1,26 @@
+package servers
+
+import (
+	"encoding/json"
+	"net/http"
+)
+
+const (
+	contentType     = "Content-Type"
+	contentTypeJSON = "application/json"
+)
+
+func writeMsg(w http.ResponseWriter, code int, msg string) {
+	w.WriteHeader(code)
+	_, _ = w.Write([]byte(msg))
+}
+
+func writeJSON(w http.ResponseWriter, obj interface{}) {
+	b, err := json.Marshal(obj)
+	if err != nil {
+		writeMsg(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.Header().Set(contentType, contentTypeJSON)
+	_, _ = w.Write(b)
+}

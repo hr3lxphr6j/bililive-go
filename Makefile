@@ -10,12 +10,11 @@ $(notdir $(abspath $(wildcard src/cmd/*/))):
 	@GOOS=$(PLATFORM) \
 		GOARCH=$(ARCH) \
 		CGO_ENABLED=0 \
-		GOFLAGS=$(GOFLAGS) \
 		UPX_ENABLE=$(UPX_ENABLE) \
 		./src/hack/build.sh $@
 
 .PHONY: release
-release:
+release: build-web generate
 	@./src/hack/release.sh
 
 .PHONY: release-docker
@@ -28,9 +27,17 @@ test:
 
 .PHONY: clean
 clean:
-	@rm -rf bin
+	@rm -rf bin ./src/webapp/build
 	@echo "All clean"
 
 .PHONY: generate
 generate:
 	go generate ./...
+
+.PHONY: build-web
+build-web:
+	cd ./src/webapp && yarn install && yarn build && cd ../../
+
+.PHONY: run
+run:
+	foreman start || exit 0

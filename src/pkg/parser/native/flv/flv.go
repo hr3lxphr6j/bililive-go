@@ -10,9 +10,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/hr3lxphr6j/bililive-go/src/lib/parser"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/reader"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/reader"
 )
 
 const (

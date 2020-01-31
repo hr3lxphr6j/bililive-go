@@ -15,11 +15,11 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/consts"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/events"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/log"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/hr3lxphr6j/bililive-go/src/recorders"
 	"github.com/hr3lxphr6j/bililive-go/src/servers"
 )

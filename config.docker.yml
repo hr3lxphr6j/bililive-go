@@ -1,11 +1,6 @@
 rpc:
   enable: true
-  port: :8080
-  token: ""
-  tls:
-    enable: false
-    cert_file: ""
-    key_file: ""
+  bind: :8080
 debug: false
 interval: 20
 out_put_path: /srv/bililive

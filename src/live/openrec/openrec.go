@@ -4,10 +4,10 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
-	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
 const (

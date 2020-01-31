@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -10,30 +9,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type TLS struct {
-	Enable   bool   `yaml:"enable"`
-	CertFile string `yaml:"cert_file"`
-	KeyFile  string `yaml:"key_file"`
-}
-
-func (t *TLS) Verify() error {
-	if t == nil {
-		return nil
-	}
-	if !t.Enable {
-		return nil
-	}
-	if _, err := tls.LoadX509KeyPair(t.CertFile, t.KeyFile); err != nil {
-		return err
-	}
-	return nil
-}
-
 type RPC struct {
 	Enable bool   `yaml:"enable"`
-	Bind   string `yaml:"port"`
-	Token  string `yaml:"token"`
-	TLS    TLS    `yaml:"tls"`
+	Bind   string `yaml:"bind"`
 }
 
 func (r *RPC) Verify() error {
@@ -44,9 +22,6 @@ func (r *RPC) Verify() error {
 		return nil
 	}
 	if _, err := net.ResolveTCPAddr("tcp", r.Bind); err != nil {
-		return err
-	}
-	if err := r.TLS.Verify(); err != nil {
 		return err
 	}
 	return nil

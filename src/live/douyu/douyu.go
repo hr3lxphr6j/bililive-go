@@ -9,15 +9,15 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/hr3lxphr6j/bililive-go/src/lib/utils"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 
 	"github.com/robertkrimen/otto"
 	"github.com/satori/go.uuid"
 	"github.com/tidwall/gjson"
 
-	"github.com/hr3lxphr6j/bililive-go/src/lib/http"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 )
 
 /*

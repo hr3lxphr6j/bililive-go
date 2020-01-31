@@ -1,14 +1,9 @@
 rpc:
-  enable: false
-  port: 127.0.0.1:8080
-  token: ""
-  tls:
-    enable: false
-    cert_file: ""
-    key_file: ""
+  enable: true
+  bind: 127.0.0.1:8080
 debug: false
 interval: 15
-out_put_path: ./
+out_put_path: /tmp
 feature:
   use_native_flv_parser: false
 live_rooms:

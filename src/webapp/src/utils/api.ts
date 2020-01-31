@@ -8,7 +8,7 @@ import Utils from './common';
 
 const utils = new Utils();
 
-const BASE_URL = "";
+const BASE_URL = "/api";
 
 class API {
     /**
@@ -30,14 +30,12 @@ class API {
      * @param url URL
      */
     addNewRoom(url: string) {
-        const reqBody = {
-            lives: [
-                {
-                    "url": url,
-                    "listen": true
-                }
-            ]
-        };
+        const reqBody = [
+            {
+                "url": url,
+                "listen": true
+            }
+        ];
         return utils.requestPost(`${BASE_URL}/lives`, reqBody);
     }
 

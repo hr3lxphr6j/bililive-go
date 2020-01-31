@@ -17,11 +17,7 @@ var (
 	Input           = App.Flag("input", "Live room urls").Short('i').Strings()
 	Conf            = App.Flag("config", "Config file.").Short('c').String()
 	Rpc             = App.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
-	RpcAddr         = App.Flag("rpc-addr", "RPC server listen port").Default(":8080").String()
-	RpcToken        = App.Flag("rpc-token", "RPC server token.").String()
-	RpcTLS          = App.Flag("enable-rpc-tls", "Enable TLS for RPC server").Bool()
-	CertFile        = App.Flag("rpc-tls-cert-file", "Cert file for TLS on RPC").String()
-	KeyFile         = App.Flag("rpc-tls-key-file", "Key file for TLS on RPC").String()
+	RpcBind         = App.Flag("rpc-bind", "RPC server bind address").Default(":8080").String()
 	NativeFlvParser = App.Flag("native-flv-parser", "use native flv parser").Default("false").Bool()
 )
 
@@ -33,13 +29,7 @@ func GenConfigFromFlags() *configs.Config {
 	return &configs.Config{
 		RPC: configs.RPC{
 			Enable: *Rpc,
-			Bind:   *RpcAddr,
-			Token:  *RpcToken,
-			TLS: configs.TLS{
-				Enable:   *RpcTLS,
-				CertFile: *CertFile,
-				KeyFile:  *KeyFile,
-			},
+			Bind:   *RpcBind,
 		},
 		Debug:      *Debug,
 		Interval:   *Interval,

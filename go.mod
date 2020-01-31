@@ -14,6 +14,7 @@ require (
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/rakyll/statik v0.1.6
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/sirupsen/logrus v1.0.6-0.20180329225952-778f2e774c72

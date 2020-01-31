@@ -37,15 +37,14 @@ class LiveInfo extends React.Component<Props, IState> {
     componentDidMount() {
         api.getLiveInfo()
             .then((rsp: any) => {
-                const data = rsp.data;
                 this.setState({
-                    appName: data.app_name,
-                    appVersion: data.app_version,
-                    buildTime: data.build_time,
-                    gitHash: data.git_hash,
-                    pid: data.pid,
-                    platform: data.platform,
-                    goVersion: data.go_version
+                    appName: rsp.app_name,
+                    appVersion: rsp.app_version,
+                    buildTime: rsp.build_time,
+                    gitHash: rsp.git_hash,
+                    pid: rsp.pid,
+                    platform: rsp.platform,
+                    goVersion: rsp.go_version
                 })
             })
     }
