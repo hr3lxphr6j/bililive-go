@@ -4,8 +4,6 @@
  * @Description: common utils
  */
 
-const BASE_URL = "";
-
 class Utils {
     /**
      * Get request
@@ -13,7 +11,7 @@ class Utils {
      */
     requestGet(url: string) {
         return new Promise((resolve, reject) => {
-            fetch(BASE_URL + url)
+            fetch(url)
                 .then(rsp => {
                     if (rsp.ok) {
                         return rsp.json();
@@ -36,7 +34,7 @@ class Utils {
      */
     requestPost(url: string, body?: object) {
         return new Promise((resolve, reject) => {
-            fetch(BASE_URL + url, {
+            fetch(url, {
                 method: 'POST',
                 body: JSON.stringify(body),
                 headers: new Headers({
@@ -64,7 +62,7 @@ class Utils {
      */
     requestPut(url: string, body?: object) {
         return new Promise((resolve, reject) => {
-            fetch(BASE_URL + url, {
+            fetch(url, {
                 method: 'PUT',
                 body: JSON.stringify(body),
                 headers: new Headers({
@@ -91,7 +89,7 @@ class Utils {
      */
     requestDelete(url: string) {
         return new Promise((resolve, reject) => {
-            fetch(BASE_URL + url, {
+            fetch(url, {
                 method: 'DELETE'
             }).then(rsp => {
                 if (rsp.ok) {
@@ -114,7 +112,6 @@ class Utils {
      */
     static alertError(err?: any) {
         console.error(err ? err : "Server Error!");
-        //alert(err ? err : "Server Error!");
     }
 }
 

@@ -8,19 +8,21 @@ import Utils from './common';
 
 const utils = new Utils();
 
+const BASE_URL = "";
+
 class API {
     /**
      * 获取录播机状态
      */
-    getLiveInfo(){
-        return utils.requestGet("/info");
+    getLiveInfo() {
+        return utils.requestGet(`${BASE_URL}/info`);
     }
 
     /**
      * 获取直播间列表
      */
     getRoomList() {
-        return utils.requestGet("/lives");
+        return utils.requestGet(`${BASE_URL}/lives`);
     }
 
     /**
@@ -36,7 +38,7 @@ class API {
                 }
             ]
         };
-        return utils.requestPost("/lives", reqBody);
+        return utils.requestPost(`${BASE_URL}/lives`, reqBody);
     }
 
     /**
@@ -44,7 +46,7 @@ class API {
      * @param id 直播间id
      */
     deleteRoom(id: string) {
-        return utils.requestDelete(`/lives/${id}`);
+        return utils.requestDelete(`${BASE_URL}/lives/${id}`);
     }
 
     /**
@@ -52,7 +54,7 @@ class API {
      * @param id 直播间id
      */
     startRecord(id: string) {
-        return utils.requestGet(`/lives/${id}/start`);
+        return utils.requestGet(`${BASE_URL}/lives/${id}/start`);
     }
 
     /**
@@ -60,14 +62,14 @@ class API {
      * @param id 直播间id
      */
     stopRecord(id: string) {
-        return utils.requestGet(`/lives/${id}/stop`);
+        return utils.requestGet(`${BASE_URL}/lives/${id}/stop`);
     }
 
     /**
      * 保存设置至config文件
      */
-    saveSettings(){
-        return utils.requestPut("/config");
+    saveSettings() {
+        return utils.requestPut(`${BASE_URL}/config`);
     }
 
 }
