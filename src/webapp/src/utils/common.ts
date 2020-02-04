@@ -92,8 +92,8 @@ class Utils {
             fetch(url, {
                 method: 'DELETE'
             }).then(rsp => {
-                if (rsp.ok) {
-                    return rsp.json();
+                if (rsp.status ===200) {
+                    return true;
                 } else {
                     return Promise.reject();
                 }
