@@ -1,6 +1,5 @@
 import React from "react";
-import { Table, Divider, Tag } from 'antd';
-import { PageHeader, Button } from 'antd';
+import {Button, Divider, PageHeader, Table, Tag} from 'antd';
 import PopDialog from '../pop-dialog/index';
 import AddRoomDialog from '../add-room-dialog/index';
 import API from '../../utils/api';
@@ -102,17 +101,17 @@ class LiveList extends React.Component<Props, IState> {
                                     });
                             }
                         }}>
-                        <a href="">{listening ? "停止监控" : "开启监控"}</a>
+                        <Button type="link" size="small">{listening ? "停止监控" : "开启监控"}</Button>
                     </PopDialog>
-                    <Divider type="vertical" />
+                    <Divider type="vertical"/>
                     <PopDialog title="确定删除当前直播间？"
-                        onConfirm={(e) => {
-                            api.deleteRoom(data.roomId)
-                                .then(rsp => {
-                                    this.refresh();
-                                });
-                        }}>
-                        <a href="">删除</a>
+                               onConfirm={(e) => {
+                                   api.deleteRoom(data.roomId)
+                                       .then(rsp => {
+                                           this.refresh();
+                                       });
+                               }}>
+                        <Button type="link" size="small">删除</Button>
                     </PopDialog>
                 </span>
             ),
@@ -169,7 +168,7 @@ class LiveList extends React.Component<Props, IState> {
     requestListData() {
         api.getRoomList()
             .then(function (rsp: any) {
-                if (rsp.length == 0) {
+                if (rsp.length === 0) {
                     return [];
                 }
                 return rsp.map((item: any, index: number) => {
@@ -209,7 +208,7 @@ class LiveList extends React.Component<Props, IState> {
     render() {
         return (
             <div>
-                <div style={{ backgroundColor: '#F5F5F5', }}>
+                <div style={{backgroundColor: '#F5F5F5',}}>
                     <PageHeader
                         ghost={false}
                         title="直播间列表"
@@ -219,11 +218,11 @@ class LiveList extends React.Component<Props, IState> {
                             <Button key="1" type="primary" onClick={this.onAddRoomClick}>
                                 添加房间
                             </Button>,
-                            <AddRoomDialog key="0" ref={this.onRef} refresh={this.refresh} />
+                            <AddRoomDialog key="0" ref={this.onRef} refresh={this.refresh}/>
                         ]}>
                     </PageHeader>
                 </div>
-                <Table columns={this.columns} dataSource={this.state.list} pagination={false} />
+                <Table columns={this.columns} dataSource={this.state.list} pagination={false}/>
             </div>
         );
     };

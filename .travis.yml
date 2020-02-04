@@ -8,6 +8,8 @@ script:
   - make
   - make test
 before_deploy:
+  - go install github.com/golang/mock/mockgen
+  - go install github.com/rakyll/statik
   - make release
 deploy:
   provider: releases
