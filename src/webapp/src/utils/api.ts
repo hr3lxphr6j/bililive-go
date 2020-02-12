@@ -8,7 +8,7 @@ import Utils from './common';
 
 const utils = new Utils();
 
-const BASE_URL = "/api";
+const BASE_URL = "api";
 
 class API {
     /**
