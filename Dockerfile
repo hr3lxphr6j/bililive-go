@@ -19,7 +19,7 @@ RUN mkdir -p $OUTPUT_DIR && \
 
 VOLUME $OUTPUT_DIR
 
-ADD ./bin/bililive-go-linux-amd64 /usr/bin/bililive-go
+ADD ./bin/bililive-linux-amd64 /usr/bin/bililive-go
 ADD ./config.docker.yml $CONF_DIR/config.yml
 
 ENTRYPOINT ["/usr/bin/bililive-go"]

@@ -4,12 +4,15 @@ go:
   - "1.13"
 env:
   - GO111MODULE=on
+services: docker
 script:
   - make
   - make test
 before_deploy:
   - go install github.com/golang/mock/mockgen
   - go install github.com/rakyll/statik
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  - make release-docker
   - make release
 deploy:
   provider: releases
