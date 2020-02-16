@@ -1,10 +1,12 @@
 import React from "react";
-import {Button, Divider, PageHeader, Table, Tag} from 'antd';
+import { Button, Divider, PageHeader, Table, Tag } from 'antd';
 import PopDialog from '../pop-dialog/index';
 import AddRoomDialog from '../add-room-dialog/index';
 import API from '../../utils/api';
 
 const api = new API();
+
+const REFRESH_TIME = 3 * 60 * 1000;
 
 interface Props {
     refresh?: () => void
@@ -33,6 +35,8 @@ interface Room {
 class LiveList extends React.Component<Props, IState> {
     //子控件
     child!: AddRoomDialog;
+    //定时器
+    timer!: NodeJS.Timeout;
 
     columns = [
         {
@@ -103,14 +107,14 @@ class LiveList extends React.Component<Props, IState> {
                         }}>
                         <Button type="link" size="small">{listening ? "停止监控" : "开启监控"}</Button>
                     </PopDialog>
-                    <Divider type="vertical"/>
+                    <Divider type="vertical" />
                     <PopDialog title="确定删除当前直播间？"
-                               onConfirm={(e) => {
-                                   api.deleteRoom(data.roomId)
-                                       .then(rsp => {
-                                           this.refresh();
-                                       });
-                               }}>
+                        onConfirm={(e) => {
+                            api.deleteRoom(data.roomId)
+                                .then(rsp => {
+                                    this.refresh();
+                                });
+                        }}>
                         <Button type="link" size="small">删除</Button>
                     </PopDialog>
                 </span>
@@ -127,7 +131,16 @@ class LiveList extends React.Component<Props, IState> {
     }
 
     componentDidMount() {
+        //refresh data
         this.requestListData();
+        this.timer = setInterval(() => {
+            this.requestListData();
+        }, REFRESH_TIME);
+    }
+
+    componentWillUnmount() {
+        //clear refresh timer
+        clearInterval(this.timer);
     }
 
     onRef = (ref: AddRoomDialog) => {
@@ -208,7 +221,7 @@ class LiveList extends React.Component<Props, IState> {
     render() {
         return (
             <div>
-                <div style={{backgroundColor: '#F5F5F5',}}>
+                <div style={{ backgroundColor: '#F5F5F5', }}>
                     <PageHeader
                         ghost={false}
                         title="直播间列表"
@@ -218,11 +231,11 @@ class LiveList extends React.Component<Props, IState> {
                             <Button key="1" type="primary" onClick={this.onAddRoomClick}>
                                 添加房间
                             </Button>,
-                            <AddRoomDialog key="0" ref={this.onRef} refresh={this.refresh}/>
+                            <AddRoomDialog key="0" ref={this.onRef} refresh={this.refresh} />
                         ]}>
                     </PageHeader>
                 </div>
-                <Table columns={this.columns} dataSource={this.state.list} pagination={false}/>
+                <Table columns={this.columns} dataSource={this.state.list} pagination={false} />
             </div>
         );
     };
