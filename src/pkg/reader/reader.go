@@ -51,7 +51,10 @@ func (b *BufferedReader) readN(n, l int) ([]byte, error) {
 
 func (b *BufferedReader) ReadByte() (byte, error) {
 	buf, err := b.ReadN(1)
-	return buf[0], err
+	if err != nil {
+		return 0, err
+	}
+	return buf[0], nil
 }
 
 func (b *BufferedReader) Reset() {
