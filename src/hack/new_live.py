@@ -32,7 +32,6 @@ func (b *builder) Build(url *url.URL) (live.Live, error) {
 
 type Live struct {
     internal.BaseLive
-    realID string
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
