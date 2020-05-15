@@ -1,6 +1,7 @@
 package cc
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -43,7 +44,7 @@ func (l *Live) getData() (*gjson.Result, error) {
 	}
 	data := utils.UnescapeHTMLEntity(utils.Match1(dataRe, string(dom)))
 	if data == "" {
-		return nil, live.ErrInternalError
+		return nil, errors.New("data is empty")
 	}
 	result := gjson.Parse(data)
 	return &result, nil
@@ -68,7 +69,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	)
 
 	if hostName == "" || roomName == "" {
-		return nil, live.ErrInternalError
+		return nil, errors.New("failed to parse host`s name and room`s name")
 	}
 
 	info = &live.Info{

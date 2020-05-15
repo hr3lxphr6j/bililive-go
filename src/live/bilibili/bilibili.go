@@ -47,10 +47,7 @@ func (l *Live) parseRealId() error {
 	body, err := http.Get(roomInitUrl, nil, map[string]string{
 		"id": paths[1],
 	})
-	if err != nil {
-		return nil
-	}
-	if gjson.GetBytes(body, "code").Int() != 0 {
+	if err != nil || gjson.GetBytes(body, "code").Int() != 0 {
 		return live.ErrRoomNotExist
 	}
 	l.realID = gjson.GetBytes(body, "data.room_id").String()
@@ -106,8 +103,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	if err != nil {
 		return nil, err
 	}
-	urls := make([]string, 0, 0)
-	gjson.GetBytes(body, "data.durl.#.url").ForEach(func(key, value gjson.Result) bool {
+	urls := make([]string, 0, 4)
+	gjson.GetBytes(body, "data.durl.#.url").ForEach(func(_, value gjson.Result) bool {
 		urls = append(urls, value.String())
 		return true
 	})
