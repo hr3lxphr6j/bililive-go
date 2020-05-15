@@ -7,3 +7,4 @@ out_put_path: /tmp
 feature:
   use_native_flv_parser: false
 live_rooms:
+  - https://play.lang.live/4389069

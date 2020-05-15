@@ -1,6 +1,7 @@
 package lang
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
 const (
@@ -35,35 +37,41 @@ type Live struct {
 	realID string
 }
 
-// 2132991
-func (l *Live) GetInfo() (info *live.Info, err error) {
+func (l *Live) getData() (*gjson.Result, error) {
 	paths := strings.Split(l.Url.Path, "/")
 	if len(paths) < 2 {
 		return nil, live.ErrRoomUrlIncorrect
 	}
 	body, err := http.Get(liveInfoAPIUrl, nil, map[string]string{
-		"keyword": paths[1],
+		"room_id": paths[1],
 	})
 	if err != nil || gjson.GetBytes(body, "ret_code").Int() != 0 {
 		return nil, live.ErrRoomNotExist
 	}
+	data := gjson.GetBytes(body, "data")
+	return &data, nil
+}
 
-	roomData := gjson.GetBytes(body, "data.users.#(room_id==%s)")
-	if !roomData.Exists() {
-		return nil, live.ErrRoomNotExist
+func (l *Live) GetInfo() (info *live.Info, err error) {
+	data, err := l.getData()
+	if err != nil {
+		return nil, err
 	}
 
 	return &live.Info{
 		Live:     l,
-		HostName: roomData.Get("nickname").String(),
-		RoomName: roomData.Get("").String(),
-		Status:   roomData.Get("").Int() == 1,
+		HostName: data.Get("live_info.nickname").String(),
+		RoomName: data.Get("live_info.room_title").String(),
+		Status:   data.Get("live_info.live_status").Int() == 1,
 	}, nil
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	// TODO: Implement this method
-	return nil, nil
+	data, err := l.getData()
+	if err != nil {
+		return nil, err
+	}
+	return utils.GenUrls(data.Get(fmt.Sprintf("live_info.stream_items.#(id==%d).video", data.Get("live_info.stream_id").Int())).String())
 }
 
 func (l *Live) GetPlatformCNName() string {
