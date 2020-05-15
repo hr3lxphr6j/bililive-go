@@ -2,6 +2,7 @@ package douyu
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -131,26 +132,30 @@ type Live struct {
 	roomID string
 }
 
-func (l *Live) fetchRoomID() {
+func (l *Live) fetchRoomID() error {
 	if l.roomID != "" {
-		return
+		return nil
 	}
-	l.roomID = strings.Split(l.Url.Path, "/")[1]
 	body, err := http.Get(l.Url.String(), nil, nil)
 	if err != nil {
-		return
+		goto ERROR
 	}
 	for _, reg := range douyuRoomIDRegs {
 		strs := reg.FindStringSubmatch(string(body))
 		if len(strs) == 2 {
 			l.roomID = strs[1]
-			return
+			return nil
 		}
 	}
+	goto ERROR
+ERROR:
+	return errors.New("failed to fetch room id")
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
-	l.fetchRoomID()
+	if err := l.fetchRoomID(); err != nil {
+		return nil, err
+	}
 	body, err := http.Get(fmt.Sprintf("%s/%s", liveInfoUrl, l.roomID), nil, nil)
 	if err != nil {
 		return nil, err
@@ -250,7 +255,9 @@ func (l *Live) getSignParams() (url.Values, error) {
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	l.fetchRoomID()
+	if err := l.fetchRoomID(); err != nil {
+		return nil, err
+	}
 	params, err := l.getSignParams()
 	if err != nil {
 		return nil, err
