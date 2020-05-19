@@ -3,7 +3,9 @@ sudo: required
 go:
   - "1.14"
 env:
-  - GO111MODULE=on
+  - GO111MODULE=on NODE_VERSION=14.2.0
+before_install:
+  - nvm install $NODE_VERSION
 services: docker
 script:
   - make

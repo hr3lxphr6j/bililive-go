@@ -90,7 +90,7 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 func addLives(writer http.ResponseWriter, r *http.Request) {
 	b, _ := ioutil.ReadAll(r.Body)
 	info := liveSlice(make([]*live.Info, 0))
-	gjson.GetBytes(b, "#").ForEach(func(key, value gjson.Result) bool {
+	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
 		u, _ := url.Parse(value.Get("url").String())
 		if live, err := live.New(u, instance.GetInstance(r.Context()).Cache); err == nil {
