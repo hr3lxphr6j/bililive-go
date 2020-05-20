@@ -11,7 +11,6 @@ EXPOSE $PORT
 
 RUN mkdir -p $OUTPUT_DIR && \
     mkdir -p $CONF_DIR && \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
     apk update && \
     apk upgrade && \
     apk --no-cache add ffmpeg libc6-compat curl bash tree tzdata && \
