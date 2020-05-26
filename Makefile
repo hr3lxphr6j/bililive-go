@@ -18,7 +18,7 @@ release: build-web generate
 	@./src/hack/release.sh
 
 .PHONY: release-docker
-release-docker: build-web generate
+release-docker:
 	@./src/hack/release-docker.sh
 
 .PHONY: test
@@ -36,7 +36,7 @@ generate:
 
 .PHONY: build-web
 build-web:
-	cd ./src/webapp && yarn install && yarn build && cd ../../
+	cd ./src/webapp && yarn install --pure-lockfile && yarn build --pure-lockfile && cd ../../
 
 .PHONY: run
 run:

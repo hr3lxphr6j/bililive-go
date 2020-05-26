@@ -6,10 +6,20 @@ set -o nounset
 
 IMAGE_NAME=chigusa/bililive-go
 VERSION=$(git describe --tags --always)
-make PLATFORM=linux ARCH=amd64 bililive
-docker build -t $IMAGE_NAME:$VERSION .
-docker push $IMAGE_NAME:$VERSION
-if ! echo $VERSION | grep "rc" > /dev/null; then
-  docker tag $IMAGE_NAME:$VERSION $IMAGE_NAME:latest
-  docker push $IMAGE_NAME:latest
-fi
+
+IMAGE_TAG=$IMAGE_NAME:$VERSION
+
+add_latest_tag() {
+  if ! echo $VERSION | grep "rc" >/dev/null; then
+    echo "-t $IMAGE_NAME:latest"
+  fi
+}
+
+docker buildx build \
+  --platform=linux/amd64,linux/386,linux/arm64/v8,linux/arm/v7,linux/arm/v6 \
+  -t $IMAGE_TAG $(add_latest_tag) \
+  --build-arg "tag=${VERSION}" \
+  --progress plain \
+  --no-cache \
+  --push \
+  ./
