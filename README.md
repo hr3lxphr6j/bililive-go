@@ -89,7 +89,7 @@ Bililive-go是一个支持多种直播平台的直播录制工具
     ```
 - docker
     ```
-    docker run -v ~/Movies:/srv/bililive --rm chigusa/bililive-go -o /srv/bililive -i https://live.bilibili.com/1030
+    docker run --restart=always -v ~/Videos:/srv/bililive -p 8080:8080 -d chigusa/bililive-go
     ```
 
 ## 获取&编译
