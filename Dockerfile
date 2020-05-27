@@ -1,16 +1,37 @@
-FROM golang:1.14-alpine AS BUILD
+# Build Frontend Start
 
+# NOTE: Yarn has problems executing on ARM, so build on x86.
+FROM --platform=$BUILDPLATFORM node:14.3-alpine as NODE_BUILD
+
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
 ARG tag
+
+RUN apk update && \
+    apk add git yarn make && \
+    git clone -b $tag --depth 1 https://github.com/hr3lxphr6j/bililive-go.git /bililive-go && \
+    cd /bililive-go && \
+    make build-web
+
+# Build Frontend End
+
+# Build Backend Start
+
+FROM golang:1.14-alpine AS GO_BUILD
+
+COPY --from=NODE_BUILD /bililive-go/ /go/src/github.com/hr3lxphr6j/bililive-go/
 
 RUN apk update && \
     apk add git make bash && \
     go get github.com/rakyll/statik && \
     go get github.com/golang/mock/mockgen && \
-    mkdir -p /go/src/github.com/hr3lxphr6j/bililive-go && \
-    git clone -b $tag --depth 1 https://github.com/hr3lxphr6j/bililive-go.git /go/src/github.com/hr3lxphr6j/bililive-go && \
     cd /go/src/github.com/hr3lxphr6j/bililive-go && \
-    make bililive && \
+    make generate bililive && \
     mv bin/bililive-linux-* bin/bililive-go
+
+# Build Backend End
+
+# Build Runtime Image Start
 
 FROM alpine
 
@@ -29,8 +50,10 @@ RUN mkdir -p $OUTPUT_DIR && \
 
 VOLUME $OUTPUT_DIR
 
-COPY --from=BUILD /go/src/github.com/hr3lxphr6j/bililive-go/bin/bililive-go /usr/bin/bililive-go
+COPY --from=GO_BUILD /go/src/github.com/hr3lxphr6j/bililive-go/bin/bililive-go /usr/bin/bililive-go
 ADD config.docker.yml $CONF_DIR/config.yml
 
 ENTRYPOINT ["/usr/bin/bililive-go"]
 CMD ["-c", "/etc/bililive-go/config.yml"]
+
+# Build Runtime Image End
