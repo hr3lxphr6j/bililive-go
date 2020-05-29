@@ -9,12 +9,18 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// RPC info.
 type RPC struct {
 	Enable bool   `yaml:"enable"`
 	Bind   string `yaml:"bind"`
 }
 
-func (r *RPC) Verify() error {
+var defaultRPC = RPC{
+	Enable: true,
+	Bind:   "127.0.0.1:8080",
+}
+
+func (r *RPC) verify() error {
 	if r == nil {
 		return nil
 	}
@@ -27,10 +33,12 @@ func (r *RPC) Verify() error {
 	return nil
 }
 
+// Feature info.
 type Feature struct {
 	UseNativeFlvParser bool `yaml:"use_native_flv_parser"`
 }
 
+// Config content all config info.
 type Config struct {
 	RPC        RPC      `yaml:"rpc"`
 	Debug      bool     `yaml:"debug"`
@@ -41,11 +49,24 @@ type Config struct {
 	file       string
 }
 
+var defaultConfig = Config{
+	RPC:        defaultRPC,
+	Debug:      false,
+	Interval:   30,
+	OutPutPath: "./",
+	Feature: Feature{
+		UseNativeFlvParser: false,
+	},
+	LiveRooms: []string{},
+	file:      "",
+}
+
+// Verify will return an error when this config has problem.
 func (c *Config) Verify() error {
 	if c == nil {
 		return fmt.Errorf("config is null")
 	}
-	if err := c.RPC.Verify(); err != nil {
+	if err := c.RPC.verify(); err != nil {
 		return err
 	}
 	if c.Interval <= 0 {
@@ -62,7 +83,7 @@ func NewConfigWithFile(file string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can`t open file: %s", file)
 	}
-	config := new(Config)
+	config := &defaultConfig
 	if err = yaml.Unmarshal(b, config); err != nil {
 		return nil, err
 	}

@@ -30,7 +30,7 @@ func initMux(ctx context.Context) *mux.Router {
 				r.WithContext(
 					context.WithValue(
 						r.Context(),
-						instance.InstanceKey,
+						instance.Key,
 						instance.GetInstance(ctx),
 					),
 				),

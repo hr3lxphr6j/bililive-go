@@ -36,7 +36,7 @@ generate:
 
 .PHONY: build-web
 build-web:
-	cd ./src/webapp && yarn install --pure-lockfile && yarn build --pure-lockfile && cd ../../
+	cd ./src/webapp && yarn install && yarn build && cd ../../
 
 .PHONY: run
 run:

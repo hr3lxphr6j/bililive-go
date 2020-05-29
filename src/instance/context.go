@@ -7,11 +7,11 @@ import (
 type key int
 
 const (
-	InstanceKey key = 114514
+	Key key = 114514
 )
 
 func GetInstance(ctx context.Context) *Instance {
-	if s, ok := ctx.Value(InstanceKey).(*Instance); ok {
+	if s, ok := ctx.Value(Key).(*Instance); ok {
 		return s
 	}
 	return nil

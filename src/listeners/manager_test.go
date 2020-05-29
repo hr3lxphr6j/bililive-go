@@ -18,7 +18,7 @@ func TestManagerAddAndRemoveListener(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ctx := context.WithValue(context.Background(), instance.InstanceKey, &instance.Instance{})
+	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{})
 	m := NewManager(ctx)
 	backup := newListener
 	newListener = func(ctx context.Context, live live.Live) Listener {
@@ -46,7 +46,7 @@ func TestManagerAddAndRemoveListener(t *testing.T) {
 func TestManagerStartAndClose(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ctx := context.WithValue(context.Background(), instance.InstanceKey, &instance.Instance{
+	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
 		Config: &configs.Config{
 			RPC: configs.RPC{Enable: true},
 		},

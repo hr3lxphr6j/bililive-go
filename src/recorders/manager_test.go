@@ -16,7 +16,7 @@ func TestManagerAddAndRemoveRecorder(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ctx := context.WithValue(context.Background(), instance.InstanceKey, &instance.Instance{})
+	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{})
 	m := NewManager(ctx)
 	backup := newRecorder
 	newRecorder = func(ctx context.Context, live live.Live) (Recorder, error) {
