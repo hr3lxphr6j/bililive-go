@@ -84,7 +84,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 	streamInfo = streamInfo[11 : len(streamInfo)-1]
 	streamByte, err := base64.StdEncoding.DecodeString(string(streamInfo))
-	streamStr := html.EscapeString(string(streamByte))
+	streamStr := html.UnescapeString(string(streamByte))
 
 	var (
 		sStreamName  = utils.Match1(`"sStreamName":"([^"]*)"`, streamStr)
