@@ -2,12 +2,9 @@ package huya
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
-	"html"
 	"math/rand"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
 
@@ -20,10 +17,6 @@ import (
 const (
 	domain = "www.huya.com"
 	cnName = "虎牙"
-)
-
-var (
-	streamReg = regexp.MustCompile(`"stream": ".*?"`)
 )
 
 func init() {
@@ -78,13 +71,15 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 
 	// Decode stream part.
-	streamInfo := streamReg.Find(dom)
-	if len(streamInfo) < 20 {
-		return nil, errors.New("huya.GetStreamUrls: No stream.")
+	streamInfo := utils.Match1(`"stream": "(.*?)"`, string(dom))
+	if streamInfo == "" {
+		return nil, live.ErrInternalError
 	}
-	streamInfo = streamInfo[11 : len(streamInfo)-1]
-	streamByte, err := base64.StdEncoding.DecodeString(string(streamInfo))
-	streamStr := html.UnescapeString(string(streamByte))
+	streamByte, err := base64.StdEncoding.DecodeString(streamInfo)
+	if err != nil {
+		return nil, err
+	}
+	streamStr := utils.UnescapeHTMLEntity(string(streamByte))
 
 	var (
 		sStreamName  = utils.Match1(`"sStreamName":"([^"]*)"`, streamStr)
