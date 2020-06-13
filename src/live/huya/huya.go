@@ -1,9 +1,13 @@
 package huya
 
 import (
+	"encoding/base64"
+	"errors"
 	"fmt"
+	"html"
 	"math/rand"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,6 +20,10 @@ import (
 const (
 	domain = "www.huya.com"
 	cnName = "虎牙"
+)
+
+var (
+	streamReg = regexp.MustCompile(`"stream": ".*?"`)
 )
 
 func init() {
@@ -68,11 +76,21 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Decode stream part.
+	streamInfo := streamReg.Find(dom)
+	if len(streamInfo) < 20 {
+		return nil, errors.New("huya.GetStreamUrls: No stream.")
+	}
+	streamInfo = streamInfo[11 : len(streamInfo)-1]
+	streamByte, err := base64.StdEncoding.DecodeString(string(streamInfo))
+	streamStr := html.UnescapeString(string(streamByte))
+
 	var (
-		sStreamName  = utils.Match1(`"sStreamName":"([^"]*)"`, string(dom))
-		sFlvUrl      = strings.ReplaceAll(utils.Match1(`"sFlvUrl":"([^"]*)"`, string(dom)), `\/`, `/`)
-		sFlvAntiCode = utils.Match1(`"sFlvAntiCode":"([^"]*)"`, string(dom))
-		iLineIndex   = utils.Match1(`"iLineIndex":(\d*),`, string(dom))
+		sStreamName  = utils.Match1(`"sStreamName":"([^"]*)"`, streamStr)
+		sFlvUrl      = strings.ReplaceAll(utils.Match1(`"sFlvUrl":"([^"]*)"`, streamStr), `\/`, `/`)
+		sFlvAntiCode = utils.Match1(`"sFlvAntiCode":"([^"]*)"`, streamStr)
+		iLineIndex   = utils.Match1(`"iLineIndex":(\d*),`, streamStr)
 		uid          = (time.Now().Unix()%1e7*1e6 + int64(1e3*rand.Float64())) % 4294967295
 	)
 	u, err := url.Parse(fmt.Sprintf("%s/%s.flv", sFlvUrl, sStreamName))
