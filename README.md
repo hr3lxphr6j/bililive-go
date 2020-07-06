@@ -74,7 +74,7 @@ Bililive-go是一个支持多种直播平台的直播录制工具
     </tr>
     <tr align="center">
         <td>浪live</td>
-        <td>play.lang.live</td>
+        <td>play.lang.live & www.lang.live</td>
         <td>滋瓷</td>
     </tr>
 </table>
