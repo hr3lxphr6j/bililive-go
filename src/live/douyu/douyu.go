@@ -190,7 +190,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 }
 
 func (l *Live) getSignParams() (map[string]string, error) {
-	resp, err := requests.Get(liveEncUrl, live.CommonUserAgent, requests.Query("rid", l.roomID))
+	resp, err := requests.Get(liveEncUrl, live.CommonUserAgent, requests.Query("rids", l.roomID))
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (l *Live) getSignParams() (map[string]string, error) {
 		return nil, err
 	}
 
-	jsEnc := gjson.GetBytes(body, "data.room0").String()
+	jsEnc := gjson.GetBytes(body, "data.room"+l.roomID).String()
 
 	workflow := utils.Match1(workflowReg, jsEnc)
 
@@ -254,10 +254,9 @@ func (l *Live) getSignParams() (map[string]string, error) {
 	}
 	values := map[string]string{
 		"cdn":  "",
-		"iar":  "1",
-		"ive":  "1",
+		"iar":  "0",
+		"ive":  "0",
 		"rate": "0",
-		"ver":  "Douyu_220070705",
 	}
 	resoult, err := res.Object().Get(context.Resoult)
 	if err != nil {
