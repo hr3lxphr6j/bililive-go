@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"text/template"
 	"time"
@@ -49,16 +48,14 @@ func (b *builder) Build(url *url.URL) (live.Live, error) {
 }
 
 var (
-	cryptoJS []byte
-
-	header          = requests.Referer("https://www.douyu.com")
+	cryptoJS        []byte
 	douyuRoomIDRegs = []string{
 		`\$ROOM\.room_id\s*=\s*(\d+)`,
 		`room_id\s*=\s*(\d+)`,
 		`"room_id.?":(\d+)`,
 		`data-onlineid=(\d+)`,
 	}
-	workflowReg = regexp.MustCompile(`function ub98484234\(.+?\Weval\((\w+)\);`)
+	workflowReg = `function ub98484234\(.+?\Weval\((\w+)\);`
 	jsDomTmpl   = template.Must(template.New("jsDom").Parse(`
 		{{.DebugMessages}} = { {{.DecryptedCodes}}: []};
 		if (!this.window) {window = {};}
@@ -142,7 +139,7 @@ func (l *Live) fetchRoomID() error {
 		return nil
 	}
 	var body []byte
-	resp, err := requests.Get(l.Url.String())
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
 	if err != nil {
 		goto ERROR
 	}
@@ -205,12 +202,9 @@ func (l *Live) getSignParams() (map[string]string, error) {
 		return nil, err
 	}
 
-	jsEnc := gjson.GetBytes(body, fmt.Sprintf("data.room%s", l.roomID)).String()
+	jsEnc := gjson.GetBytes(body, "data.room0").String()
 
-	workflow := ""
-	if workflowMatch := workflowReg.FindStringSubmatch(jsEnc); len(workflowMatch) == 2 {
-		workflow = workflowMatch[1]
-	}
+	workflow := utils.Match1(workflowReg, jsEnc)
 
 	context := struct {
 		DebugMessages  string
@@ -260,9 +254,10 @@ func (l *Live) getSignParams() (map[string]string, error) {
 	}
 	values := map[string]string{
 		"cdn":  "",
-		"iar":  "0",
-		"ive":  "0",
+		"iar":  "1",
+		"ive":  "1",
 		"rate": "0",
+		"ver":  "Douyu_220070705",
 	}
 	resoult, err := res.Object().Get(context.Resoult)
 	if err != nil {
@@ -286,19 +281,25 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := requests.Post(fmt.Sprintf("%s/%s", liveAPIUrl, l.roomID), requests.Form(params), header)
+	resp, err := requests.Post(
+		fmt.Sprintf("%s/%s", liveAPIUrl, l.roomID),
+		requests.Form(params),
+		requests.Header("origin", "https://www.douyu.com"),
+		requests.Referer(l.GetRawUrl()),
+		live.CommonUserAgent,
+	)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, live.ErrRoomUrlIncorrect
+		return nil, live.ErrInternalError
 	}
 	body, err := resp.Bytes()
 	if err != nil {
 		return nil, err
 	}
 	if gjson.GetBytes(body, "error").Int() != 0 {
-		return nil, fmt.Errorf("get stream error")
+		return nil, live.ErrRoomNotExist
 	}
 	return utils.GenUrls(
 		fmt.Sprintf("%s/%s",

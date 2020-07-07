@@ -2,14 +2,15 @@ package lang
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
@@ -60,9 +61,14 @@ func (l *Live) getData() (*gjson.Result, error) {
 		api = playLiveInfoAPIUrl
 	}
 
-	body, err := http.Get(api, nil, map[string]string{
-		"room_id": roomID,
-	})
+	resp, err := requests.Get(api, live.CommonUserAgent, requests.Query("room_id", roomID))
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
 	if err != nil || gjson.GetBytes(body, "ret_code").Int() != 0 {
 		return nil, live.ErrRoomNotExist
 	}

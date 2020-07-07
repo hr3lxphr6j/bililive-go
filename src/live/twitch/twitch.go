@@ -3,14 +3,15 @@ package twitch
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 )
 
 const (
@@ -50,9 +51,16 @@ func (l *Live) parseInfo() error {
 		return live.ErrRoomUrlIncorrect
 	}
 	chanId := paths[1]
-	body, err := http.Get(fmt.Sprintf(channelApiUrl, chanId), headers, nil)
+	resp, err := requests.Get(fmt.Sprintf(channelApiUrl, chanId), live.CommonUserAgent, requests.Header("client-id", clientId))
 	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
 		return live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
+	if err != nil {
+		return err
 	}
 	l.hostName = gjson.GetBytes(body, "name").String()
 	l.roomName = gjson.GetBytes(body, "status").String()
@@ -65,7 +73,14 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 			return nil, err
 		}
 	}
-	body, err := http.Get(fmt.Sprintf(streamApiUrl, l.hostName), headers, nil)
+	resp, err := requests.Get(fmt.Sprintf(streamApiUrl, l.hostName), live.CommonUserAgent, requests.Header("client-id", clientId))
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +103,14 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 			return nil, err
 		}
 	}
-	body, err := http.Get(fmt.Sprintf(tokenApiUrl, l.hostName), headers, nil)
+	resp, err := requests.Get(fmt.Sprintf(tokenApiUrl, l.hostName), live.CommonUserAgent, requests.Header("client-id", clientId))
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
 	if err != nil {
 		return nil, err
 	}

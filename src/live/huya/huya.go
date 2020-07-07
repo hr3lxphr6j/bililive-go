@@ -4,13 +4,15 @@ import (
 	"encoding/base64"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/hr3lxphr6j/requests"
+
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
@@ -36,19 +38,27 @@ type Live struct {
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
-	dom, err := http.Get(l.Url.String(), nil, nil)
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
 	if err != nil {
 		return nil, err
 	}
-	if res := utils.Match1("哎呀，虎牙君找不到这个主播，要不搜索看看？", string(dom)); res != "" {
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Text()
+	if err != nil {
+		return nil, err
+	}
+
+	if res := utils.Match1("哎呀，虎牙君找不到这个主播，要不搜索看看？", body); res != "" {
 		return nil, live.ErrRoomNotExist
 	}
 
 	var (
 		strFilter = utils.NewStringFilterChain(utils.ParseUnicode, utils.UnescapeHTMLEntity)
-		hostName  = strFilter.Do(utils.Match1(`"nick":"([^"]*)"`, string(dom)))
-		roomName  = strFilter.Do(utils.Match1(`"introduction":"([^"]*)"`, string(dom)))
-		status    = strFilter.Do(utils.Match1(`"isOn":([^,]*),`, string(dom)))
+		hostName  = strFilter.Do(utils.Match1(`"nick":"([^"]*)"`, body))
+		roomName  = strFilter.Do(utils.Match1(`"introduction":"([^"]*)"`, body))
+		status    = strFilter.Do(utils.Match1(`"isOn":([^,]*),`, body))
 	)
 
 	if hostName == "" || roomName == "" || status == "" {
@@ -65,13 +75,20 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	dom, err := http.Get(l.Url.String(), nil, nil)
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Text()
 	if err != nil {
 		return nil, err
 	}
 
 	// Decode stream part.
-	streamInfo := utils.Match1(`"stream": "(.*?)"`, string(dom))
+	streamInfo := utils.Match1(`"stream": "(.*?)"`, body)
 	if streamInfo == "" {
 		return nil, live.ErrInternalError
 	}

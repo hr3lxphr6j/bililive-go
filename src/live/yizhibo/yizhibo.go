@@ -1,14 +1,15 @@
 package yizhibo
 
 import (
+	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
@@ -37,15 +38,21 @@ type Live struct {
 
 func (l *Live) requestRoomInfo() ([]byte, error) {
 	scid := strings.Split(strings.Split(l.Url.Path, "/")[2], ".")[0]
-	body, err := http.Get(apiUrl, nil, map[string]string{"scid": scid})
+	resp, err := requests.Get(apiUrl, live.CommonUserAgent, requests.Query("scid", scid))
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
 	if err != nil {
 		return nil, err
 	}
 	if gjson.GetBytes(body, "result").Int() != 1 {
 		return nil, live.ErrRoomNotExist
-	} else {
-		return body, nil
 	}
+	return body, nil
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
