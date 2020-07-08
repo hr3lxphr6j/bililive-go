@@ -18,7 +18,7 @@ const (
 	liveDomain     = "www.lang.live"
 	cnName         = "浪live"
 
-	playLiveInfoAPIUrl = "https://api.kingkongapp.com/webapi/v1/room/info"
+	playLiveInfoAPIUrl = "https://game-api.lang.live/webapi/v1/room/info"
 	liveInfoAPIUrl     = "https://langapi.lv-show.com/langweb/v1/room/liveinfo"
 )
 
