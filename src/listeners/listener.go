@@ -29,6 +29,7 @@ func NewListener(ctx context.Context, live live.Live) Listener {
 	inst := instance.GetInstance(ctx)
 	return &listener{
 		Live:   live,
+		liveRoomName:  "",
 		status: false,
 		config: inst.Config,
 		stop:   make(chan struct{}),
@@ -40,6 +41,7 @@ func NewListener(ctx context.Context, live live.Live) Listener {
 
 type listener struct {
 	Live   live.Live
+	liveRoomName string
 	status bool
 
 	config *configs.Config
@@ -79,10 +81,12 @@ func (l *listener) refresh() {
 			Error("failed to load room info")
 		return
 	}
-	if info.Status == l.status {
+
+	// if live is still inactive, return 
+	if ! info.Status && ! l.status {
 		return
 	}
-	l.status = info.Status
+// 	l.status = info.Status // Put this line later
 
 	var (
 		evtTyp  events.EventType
@@ -92,14 +96,30 @@ func (l *listener) refresh() {
 			"host": info.HostName,
 		}
 	)
-	if l.status {
+	if info.Status && ! l.status {
 		l.Live.SetLastStartTime(time.Now())
 		evtTyp = LiveStart
 		logInfo = "Live Start"
-	} else {
+	} else if info.Status && l.status {
+		// When RoomName is changed, restart the room name there
+		if info.RoomName != l.liveRoomName { 
+			// In order to restart live, send an LiveEnd event, and then send an LiveStart event
+			l.ed.DispatchEvent(events.NewEvent(LiveEnd, l.Live))
+			evtTyp = LiveStart
+			fields["reason"] = "Room name is changed"
+			logInfo = "Live Restarted"
+		} else {
+			return
+		}
+	} else if ! info.Status && l.status {
 		evtTyp = LiveEnd
 		logInfo = "Live end"
 	}
+	
+	// Update listener's status & liveRoomName
+	l.status = info.Status
+	l.liveRoomName = info.RoomName
+	
 	l.ed.DispatchEvent(events.NewEvent(evtTyp, l.Live))
 	l.logger.WithFields(fields).Info(logInfo)
 }
