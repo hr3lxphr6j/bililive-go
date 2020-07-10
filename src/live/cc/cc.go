@@ -3,13 +3,14 @@ package cc
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 
+	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
@@ -38,11 +39,18 @@ type Live struct {
 }
 
 func (l *Live) getData() (*gjson.Result, error) {
-	dom, err := http.Get(l.Url.String(), nil, nil)
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
 	if err != nil {
 		return nil, err
 	}
-	data := utils.UnescapeHTMLEntity(utils.Match1(dataRe, string(dom)))
+	body, err := resp.Bytes()
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	data := utils.UnescapeHTMLEntity(utils.Match1(dataRe, string(body)))
 	if data == "" {
 		return nil, errors.New("data is empty")
 	}
@@ -86,13 +94,20 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := http.Get(fmt.Sprintf("%s%s", apiUrl, ccid), nil, nil)
+	resp, err := requests.Get(fmt.Sprintf("%s%s", apiUrl, ccid), live.CommonUserAgent)
 	if err != nil {
 		return nil, err
 	}
+	body, err := resp.Bytes()
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
 	return utils.GenUrls(
-		gjson.GetBytes(data, "videourl").String(),
-		gjson.GetBytes(data, "bakvideourl").String(),
+		gjson.GetBytes(body, "videourl").String(),
+		gjson.GetBytes(body, "bakvideourl").String(),
 	)
 }
 

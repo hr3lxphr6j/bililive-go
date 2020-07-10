@@ -18,6 +18,11 @@ Bililive-go是一个支持多种直播平台的直播录制工具
         <th>支持情况</th>
     </tr>
     <tr align="center">
+        <td>Acfun直播</td>
+        <td>live.acfun.cn</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
         <td>哔哩哔哩直播</td>
         <td>live.bilibili.com</td>
         <td>滋瓷</td>

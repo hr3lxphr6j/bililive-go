@@ -2,6 +2,7 @@ package internal
 
 import (
 	// import all lives
+	_ "github.com/hr3lxphr6j/bililive-go/src/live/acfun"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/bilibili"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/cc"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/douyu"
