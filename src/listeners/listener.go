@@ -102,7 +102,7 @@ func (l *listener) refresh() {
 		logInfo = "Live Start"
 	} else if info.Status && l.status {
 		// When RoomName is changed, restart the live
-		if info.RoomName != l.liveRoomName { 
+		if l.config.RestartRenamedRooms && info.RoomName != l.liveRoomName { 
 			// In order to restart live, send an LiveEnd event, and then send an LiveStart event
 			l.ed.DispatchEvent(events.NewEvent(LiveEnd, l.Live))
 			evtTyp = LiveStart

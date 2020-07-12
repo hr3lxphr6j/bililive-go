@@ -20,6 +20,7 @@ var (
 	RPC             = app.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
 	RPCBind         = app.Flag("rpc-bind", "RPC server bind address").Default(":8080").String()
 	NativeFlvParser = app.Flag("native-flv-parser", "use native flv parser").Default("false").Bool()
+	RestartRenamedRooms = app.Flag("restart-renamed-rooms", "use native flv parser").Short('R').Default("false").Bool()
 )
 
 func init() {
@@ -39,6 +40,7 @@ func GenConfigFromFlags() *configs.Config {
 		LiveRooms:  *Input,
 		Feature: configs.Feature{
 			UseNativeFlvParser: *NativeFlvParser,
+			RestartRenamedRooms: *RestartRenamedRooms,
 		},
 	}
 }

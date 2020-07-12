@@ -36,6 +36,7 @@ func (r *RPC) verify() error {
 // Feature info.
 type Feature struct {
 	UseNativeFlvParser bool `yaml:"use_native_flv_parser"`
+	RestartRenamedRooms bool `yaml:"restart_renamed_rooms"`
 }
 
 // Config content all config info.
@@ -56,6 +57,7 @@ var defaultConfig = Config{
 	OutPutPath: "./",
 	Feature: Feature{
 		UseNativeFlvParser: false,
+		RestartRenamedRooms: false,
 	},
 	LiveRooms: []string{},
 	file:      "",
