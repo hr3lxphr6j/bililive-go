@@ -106,6 +106,18 @@ func loadCryptoJS() {
 	var body []byte
 	resp, err := requests.Get("https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js")
 	if err != nil || resp.StatusCode != http.StatusOK {
+		goto ALTERCDN
+	}
+	body, err = resp.Bytes()
+	if err != nil {
+		goto ALTERCDN
+	}
+	cryptoJS = body
+	return
+ALTERCDN:
+	// Higher availability in mainland China
+	resp, err = requests.Get("https://cdn.staticfile.org/crypto-js/3.1.9-1/crypto-js.min.js") 
+	if err != nil || resp.StatusCode != http.StatusOK {
 		goto ERROR
 	}
 	body, err = resp.Bytes()
