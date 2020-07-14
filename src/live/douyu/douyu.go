@@ -103,30 +103,28 @@ func render(tmpl *template.Template, data interface{}) (string, error) {
 }
 
 func loadCryptoJS() {
-	var body []byte
-	resp, err := requests.Get("https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js")
-	if err != nil || resp.StatusCode != http.StatusOK {
-		goto ALTERCDN
+	var (
+		resp *requests.Response
+		body []byte
+		err  error
+	)
+	cdnUrls := [...]string{"https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js",
+		"https://cdn.jsdelivr.net/npm/crypto-js@3.1.9-1/crypto-js.min.js",
+		"https://cdn.staticfile.org/crypto-js/3.1.9-1/crypto-js.min.js",
+		"https://cdn.bootcdn.net/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"}
+	
+	for _, url := range cdnUrls {
+		resp, err = requests.Get(url)
+		if err != nil || resp.StatusCode != http.StatusOK {
+			continue
+		}
+		body, err = resp.Bytes()
+		if err != nil {
+			continue
+		}
+		cryptoJS = body
+		return
 	}
-	body, err = resp.Bytes()
-	if err != nil {
-		goto ALTERCDN
-	}
-	cryptoJS = body
-	return
-ALTERCDN:
-	// Higher availability in mainland China
-	resp, err = requests.Get("https://cdn.staticfile.org/crypto-js/3.1.9-1/crypto-js.min.js") 
-	if err != nil || resp.StatusCode != http.StatusOK {
-		goto ERROR
-	}
-	body, err = resp.Bytes()
-	if err != nil {
-		goto ERROR
-	}
-	cryptoJS = body
-	return
-ERROR:
 	panic(fmt.Errorf("failed to load CryptoJS, please check network"))
 }
 
