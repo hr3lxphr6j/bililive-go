@@ -105,7 +105,7 @@ func (l *listener) refresh() {
 		logInfo = "Live end"
 	}
 	if info.Status && l.status {
-		if !l.config.VideoSplitStrategy.OnRoomNameChanged || info.RoomName == l.liveRoomName {
+		if !l.config.VideoSplitStrategy.Live.OnRoomNameChanged || info.RoomName == l.liveRoomName {
 			return
 		}
 		evtTyp = RoomNameChanged

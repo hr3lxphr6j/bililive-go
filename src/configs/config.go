@@ -71,8 +71,8 @@ var defaultConfig = Config{
 	file:      "",
 	VideoSplitStrategy:  VideoSplitStrategy{
 		Live:	LiveStrategy{
-			OnRoomNameChanged: false
-		}
+			OnRoomNameChanged: false,
+		},
 	},
 }
 
