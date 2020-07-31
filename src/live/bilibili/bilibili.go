@@ -97,9 +97,15 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrInternalError
+	}
 	body, err = resp.Bytes()
 	if err != nil {
 		return nil, err
+	}
+	if gjson.GetBytes(body, "code").Int() != 0 {
+		return nil, live.ErrInternalError
 	}
 
 	info.HostName = gjson.GetBytes(body, "data.info.uname").String()
