@@ -23,6 +23,7 @@ type Manager interface {
 	interfaces.Module
 	AddRecorder(ctx context.Context, live live.Live) error
 	RemoveRecorder(ctx context.Context, liveId live.ID) error
+	RestartRecorder(ctx context.Context, liveId live.ID) error
 	GetRecorder(ctx context.Context, liveId live.ID) (Recorder, error)
 	HasRecorder(ctx context.Context, liveId live.ID) bool
 }
