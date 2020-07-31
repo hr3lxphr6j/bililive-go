@@ -22,6 +22,7 @@ func TestManagerAddAndRemoveRecorder(t *testing.T) {
 	newRecorder = func(ctx context.Context, live live.Live) (Recorder, error) {
 		r := NewMockRecorder(ctrl)
 		r.EXPECT().Start().Return(nil)
+		r.EXPECT().Restart().Return(nil)
 		r.EXPECT().Close()
 		return r, nil
 	}
@@ -30,6 +31,7 @@ func TestManagerAddAndRemoveRecorder(t *testing.T) {
 	l.EXPECT().GetLiveId().Return(live.ID("test")).Times(3)
 	assert.NoError(t, m.AddRecorder(context.Background(), l))
 	assert.Equal(t, ErrRecorderExist, m.AddRecorder(context.Background(), l))
+	assert.NoError(t, m.RestartRecorder(context.Background(), "test"))
 	ln, err := m.GetRecorder(context.Background(), "test")
 	assert.NoError(t, err)
 	assert.NotNil(t, ln)
