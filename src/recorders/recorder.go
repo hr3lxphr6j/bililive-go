@@ -174,6 +174,14 @@ func (r *recorder) Close() {
 	r.ed.DispatchEvent(events.NewEvent(RecorderStop, r.Live))
 }
 
+func (r *recorder) Restart() {
+	r.getLogger().Info("Attempt to Restart Record")
+	r.Close()
+	r.Start()
+	r.getLogger().Info("Record Restart Done")
+	r.ed.DispatchEvent(events.NewEvent(RecorderRestart, r.Live))
+}
+
 func (r *recorder) getLogger() *logrus.Entry {
 	return r.logger.WithFields(r.getFields())
 }
