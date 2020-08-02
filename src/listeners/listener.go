@@ -91,25 +91,23 @@ func (l *listener) refresh() {
 			"host": info.HostName,
 		}
 	)
-
-	if ! info.Status && ! l.status {
-		return
-	}
-	if info.Status && ! l.status {
-		l.Live.SetLastStartTime(time.Now())
-		evtTyp = LiveStart
-		logInfo = "Live Start"
-	}
-	if ! info.Status && l.status {
-		evtTyp = LiveEnd
-		logInfo = "Live end"
-	}
-	if info.Status && l.status {
-		if !l.config.VideoSplitStrategy.Live.OnRoomNameChanged || info.RoomName == l.liveRoomName {
+	
+	switch [2]bool{info.Status, l.status} { //new status vs old status
+		case [2]bool{false, false}:
 			return
-		}
-		evtTyp = RoomNameChanged
-		logInfo = "Room name was changed"
+		case [2]bool{true, false}:
+			l.Live.SetLastStartTime(time.Now())
+			evtTyp = LiveStart
+			logInfo = "Live Start"
+		case [2]bool{false, true}:
+			evtTyp = LiveEnd
+			logInfo = "Live end"
+		case [2]bool{true, true}:
+			if !l.config.VideoSplitStrategy.Live.OnRoomNameChanged || info.RoomName == l.liveRoomName {
+				return
+			}
+			evtTyp = RoomNameChanged
+			logInfo = "Room name was changed"
 	}
 
 	l.status = info.Status
