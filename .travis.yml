@@ -1,16 +1,24 @@
 language: go
 sudo: required
 go:
-  - "1.13"
+  - "1.14.3"
 env:
-  - GO111MODULE=on
-services: docker
+  - GO111MODULE=on NODE_VERSION=14.2.0
+before_install:
+  - nvm install $NODE_VERSION
 script:
   - make
   - make test
 before_deploy:
   - go install github.com/golang/mock/mockgen
   - go install github.com/rakyll/statik
+  - curl -fsSL https://get.docker.com | sh
+  - echo '{"experimental":"enabled"}' | sudo tee /etc/docker/daemon.json
+  - mkdir -p $HOME/.docker
+  - echo '{"experimental":"enabled"}' | sudo tee $HOME/.docker/config.json
+  - sudo service docker start
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name xbuilder --use
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
   - make release-docker
   - make release

@@ -22,7 +22,7 @@ func TestRefresh(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ed := evtmock.NewMockDispatcher(ctrl)
-	ctx := context.WithValue(context.Background(), instance.InstanceKey, &instance.Instance{
+	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
 		EventDispatcher: ed,
 		Config:          new(configs.Config),
 	})
@@ -54,7 +54,7 @@ func TestRefreshWithError(t *testing.T) {
 	defer ctrl.Finish()
 	ed := evtmock.NewMockDispatcher(ctrl)
 	cache := gcache.New(4).LRU().Build()
-	ctx := context.WithValue(context.Background(), instance.InstanceKey, &instance.Instance{
+	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
 		EventDispatcher: ed,
 		Cache:           cache,
 		Config:          new(configs.Config),
@@ -74,7 +74,7 @@ func TestListenerStartAndClose(t *testing.T) {
 	defer ctrl.Finish()
 	ed := evtmock.NewMockDispatcher(ctrl)
 	cache := gcache.New(4).LRU().Build()
-	ctx := context.WithValue(context.Background(), instance.InstanceKey, &instance.Instance{
+	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
 		EventDispatcher: ed,
 		Cache:           cache,
 		Config:          &configs.Config{Interval: 5},

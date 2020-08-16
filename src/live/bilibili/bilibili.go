@@ -1,14 +1,15 @@
 package bilibili
 
 import (
+	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
@@ -44,13 +45,15 @@ func (l *Live) parseRealId() error {
 	if len(paths) < 2 {
 		return live.ErrRoomUrlIncorrect
 	}
-	body, err := http.Get(roomInitUrl, nil, map[string]string{
-		"id": paths[1],
-	})
+	resp, err := requests.Get(roomInitUrl, live.CommonUserAgent, requests.Query("id", paths[1]))
 	if err != nil {
-		return nil
+		return err
 	}
-	if gjson.GetBytes(body, "code").Int() != 0 {
+	if resp.StatusCode != http.StatusOK {
+		return live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
+	if err != nil || gjson.GetBytes(body, "code").Int() != 0 {
 		return live.ErrRoomNotExist
 	}
 	l.realID = gjson.GetBytes(body, "data.room_id").String()
@@ -64,10 +67,19 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 			return nil, err
 		}
 	}
-	body, err := http.Get(roomApiUrl, nil, map[string]string{
-		"room_id": l.realID,
-		"from":    "room",
-	})
+	resp, err := requests.Get(
+		roomApiUrl,
+		live.CommonUserAgent,
+		requests.Query("room_id", l.realID),
+		requests.Query("from", "room"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
 	if err != nil {
 		return nil, err
 	}
@@ -81,14 +93,22 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		Status:   gjson.GetBytes(body, "data.live_status").Int() == 1,
 	}
 
-	body2, err := http.Get(userApiUrl, nil, map[string]string{
-		"roomid": l.realID,
-	})
+	resp, err = requests.Get(userApiUrl, live.CommonUserAgent, requests.Query("roomid", l.realID))
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrInternalError
+	}
+	body, err = resp.Bytes()
+	if err != nil {
+		return nil, err
+	}
+	if gjson.GetBytes(body, "code").Int() != 0 {
+		return nil, live.ErrInternalError
+	}
 
-	info.HostName = gjson.GetBytes(body2, "data.info.uname").String()
+	info.HostName = gjson.GetBytes(body, "data.info.uname").String()
 	return info, nil
 }
 
@@ -98,16 +118,23 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 			return nil, err
 		}
 	}
-	body, err := http.Get(liveApiUrl, nil, map[string]string{
+	resp, err := requests.Get(liveApiUrl, live.CommonUserAgent, requests.Queries(map[string]string{
 		"cid":      l.realID,
 		"quality":  "4",
 		"platform": "web",
-	})
+	}))
 	if err != nil {
 		return nil, err
 	}
-	urls := make([]string, 0, 0)
-	gjson.GetBytes(body, "data.durl.#.url").ForEach(func(key, value gjson.Result) bool {
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
+	if err != nil {
+		return nil, err
+	}
+	urls := make([]string, 0, 4)
+	gjson.GetBytes(body, "data.durl.#.url").ForEach(func(_, value gjson.Result) bool {
 		urls = append(urls, value.String())
 		return true
 	})

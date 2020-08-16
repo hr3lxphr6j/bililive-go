@@ -1,12 +1,14 @@
 package openrec
 
 import (
+	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/hr3lxphr6j/requests"
+
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
@@ -32,22 +34,29 @@ func (b *builder) Build(url *url.URL) (live.Live, error) {
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
-	dom, err := http.Get(l.Url.String(), nil, nil)
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Text()
 	if err != nil {
 		return nil, err
 	}
 	var (
 		roomName = utils.ParseString(
-			utils.Match1(`"title":"([^:]*)",`, string(dom)),
+			utils.Match1(`"title":"([^:]*)",`, body),
 			utils.StringFilterFunc(strings.TrimSpace),
 			utils.UnescapeHTMLEntity,
 		)
 		hostName = utils.ParseString(
-			utils.Match1(`"name":"([^:]*)",`, string(dom)),
+			utils.Match1(`"name":"([^:]*)",`, body),
 			utils.ParseUnicode,
 			utils.UnescapeHTMLEntity,
 		)
-		status = utils.Match1(`"onairStatus":(\d),`, string(dom))
+		status = utils.Match1(`"onairStatus":(\d),`, body)
 	)
 	if roomName == "" || hostName == "" || status == "" {
 		return nil, live.ErrInternalError
@@ -62,11 +71,18 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	dom, err := http.Get(l.Url.String(), nil, nil)
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
 	if err != nil {
 		return nil, err
 	}
-	return utils.GenUrls(utils.Match1(`{"url":"(\S*m3u8)",`, string(dom)))
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Text()
+	if err != nil {
+		return nil, err
+	}
+	return utils.GenUrls(utils.Match1(`{"url":"(\S*m3u8)",`, body))
 }
 
 func (l *Live) GetPlatformCNName() string {

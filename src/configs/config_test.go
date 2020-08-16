@@ -17,12 +17,12 @@ func TestNewConfig(t *testing.T) {
 
 func TestRPC_Verify(t *testing.T) {
 	var rpc *RPC
-	assert.NoError(t, rpc.Verify())
+	assert.NoError(t, rpc.verify())
 	rpc = new(RPC)
 	rpc.Bind = "foo@bar"
-	assert.NoError(t, rpc.Verify())
+	assert.NoError(t, rpc.verify())
 	rpc.Enable = true
-	assert.Error(t, rpc.Verify())
+	assert.Error(t, rpc.verify())
 }
 
 func TestConfig_Verify(t *testing.T) {

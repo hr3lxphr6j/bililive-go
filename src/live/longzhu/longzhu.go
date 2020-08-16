@@ -2,14 +2,15 @@ package longzhu
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
@@ -18,8 +19,8 @@ const (
 	cnName = "龙珠"
 
 	mobileUrl  = "http://m.longzhu.com/"
-	roomApiUrl = "http://liveapi.plu.cn/liveapp/roomstatus"
-	liveApiUrl = "http://livestream.plu.cn/live/getlivePlayurl"
+	roomApiUrl = "http://roomapicdn.longzhu.com/room/roomstatus"
+	liveApiUrl = "https://livestream.longzhu.com/live/getlivePlayurl"
 )
 
 func init() {
@@ -44,15 +45,20 @@ func (l *Live) parseRealId() error {
 	if len(paths) < 2 {
 		return live.ErrRoomUrlIncorrect
 	}
-	dom, err := http.Get(fmt.Sprintf("%s%s", mobileUrl, paths[1]), nil, nil)
+	resp, err := requests.Get(fmt.Sprintf("%s%s", mobileUrl, paths[1]), live.CommonUserAgent)
 	if err != nil {
 		return err
 	}
-	realId := utils.Match1(`var\s*roomId\s*=\s*(\d+);`, string(dom))
-	if realId == "" {
+	if resp.StatusCode != http.StatusOK {
 		return live.ErrRoomNotExist
 	}
-	l.realId = realId
+	body, err := resp.Text()
+	if err != nil {
+		return err
+	}
+	if l.realId = utils.Match1(`var\s*roomId\s*=\s*(\d+);`, body); l.realId == "" {
+		return live.ErrRoomNotExist
+	}
 	return nil
 }
 
@@ -62,15 +68,35 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 			return nil, err
 		}
 	}
-	body, err := http.Get(roomApiUrl, nil, map[string]string{"roomId": l.realId})
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	dom, err := resp.Text()
+	if err != nil {
+		return nil, err
+	}
+	hostname := utils.Match1(`"username":"(.*?)"`, dom)
+
+	resp, err = requests.Get(roomApiUrl, requests.Query("roomId", l.realId), live.CommonUserAgent)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
 	if err != nil {
 		return nil, err
 	}
 	info = &live.Info{
 		Live:     l,
-		HostName: gjson.GetBytes(body, "userName").String(),
-		RoomName: gjson.GetBytes(body, "title").String(),
-		Status:   len(gjson.GetBytes(body, "streamUri").String()) > 4,
+		HostName: hostname,
+		RoomName: gjson.GetBytes(body, "Broadcast.Title").String(),
+		Status:   gjson.GetBytes(body, "Broadcast.LiveType").Int() > 0,
 	}
 	return info, nil
 
@@ -82,10 +108,14 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 			return nil, err
 		}
 	}
-	body, err := http.Get(liveApiUrl, nil, map[string]string{"roomId": l.realId})
+	resp, err := requests.Get(liveApiUrl, live.CommonUserAgent, requests.Query("roomId", l.realId))
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Bytes()
 	urls := make([]string, 0, 0)
 	gjson.GetBytes(body, "playLines.0.urls.#.securityUrl").ForEach(func(key, value gjson.Result) bool {
 		urls = append(urls, value.String())

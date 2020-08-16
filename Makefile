@@ -18,7 +18,7 @@ release: build-web generate
 	@./src/hack/release.sh
 
 .PHONY: release-docker
-release-docker: build-web generate
+release-docker:
 	@./src/hack/release-docker.sh
 
 .PHONY: test

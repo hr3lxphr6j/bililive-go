@@ -30,7 +30,7 @@ func initMux(ctx context.Context) *mux.Router {
 				r.WithContext(
 					context.WithValue(
 						r.Context(),
-						instance.InstanceKey,
+						instance.Key,
 						instance.GetInstance(ctx),
 					),
 				),
@@ -40,15 +40,15 @@ func initMux(ctx context.Context) *mux.Router {
 
 	// api router
 	apiRoute := m.PathPrefix(apiRouterPrefix).Subrouter()
-	apiRoute.Use(cors)
-	apiRoute.HandleFunc("/info", getInfo).Methods("GET", "OPTIONS")
-	apiRoute.HandleFunc("/config", getConfig).Methods("GET", "OPTIONS")
-	apiRoute.HandleFunc("/config", putConfig).Methods("PUT", "OPTIONS")
-	apiRoute.HandleFunc("/lives", getAllLives).Methods("GET", "OPTIONS")
-	apiRoute.HandleFunc("/lives", addLives).Methods("POST", "OPTIONS")
-	apiRoute.HandleFunc("/lives/{id}", getLive).Methods("GET", "OPTIONS")
-	apiRoute.HandleFunc("/lives/{id}", removeLive).Methods("DELETE", "OPTIONS")
-	apiRoute.HandleFunc("/lives/{id}/{action}", parseLiveAction).Methods("GET", "OPTIONS")
+	apiRoute.Use(mux.CORSMethodMiddleware(apiRoute))
+	apiRoute.HandleFunc("/info", getInfo).Methods("GET")
+	apiRoute.HandleFunc("/config", getConfig).Methods("GET")
+	apiRoute.HandleFunc("/config", putConfig).Methods("PUT")
+	apiRoute.HandleFunc("/lives", getAllLives).Methods("GET")
+	apiRoute.HandleFunc("/lives", addLives).Methods("POST")
+	apiRoute.HandleFunc("/lives/{id}", getLive).Methods("GET")
+	apiRoute.HandleFunc("/lives/{id}", removeLive).Methods("DELETE")
+	apiRoute.HandleFunc("/lives/{id}/{action}", parseLiveAction).Methods("GET")
 
 	statikFS, err := fs.New()
 	if err != nil {
@@ -93,7 +93,9 @@ func (s *Server) Close(ctx context.Context) {
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Done()
 	ctx2, cancel := context.WithCancel(ctx)
-	s.server.Shutdown(ctx2)
+	if err := s.server.Shutdown(ctx2); err != nil {
+		inst.Logger.WithError(err).Error("failed to shutdown server")
+	}
 	defer cancel()
 	inst.Logger.Infof("Server close")
 }

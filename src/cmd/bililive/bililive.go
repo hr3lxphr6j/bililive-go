@@ -55,7 +55,7 @@ func main() {
 	inst := new(instance.Instance)
 	inst.Config = config
 	inst.Cache = gcache.New(128).LRU().Build()
-	ctx := context.WithValue(context.Background(), instance.InstanceKey, inst)
+	ctx := context.WithValue(context.Background(), instance.Key, inst)
 
 	logger := log.New(ctx)
 	logger.Infof("%s Version: %s Link Start", consts.AppName, consts.AppVersion)

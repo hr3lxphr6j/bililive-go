@@ -3,7 +3,7 @@ rpc:
   bind: 127.0.0.1:8080
 debug: false
 interval: 15
-out_put_path: /tmp
+out_put_path: ./
 feature:
   use_native_flv_parser: false
 live_rooms:

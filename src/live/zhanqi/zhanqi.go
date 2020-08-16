@@ -3,14 +3,15 @@ package zhanqi
 import (
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
@@ -38,15 +39,21 @@ type Live struct {
 }
 
 func (l *Live) requestRoomInfo() ([]byte, error) {
-	body, err := http.Get(fmt.Sprintf(apiUrl, strings.Split(l.Url.Path, "/")[1]), nil, nil)
+	resp, err := requests.Get(fmt.Sprintf(apiUrl, strings.Split(l.Url.Path, "/")[1]), live.CommonUserAgent)
 	if err != nil {
 		return nil, err
 	}
-	if gjson.GetBytes(body, "code").Int() == 0 {
-		return body, nil
-	} else {
+	if resp.StatusCode != http.StatusOK {
 		return nil, live.ErrRoomNotExist
 	}
+	body, err := resp.Bytes()
+	if err != nil {
+		return nil, err
+	}
+	if gjson.GetBytes(body, "code").Int() != 0 {
+		return nil, live.ErrRoomNotExist
+	}
+	return body, nil
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {

@@ -5,13 +5,32 @@ set -o pipefail
 set -o nounset
 
 DISTS=(
-    "darwin-amd64"
-    "windows-amd64"
-    "windows-386"
-    "linux-amd64"
-    "linux-386"
-    "linux-arm64"
-    "linux-arm"
+    "darwin/386"
+    "darwin/amd64"
+    "dragonfly/amd64"
+    "freebsd/386"
+    "freebsd/amd64"
+    "freebsd/arm"
+    "linux/386"
+    "linux/amd64"
+    "linux/arm"
+    "linux/arm64"
+    "linux/ppc64"
+    "linux/ppc64le"
+    "linux/mips"
+    "linux/mipsle"
+    "linux/mips64"
+    "linux/mips64le"
+    "linux/s390x"
+    "netbsd/386"
+    "netbsd/amd64"
+    "netbsd/arm"
+    "openbsd/386"
+    "openbsd/amd64"
+    "openbsd/arm"
+    "solaris/amd64"
+    "windows/386"
+    "windows/amd64"
 )
 BIN_PATH=bin
 
@@ -36,8 +55,8 @@ package() {
 }
 
 for dist in ${DISTS[@]}; do
-    platform=$(echo ${dist} | cut -d'-' -f1)
-    arch=$(echo ${dist} | cut -d'-' -f2)
+    platform=$(echo ${dist} | cut -d'/' -f1)
+    arch=$(echo ${dist} | cut -d'/' -f2)
     make PLATFORM=${platform} ARCH=${arch} bililive
 done
 

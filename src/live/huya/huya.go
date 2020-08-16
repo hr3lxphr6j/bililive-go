@@ -1,15 +1,18 @@
 package huya
 
 import (
+	"encoding/base64"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/hr3lxphr6j/requests"
+
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/http"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
@@ -35,19 +38,27 @@ type Live struct {
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
-	dom, err := http.Get(l.Url.String(), nil, nil)
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
 	if err != nil {
 		return nil, err
 	}
-	if res := utils.Match1("哎呀，虎牙君找不到这个主播，要不搜索看看？", string(dom)); res != "" {
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Text()
+	if err != nil {
+		return nil, err
+	}
+
+	if res := utils.Match1("哎呀，虎牙君找不到这个主播，要不搜索看看？", body); res != "" {
 		return nil, live.ErrRoomNotExist
 	}
 
 	var (
 		strFilter = utils.NewStringFilterChain(utils.ParseUnicode, utils.UnescapeHTMLEntity)
-		hostName  = strFilter.Do(utils.Match1(`"nick":"([^"]*)"`, string(dom)))
-		roomName  = strFilter.Do(utils.Match1(`"introduction":"([^"]*)"`, string(dom)))
-		status    = strFilter.Do(utils.Match1(`"isOn":([^,]*),`, string(dom)))
+		hostName  = strFilter.Do(utils.Match1(`"nick":"([^"]*)"`, body))
+		roomName  = strFilter.Do(utils.Match1(`"introduction":"([^"]*)"`, body))
+		status    = strFilter.Do(utils.Match1(`"isOn":([^,]*),`, body))
 	)
 
 	if hostName == "" || roomName == "" || status == "" {
@@ -64,15 +75,34 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	dom, err := http.Get(l.Url.String(), nil, nil)
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	body, err := resp.Text()
+	if err != nil {
+		return nil, err
+	}
+
+	// Decode stream part.
+	streamInfo := utils.Match1(`"stream": "(.*?)"`, body)
+	if streamInfo == "" {
+		return nil, live.ErrInternalError
+	}
+	streamByte, err := base64.StdEncoding.DecodeString(streamInfo)
+	if err != nil {
+		return nil, err
+	}
+	streamStr := utils.UnescapeHTMLEntity(string(streamByte))
+
 	var (
-		sStreamName  = utils.Match1(`"sStreamName":"([^"]*)"`, string(dom))
-		sFlvUrl      = strings.ReplaceAll(utils.Match1(`"sFlvUrl":"([^"]*)"`, string(dom)), `\/`, `/`)
-		sFlvAntiCode = utils.Match1(`"sFlvAntiCode":"([^"]*)"`, string(dom))
-		iLineIndex   = utils.Match1(`"iLineIndex":(\d*),`, string(dom))
+		sStreamName  = utils.Match1(`"sStreamName":"([^"]*)"`, streamStr)
+		sFlvUrl      = strings.ReplaceAll(utils.Match1(`"sFlvUrl":"([^"]*)"`, streamStr), `\/`, `/`)
+		sFlvAntiCode = utils.Match1(`"sFlvAntiCode":"([^"]*)"`, streamStr)
+		iLineIndex   = utils.Match1(`"iLineIndex":(\d*),`, streamStr)
 		uid          = (time.Now().Unix()%1e7*1e6 + int64(1e3*rand.Float64())) % 4294967295
 	)
 	u, err := url.Parse(fmt.Sprintf("%s/%s.flv", sFlvUrl, sStreamName))
