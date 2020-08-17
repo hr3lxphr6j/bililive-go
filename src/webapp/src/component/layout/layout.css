@@ -1,0 +1,22 @@
+.content-padding {
+    padding: 0px 24px;
+}
+
+.inside-content-padding {
+    padding: 24px;
+}
+
+@media(max-device-width: 768px) {
+    .small-header{
+        padding: 0 30px !important;
+    }
+    .side-bar {
+        display: none;
+    }
+    .content-padding {
+        padding: 0px;
+    }
+    .inside-content-padding {
+        padding: 10px;
+    }
+}
