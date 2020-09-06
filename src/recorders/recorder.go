@@ -57,6 +57,7 @@ var (
 type Recorder interface {
 	Start() error
 	Close()
+	Restart() error
 }
 
 type recorder struct {
@@ -172,6 +173,19 @@ func (r *recorder) Close() {
 	}
 	r.getLogger().Info("Record End")
 	r.ed.DispatchEvent(events.NewEvent(RecorderStop, r.Live))
+}
+
+func (r *recorder) Restart() error {
+	r.getLogger().Info("Attempt to Restart Record")
+	r.Close()
+	err := r.Start()
+	if err!= nil {
+		r.getLogger().Errorf("Error when Restart Record, err: %s", err)
+		return err
+	}
+	r.getLogger().Info("Record Restart Done")
+	r.ed.DispatchEvent(events.NewEvent(RecorderRestart, r.Live))
+	return nil
 }
 
 func (r *recorder) getLogger() *logrus.Entry {

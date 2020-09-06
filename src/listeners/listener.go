@@ -29,6 +29,7 @@ func NewListener(ctx context.Context, live live.Live) Listener {
 	inst := instance.GetInstance(ctx)
 	return &listener{
 		Live:   live,
+		liveRoomName:  "",
 		status: false,
 		config: inst.Config,
 		stop:   make(chan struct{}),
@@ -40,6 +41,7 @@ func NewListener(ctx context.Context, live live.Live) Listener {
 
 type listener struct {
 	Live   live.Live
+	liveRoomName string
 	status bool
 
 	config *configs.Config
@@ -79,10 +81,7 @@ func (l *listener) refresh() {
 			Error("failed to load room info")
 		return
 	}
-	if info.Status == l.status {
-		return
-	}
-	l.status = info.Status
+	
 
 	var (
 		evtTyp  events.EventType
@@ -92,14 +91,28 @@ func (l *listener) refresh() {
 			"host": info.HostName,
 		}
 	)
-	if l.status {
-		l.Live.SetLastStartTime(time.Now())
-		evtTyp = LiveStart
-		logInfo = "Live Start"
-	} else {
-		evtTyp = LiveEnd
-		logInfo = "Live end"
+	
+	switch [2]bool{info.Status, l.status} { //new status vs old status
+		case [2]bool{false, false}:
+			return
+		case [2]bool{true, false}:
+			l.Live.SetLastStartTime(time.Now())
+			evtTyp = LiveStart
+			logInfo = "Live Start"
+		case [2]bool{false, true}:
+			evtTyp = LiveEnd
+			logInfo = "Live end"
+		case [2]bool{true, true}:
+			if !l.config.VideoSplitStrategy.Live.OnRoomNameChanged || info.RoomName == l.liveRoomName {
+				return
+			}
+			evtTyp = RoomNameChanged
+			logInfo = "Room name was changed"
 	}
+
+	l.status = info.Status
+	l.liveRoomName = info.RoomName
+
 	l.ed.DispatchEvent(events.NewEvent(evtTyp, l.Live))
 	l.logger.WithFields(fields).Info(logInfo)
 }

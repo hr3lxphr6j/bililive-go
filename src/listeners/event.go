@@ -9,4 +9,5 @@ const (
 	ListenStop  events.EventType = "ListenStop"
 	LiveStart   events.EventType = "LiveStart"
 	LiveEnd     events.EventType = "LiveEnd"
+	RoomNameChanged	events.EventType = "RoomNameChanged"
 )

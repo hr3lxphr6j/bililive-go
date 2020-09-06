@@ -20,6 +20,7 @@ var (
 	RPC             = app.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
 	RPCBind         = app.Flag("rpc-bind", "RPC server bind address").Default(":8080").String()
 	NativeFlvParser = app.Flag("native-flv-parser", "use native flv parser").Default("false").Bool()
+	SplitOnRoomNameChanged = app.Flag("split-room-name", "restart recording once room name change").Short('R').Default("false").Bool()
 )
 
 func init() {
@@ -39,6 +40,11 @@ func GenConfigFromFlags() *configs.Config {
 		LiveRooms:  *Input,
 		Feature: configs.Feature{
 			UseNativeFlvParser: *NativeFlvParser,
+		},
+		VideoSplitStrategy: configs.VideoSplitStrategy{
+			Live: configs.LiveStrategy{
+				OnRoomNameChanged: *SplitOnRoomNameChanged,
+			},
 		},
 	}
 }

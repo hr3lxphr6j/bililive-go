@@ -38,6 +38,15 @@ type Feature struct {
 	UseNativeFlvParser bool `yaml:"use_native_flv_parser"`
 }
 
+// https://github.com/hr3lxphr6j/bililive-go/pull/88#pullrequestreview-446957813
+type VideoSplitStrategy struct {
+	Live LiveStrategy `yaml:"live"`
+}
+
+type LiveStrategy struct {
+	OnRoomNameChanged bool `yaml:"on_room_name_changed"`
+}
+
 // Config content all config info.
 type Config struct {
 	RPC        RPC      `yaml:"rpc"`
@@ -47,6 +56,7 @@ type Config struct {
 	Feature    Feature  `yaml:"feature"`
 	LiveRooms  []string `yaml:"live_rooms"`
 	file       string
+	VideoSplitStrategy VideoSplitStrategy `yaml:"video_split_strategy"`
 }
 
 var defaultConfig = Config{
@@ -59,6 +69,11 @@ var defaultConfig = Config{
 	},
 	LiveRooms: []string{},
 	file:      "",
+	VideoSplitStrategy:  VideoSplitStrategy{
+		Live:	LiveStrategy{
+			OnRoomNameChanged: false,
+		},
+	},
 }
 
 // Verify will return an error when this config has problem.

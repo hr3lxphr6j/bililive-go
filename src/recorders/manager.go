@@ -23,6 +23,7 @@ type Manager interface {
 	interfaces.Module
 	AddRecorder(ctx context.Context, live live.Live) error
 	RemoveRecorder(ctx context.Context, liveId live.ID) error
+	RestartRecorder(ctx context.Context, liveId live.ID) error
 	GetRecorder(ctx context.Context, liveId live.ID) (Recorder, error)
 	HasRecorder(ctx context.Context, liveId live.ID) bool
 }
@@ -45,6 +46,19 @@ func (m *manager) registryListener(ctx context.Context, ed events.Dispatcher) {
 				Errorf("failed to add recorder, err: %v", err)
 		}
 	}))
+
+	restartEvtListener := events.NewEventListener(func(event *events.Event) {
+		live := event.Object.(live.Live)
+		if !m.HasRecorder(ctx, live.GetLiveId()) {
+			return
+		}
+		if err := m.RestartRecorder(ctx, live.GetLiveId()); err != nil {
+			instance.GetInstance(ctx).Logger.
+				Errorf("failed to restart recorder, err: %v", err)
+		}
+	})
+
+	ed.AddEventListener(listeners.RoomNameChanged, restartEvtListener)
 
 	removeEvtListener := events.NewEventListener(func(event *events.Event) {
 		live := event.Object.(live.Live)
@@ -93,6 +107,16 @@ func (m *manager) AddRecorder(ctx context.Context, live live.Live) error {
 	m.savers[live.GetLiveId()] = recorder
 	return recorder.Start()
 
+}
+
+func (m *manager) RestartRecorder(ctx context.Context, liveId live.ID) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	recorder, ok := m.savers[liveId]
+	if !ok {
+		return ErrRecorderNotExist
+	}
+	return recorder.Restart()
 }
 
 func (m *manager) RemoveRecorder(ctx context.Context, liveId live.ID) error {

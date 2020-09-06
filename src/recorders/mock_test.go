@@ -60,6 +60,20 @@ func (mr *MockRecorderMockRecorder) Start() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockRecorder)(nil).Start))
 }
 
+// Restart mocks base method
+func (m *MockRecorder) Restart() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Restart")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Restart indicates an expected call of Restart
+func (mr *MockRecorderMockRecorder) Restart() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restart", reflect.TypeOf((*MockRecorder)(nil).Restart))
+}
+
 // MockManager is a mock of Manager interface
 type MockManager struct {
 	ctrl     *gomock.Controller
