@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -38,25 +39,22 @@ type Feature struct {
 	UseNativeFlvParser bool `yaml:"use_native_flv_parser"`
 }
 
-// https://github.com/hr3lxphr6j/bililive-go/pull/88#pullrequestreview-446957813
-type VideoSplitStrategy struct {
-	Live LiveStrategy `yaml:"live"`
-}
-
-type LiveStrategy struct {
-	OnRoomNameChanged bool `yaml:"on_room_name_changed"`
+// VideoSplitStrategies info.
+type VideoSplitStrategies struct {
+	OnRoomNameChanged bool          `yaml:"on_room_name_changed"`
+	MaxDuration       time.Duration `yaml:"max_duration"`
 }
 
 // Config content all config info.
 type Config struct {
-	RPC        RPC      `yaml:"rpc"`
-	Debug      bool     `yaml:"debug"`
-	Interval   int      `yaml:"interval"`
-	OutPutPath string   `yaml:"out_put_path"`
-	Feature    Feature  `yaml:"feature"`
-	LiveRooms  []string `yaml:"live_rooms"`
-	file       string
-	VideoSplitStrategy VideoSplitStrategy `yaml:"video_split_strategy"`
+	RPC                  RPC      `yaml:"rpc"`
+	Debug                bool     `yaml:"debug"`
+	Interval             int      `yaml:"interval"`
+	OutPutPath           string   `yaml:"out_put_path"`
+	Feature              Feature  `yaml:"feature"`
+	LiveRooms            []string `yaml:"live_rooms"`
+	file                 string
+	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 }
 
 var defaultConfig = Config{
@@ -69,10 +67,8 @@ var defaultConfig = Config{
 	},
 	LiveRooms: []string{},
 	file:      "",
-	VideoSplitStrategy:  VideoSplitStrategy{
-		Live:	LiveStrategy{
-			OnRoomNameChanged: false,
-		},
+	VideoSplitStrategies: VideoSplitStrategies{
+		OnRoomNameChanged: false,
 	},
 }
 

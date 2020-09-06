@@ -29,8 +29,7 @@ func NewListener(ctx context.Context, live live.Live) Listener {
 	inst := instance.GetInstance(ctx)
 	return &listener{
 		Live:   live,
-		liveRoomName:  "",
-		status: false,
+		status: status{},
 		config: inst.Config,
 		stop:   make(chan struct{}),
 		ed:     inst.EventDispatcher.(events.Dispatcher),
@@ -41,8 +40,7 @@ func NewListener(ctx context.Context, live live.Live) Listener {
 
 type listener struct {
 	Live   live.Live
-	liveRoomName string
-	status bool
+	status status
 
 	config *configs.Config
 	ed     events.Dispatcher
@@ -81,37 +79,34 @@ func (l *listener) refresh() {
 			Error("failed to load room info")
 		return
 	}
-	
 
 	var (
-		evtTyp  events.EventType
-		logInfo string
-		fields  = map[string]interface{}{
+		latestStatus = status{roomName: info.RoomName, roomStatus: info.Status}
+		evtTyp       events.EventType
+		logInfo      string
+		fields       = map[string]interface{}{
 			"room": info.RoomName,
 			"host": info.HostName,
 		}
 	)
-	
-	switch [2]bool{info.Status, l.status} { //new status vs old status
-		case [2]bool{false, false}:
+	defer func() { l.status = latestStatus }()
+	switch l.status.Diff(latestStatus) {
+	case 0:
+		return
+	case statusToTrueEvt:
+		l.Live.SetLastStartTime(time.Now())
+		evtTyp = LiveStart
+		logInfo = "Live Start"
+	case statusToFalseEvt:
+		evtTyp = LiveEnd
+		logInfo = "Live end"
+	case roomNameChangedEvt:
+		if !l.config.VideoSplitStrategies.OnRoomNameChanged {
 			return
-		case [2]bool{true, false}:
-			l.Live.SetLastStartTime(time.Now())
-			evtTyp = LiveStart
-			logInfo = "Live Start"
-		case [2]bool{false, true}:
-			evtTyp = LiveEnd
-			logInfo = "Live end"
-		case [2]bool{true, true}:
-			if !l.config.VideoSplitStrategy.Live.OnRoomNameChanged || info.RoomName == l.liveRoomName {
-				return
-			}
-			evtTyp = RoomNameChanged
-			logInfo = "Room name was changed"
+		}
+		evtTyp = RoomNameChanged
+		logInfo = "Room name was changed"
 	}
-
-	l.status = info.Status
-	l.liveRoomName = info.RoomName
 
 	l.ed.DispatchEvent(events.NewEvent(evtTyp, l.Live))
 	l.logger.WithFields(fields).Info(logInfo)

@@ -20,7 +20,7 @@ var (
 	RPC             = app.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
 	RPCBind         = app.Flag("rpc-bind", "RPC server bind address").Default(":8080").String()
 	NativeFlvParser = app.Flag("native-flv-parser", "use native flv parser").Default("false").Bool()
-	SplitOnRoomNameChanged = app.Flag("split-room-name", "restart recording once room name change").Short('R').Default("false").Bool()
+	SplitStrategies = app.Flag("split-strategies", "video split strategies, now only support\"OnRoomNameChanged\"").Strings()
 )
 
 func init() {
@@ -29,7 +29,7 @@ func init() {
 
 // GenConfigFromFlags generates configuration by parsing command line parameters.
 func GenConfigFromFlags() *configs.Config {
-	return &configs.Config{
+	cfg := &configs.Config{
 		RPC: configs.RPC{
 			Enable: *RPC,
 			Bind:   *RPCBind,
@@ -41,10 +41,14 @@ func GenConfigFromFlags() *configs.Config {
 		Feature: configs.Feature{
 			UseNativeFlvParser: *NativeFlvParser,
 		},
-		VideoSplitStrategy: configs.VideoSplitStrategy{
-			Live: configs.LiveStrategy{
-				OnRoomNameChanged: *SplitOnRoomNameChanged,
-			},
-		},
 	}
+	if SplitStrategies != nil && len(*SplitStrategies) > 0 {
+		for _, s := range *SplitStrategies {
+			// TODO: not hard code
+			if s == "OnRoomNameChanged" {
+				cfg.VideoSplitStrategies.OnRoomNameChanged = true
+			}
+		}
+	}
+	return cfg
 }
