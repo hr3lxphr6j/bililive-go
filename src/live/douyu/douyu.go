@@ -30,7 +30,7 @@ const (
 	domain = "www.douyu.com"
 	cnName = "斗鱼"
 
-	liveInfoUrl = "https://open.douyucdn.cn/api/RoomApi/room"
+	liveInfoUrl = "https://www.douyu.com/betard"
 	liveEncUrl  = "https://www.douyu.com/swf_api/homeH5Enc"
 	liveAPIUrl  = "https://www.douyu.com/lapi/live/getH5Play"
 )
@@ -186,14 +186,11 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	if err != nil {
 		return nil, err
 	}
-	if gjson.GetBytes(body, "error").Int() != 0 {
-		return nil, live.ErrRoomNotExist
-	}
 	info = &live.Info{
 		Live:     l,
-		HostName: gjson.GetBytes(body, "data.owner_name").String(),
-		RoomName: gjson.GetBytes(body, "data.room_name").String(),
-		Status:   gjson.GetBytes(body, "data.room_status").String() == "1",
+		HostName: gjson.GetBytes(body, "room.owner_name").String(),
+		RoomName: gjson.GetBytes(body, "room.room_name").String(),
+		Status:   gjson.GetBytes(body, "room.show_status").Int() == 1 && gjson.GetBytes(body, "room.videoLoop").Int() == 0,
 	}
 	return info, nil
 
