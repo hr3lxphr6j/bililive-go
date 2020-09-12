@@ -5,7 +5,6 @@ set -o pipefail
 set -o nounset
 
 DISTS=(
-    "darwin/386"
     "darwin/amd64"
     "dragonfly/amd64"
     "freebsd/386"
