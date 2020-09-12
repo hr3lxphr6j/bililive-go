@@ -99,6 +99,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 			"authorId":       strings.Split(l.Url.Path, "/")[2],
 			"pullStreamType": "FLV",
 		}),
+		requests.Referer(l.GetRawUrl()),
 	)
 	if err != nil {
 		return nil, err
