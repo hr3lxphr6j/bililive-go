@@ -84,7 +84,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		Live:     l,
 		HostName: hostName,
 		RoomName: roomName,
-		Status:   data.Get("props.pageProps.roomInfoInitData.live.channel_id").Int() != 0,
+		Status:   data.Get("props.pageProps.roomInfoInitData.live.swf").String() != "",
 	}
 	return info, nil
 }
