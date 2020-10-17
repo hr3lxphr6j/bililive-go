@@ -90,6 +90,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	info = &live.Info{
 		Live:     l,
 		RoomName: gjson.GetBytes(body, "data.title").String(),
+		LiveTime: gjson.GetBytes(body,"data.live_time").String(),
 		Status:   gjson.GetBytes(body, "data.live_status").Int() == 1,
 	}
 

@@ -6,7 +6,7 @@ import (
 
 type Info struct {
 	Live                        Live
-	HostName, RoomName          string
+	HostName, RoomName,LiveTime          string
 	Status, Listening, Recoding bool
 }
 
@@ -17,6 +17,7 @@ func (i *Info) MarshalJSON() ([]byte, error) {
 		PlatformCNName    string `json:"platform_cn_name"`
 		HostName          string `json:"host_name"`
 		RoomName          string `json:"room_name"`
+		LiveTime          string `json:"live_time"`
 		Status            bool   `json:"status"`
 		Listening         bool   `json:"listening"`
 		Recoding          bool   `json:"recoding"`
@@ -28,6 +29,7 @@ func (i *Info) MarshalJSON() ([]byte, error) {
 		PlatformCNName: i.Live.GetPlatformCNName(),
 		HostName:       i.HostName,
 		RoomName:       i.RoomName,
+		LiveTime:		i.LiveTime,
 		Status:         i.Status,
 		Listening:      i.Listening,
 		Recoding:       i.Recoding,
