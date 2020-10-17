@@ -51,6 +51,10 @@ class LiveList extends React.Component<Props, IState> {
             render: (room: Room) => <a href={room.url}>{room.roomName}</a>
         },
         {
+            title: '直播开始时间',
+            dataIndex: 'live_time'
+        },
+        {
             title: '直播平台',
             dataIndex: 'address',
             key: 'address',
@@ -66,7 +70,7 @@ class LiveList extends React.Component<Props, IState> {
                         if (tag === '已停止') {
                             color = 'grey';
                         }
-                        if (tag === '监控中') {
+                        if (tag === '录制中') {
                             color = 'green';
                         }
                         if (tag === '录制中') {
@@ -89,23 +93,23 @@ class LiveList extends React.Component<Props, IState> {
             render: (listening: boolean, data: ItemData) => (
                 <span>
                     <PopDialog
-                        title={listening ? "确定停止监控？" : "确定开启监控？"}
+                        title={listening ? "确定停止录制？" : "确定开启录制？"}
                         onConfirm={(e) => {
                             if (listening) {
-                                //停止监控
+                                //停止录制
                                 api.stopRecord(data.roomId)
                                     .then(rsp => {
                                         this.refresh();
                                     });
                             } else {
-                                //开启监控
+                                //开启录制
                                 api.startRecord(data.roomId)
                                     .then(rsp => {
                                         this.refresh();
                                     });
                             }
                         }}>
-                        <Button type="link" size="small">{listening ? "停止监控" : "开启监控"}</Button>
+                        <Button type="link" size="small">{listening ? "停止录制" : "开启录制"}</Button>
                     </PopDialog>
                     <Divider type="vertical" />
                     <PopDialog title="确定删除当前直播间？"
@@ -188,7 +192,7 @@ class LiveList extends React.Component<Props, IState> {
                     //判断标签状态
                     let tags;
                     if (item.listening === true) {
-                        tags = ['监控中'];
+                        tags = ['录制中'];
                     } else {
                         tags = ['已停止'];
                     }
@@ -204,6 +208,7 @@ class LiveList extends React.Component<Props, IState> {
                             roomName: item.room_name,
                             url: item.live_url
                         },
+                        live_time: item.live_time,
                         address: item.platform_cn_name,
                         tags,
                         listening: item.listening,
@@ -225,7 +230,6 @@ class LiveList extends React.Component<Props, IState> {
                     <PageHeader
                         ghost={false}
                         title="直播间列表"
-                        subTitle="Room List"
                         extra={[
                             <Button key="2" type="default" onClick={this.onSettingSave}>保存设置</Button>,
                             <Button key="1" type="primary" onClick={this.onAddRoomClick}>

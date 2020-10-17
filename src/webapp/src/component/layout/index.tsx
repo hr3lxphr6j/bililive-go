@@ -26,12 +26,12 @@ class RootLayout extends React.Component {
                                     title={
                                         <span>
                                             <Icon type="monitor" />
-                                            LiveClient
+                                            菜单
                                         </span>
                                     }
                                 >
                                     <Menu.Item key="1"><Link to="/">监控列表</Link></Menu.Item>
-                                    <Menu.Item key="2"><Link to="/liveInfo">系统状态</Link></Menu.Item>
+                                    <Menu.Item key="2"><Link to="/liveInfo">关于</Link></Menu.Item>
                                 </SubMenu>
                             </Menu>
                         </Sider>
