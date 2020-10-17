@@ -5,8 +5,8 @@ set -o pipefail
 set -o nounset
 
 OUTPUT_PATH=bin
-SRC_PATH="${GOPATH}/src/github.com/hr3lxphr6j/bililive-go"
-CONSTS_PATH="github.com/hr3lxphr6j/bililive-go/src/consts"
+SRC_PATH="${GOPATH}/src/github.com/daofeng2015/bililive-go"
+CONSTS_PATH="github.com/daofeng2015/bililive-go/src/consts"
 
 _build() {
     target=$1
