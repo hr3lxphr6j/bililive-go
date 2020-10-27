@@ -41,7 +41,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		return nil, live.ErrRoomUrlIncorrect
 	}
 	anchorID := paths[1]
-	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
+	resp, err := requests.Get(mobileUrl, live.CommonUserAgent, requests.Query("anchorid", anchorID))
 	if err != nil {
 		return nil, err
 	}
@@ -52,19 +52,8 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	if err != nil {
 		return nil, err
 	}
-	roomName := utils.UnescapeHTMLEntity(utils.Match1(`title:"([^"]*)"`, body))
-	hostName := utils.UnescapeHTMLEntity(utils.Match1(`nickName:"([^"]+)"`, body))
-	resp, err = requests.Get(mobileUrl, live.CommonUserAgent, requests.Query("anchorid", anchorID))
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, live.ErrRoomNotExist
-	}
-	body, err = resp.Text()
-	if err != nil {
-		return nil, err
-	}
+	roomName := utils.ParseString(utils.Match1(`"title":"([^"\{\}]*)"`, body), utils.ParseUnicode)
+	hostName := utils.ParseString(utils.Match1(`"nickName":"([^"]+)"`, body), utils.ParseUnicode)
 	isLive := utils.Match1(`"isLive":(\d+)`, body)
 	if roomName == "" || hostName == "" || isLive == "" {
 		return nil, live.ErrInternalError
