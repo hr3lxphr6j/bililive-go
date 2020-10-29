@@ -20,7 +20,7 @@ const (
 	cnName         = "浪live"
 
 	playLiveInfoAPIUrl = "https://game-api.lang.live/webapi/v1/room/info"
-	liveInfoAPIUrl     = "https://langapi.lv-show.com/langweb/v1/room/liveinfo"
+	liveInfoAPIUrl     = "https://api.lang.live/langweb/v1/room/liveinfo"
 )
 
 func init() {
