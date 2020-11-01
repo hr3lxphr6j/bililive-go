@@ -1,7 +1,7 @@
 language: go
 sudo: required
 go:
-  - "1.15.1"
+  - "1.15.3"
 env:
   - GO111MODULE=on NODE_VERSION=14.2.0
 before_install:

@@ -6,6 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/lthibault/jitterbug"
+
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
@@ -113,7 +115,12 @@ func (l *listener) refresh() {
 }
 
 func (l *listener) run() {
-	ticker := time.NewTicker(time.Duration(l.config.Interval) * time.Second)
+	ticker := jitterbug.New(
+		time.Duration(l.config.Interval)*time.Second,
+		jitterbug.Norm{
+			Stdev: time.Second * 3,
+		},
+	)
 	defer ticker.Stop()
 
 	for {
