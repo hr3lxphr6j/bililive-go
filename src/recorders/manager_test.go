@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	livemock "github.com/hr3lxphr6j/bililive-go/src/live/mock"
@@ -16,7 +17,9 @@ func TestManagerAddAndRemoveRecorder(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{})
+	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
+		Config: new(configs.Config),
+	})
 	m := NewManager(ctx)
 	backup := newRecorder
 	newRecorder = func(ctx context.Context, live live.Live) (Recorder, error) {
