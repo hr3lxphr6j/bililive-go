@@ -44,7 +44,6 @@ build() {
 main() {
   if [[ ! -d src/cmd/$1 ]]; then
     echo 'Target not exist in src/cmd/'
-    popd >/dev/null
     exit 1
   fi
   build $1
