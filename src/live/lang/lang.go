@@ -2,6 +2,7 @@ package lang
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,8 +21,12 @@ const (
 	cnName         = "浪live"
 
 	playLiveInfoAPIUrl = "https://game-api.lang.live/webapi/v1/room/info"
-	liveInfoAPIUrl     = "https://langapi.lv-show.com/langweb/v1/room/liveinfo"
 )
+
+var liveInfoAPIUrls = [...]string{
+	"https://langapi.lv-show.com/langweb/v1/room/liveinfo",
+	"https://api.lang.live/langweb/v1/room/liveinfo",
+}
 
 func init() {
 	live.Register(playLiveDomain, new(builder))
@@ -52,7 +57,8 @@ func (l *Live) getData() (*gjson.Result, error) {
 			return nil, live.ErrRoomUrlIncorrect
 		}
 		roomID = paths[2]
-		api = liveInfoAPIUrl
+		// TODO: Request all APIs at the same time, use the fastest return.
+		api = liveInfoAPIUrls[rand.Int()&1]
 	case playLiveDomain:
 		if len(paths) < 2 {
 			return nil, live.ErrRoomUrlIncorrect

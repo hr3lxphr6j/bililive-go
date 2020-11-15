@@ -11,6 +11,7 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/gorilla/mux v1.7.4
 	github.com/hr3lxphr6j/requests v0.0.1
+	github.com/lthibault/jitterbug v2.0.0+incompatible
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rakyll/statik v0.1.7
 	github.com/robertkrimen/otto v0.0.0-20191219234010-c382bd3c16ff

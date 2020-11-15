@@ -3,7 +3,9 @@ package recorders
 import (
 	"context"
 	"sync"
+	"time"
 
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
@@ -14,8 +16,10 @@ import (
 func NewManager(ctx context.Context) Manager {
 	rm := &manager{
 		savers: make(map[live.ID]Recorder),
+		cfg:    instance.GetInstance(ctx).Config,
 	}
 	instance.GetInstance(ctx).RecorderManager = rm
+
 	return rm
 }
 
@@ -36,6 +40,7 @@ var (
 type manager struct {
 	lock   sync.RWMutex
 	savers map[live.ID]Recorder
+	cfg    *configs.Config
 }
 
 func (m *manager) registryListener(ctx context.Context, ed events.Dispatcher) {
@@ -100,8 +105,25 @@ func (m *manager) AddRecorder(ctx context.Context, live live.Live) error {
 		return err
 	}
 	m.savers[live.GetLiveId()] = recorder
-	return recorder.Start()
 
+	if maxDur := m.cfg.VideoSplitStrategies.MaxDuration; maxDur != 0 {
+		time.AfterFunc(maxDur, func() {
+			m.restart(ctx, live)
+		})
+	}
+	return recorder.Start()
+}
+
+func (m *manager) restart(ctx context.Context, live live.Live) {
+	if _, err := m.GetRecorder(ctx, live.GetLiveId()); err != nil {
+		return
+	}
+	if err := m.RestartRecorder(ctx, live); err != nil {
+		return
+	}
+	time.AfterFunc(m.cfg.VideoSplitStrategies.MaxDuration, func() {
+		m.restart(ctx, live)
+	})
 }
 
 func (m *manager) RestartRecorder(ctx context.Context, live live.Live) error {

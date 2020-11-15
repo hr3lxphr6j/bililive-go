@@ -2,11 +2,13 @@ package flag
 
 import (
 	"os"
+	"time"
 
 	"github.com/alecthomas/kingpin"
 
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/consts"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
 var (
@@ -20,7 +22,7 @@ var (
 	RPC             = app.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
 	RPCBind         = app.Flag("rpc-bind", "RPC server bind address").Default(":8080").String()
 	NativeFlvParser = app.Flag("native-flv-parser", "use native flv parser").Default("false").Bool()
-	SplitStrategies = app.Flag("split-strategies", "video split strategies, now only support\"OnRoomNameChanged\"").Strings()
+	SplitStrategies = app.Flag("split-strategies", "video split strategies, support\"on_room_name_changed\", \"max_duration:(duration)\"").Strings()
 )
 
 func init() {
@@ -45,8 +47,14 @@ func GenConfigFromFlags() *configs.Config {
 	if SplitStrategies != nil && len(*SplitStrategies) > 0 {
 		for _, s := range *SplitStrategies {
 			// TODO: not hard code
-			if s == "OnRoomNameChanged" {
+			if s == "on_room_name_changed" {
 				cfg.VideoSplitStrategies.OnRoomNameChanged = true
+			}
+			if durStr := utils.Match1(`max_duration:(.*)`, s); durStr != "" {
+				dur, err := time.ParseDuration(durStr)
+				if err == nil {
+					cfg.VideoSplitStrategies.MaxDuration = dur
+				}
 			}
 		}
 	}

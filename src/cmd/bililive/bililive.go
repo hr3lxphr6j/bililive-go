@@ -104,7 +104,7 @@ func main() {
 	}
 
 	c := make(chan os.Signal)
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-c
 		if inst.Config.RPC.Enable {
