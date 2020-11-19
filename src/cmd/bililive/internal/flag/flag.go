@@ -22,6 +22,7 @@ var (
 	RPC             = app.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
 	RPCBind         = app.Flag("rpc-bind", "RPC server bind address").Default(":8080").String()
 	NativeFlvParser = app.Flag("native-flv-parser", "use native flv parser").Default("false").Bool()
+	OutputFileTmpl  = app.Flag("output-file-tmpl", "output file name template").Default("").String()
 	SplitStrategies = app.Flag("split-strategies", "video split strategies, support\"on_room_name_changed\", \"max_duration:(duration)\"").Strings()
 )
 
@@ -39,6 +40,7 @@ func GenConfigFromFlags() *configs.Config {
 		Debug:      *Debug,
 		Interval:   *Interval,
 		OutPutPath: *Output,
+		OutputTmpl: *OutputFileTmpl,
 		LiveRooms:  *Input,
 		Feature: configs.Feature{
 			UseNativeFlvParser: *NativeFlvParser,

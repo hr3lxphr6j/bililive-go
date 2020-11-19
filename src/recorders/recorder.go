@@ -2,6 +2,7 @@
 package recorders
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"text/template"
 	"time"
 
 	"github.com/bluele/gcache"
@@ -53,6 +55,9 @@ var (
 		}
 	}
 )
+
+var defaultFileNameTmpl = template.Must(template.New("filename").Funcs(utils.GetFuncMap()).
+	Parse(`{{ .Live.GetPlatformCNName }}/{{ .HostName | filenameFilter }}/[{{ now | date "2006-01-02 15-04-05"}}][{{ .HostName | filenameFilter }}][{{ .RoomName | filenameFilter }}].flv`))
 
 type Recorder interface {
 	Start() error
@@ -100,18 +105,22 @@ func (r *recorder) tryRecode() {
 
 	obj, _ := r.cache.Get(r.Live)
 	info := obj.(*live.Info)
-	var (
-		strFilter    = utils.NewStringFilterChain(utils.ReplaceIllegalChar, utils.UnescapeHTMLEntity)
-		platformName = strFilter.Do(r.Live.GetPlatformCNName())
-		hostName     = strFilter.Do(info.HostName)
-		roomName     = strFilter.Do(info.RoomName)
-		ts           = time.Now().Format("2006-01-02 15-04-05")
-		fileName     = fmt.Sprintf("[%s][%s][%s].flv", ts, hostName, roomName)
-		outputPath   = filepath.Join(r.OutPutPath, platformName, hostName)
-		file         = filepath.Join(outputPath, fileName)
-		url          = urls[0]
-	)
-	if err := mkdir(outputPath); err != nil {
+
+	tmpl := defaultFileNameTmpl
+	if r.config.OutputTmpl != "" {
+		_tmpl, err := template.New("user_filename").Funcs(utils.GetFuncMap()).Parse(r.config.OutputTmpl)
+		if err == nil {
+			tmpl = _tmpl
+		}
+	}
+	buf := new(bytes.Buffer)
+	if err = tmpl.Execute(buf, info); err != nil {
+		panic(fmt.Sprintf("failed to render filename, err: %v", err))
+	}
+	fileName := filepath.Join(r.OutPutPath, buf.String())
+	outputPath, _ := filepath.Split(fileName)
+	url := urls[0]
+	if err = mkdir(outputPath); err != nil {
 		r.getLogger().WithError(err).Errorf("failed to create output path[%s]", outputPath)
 		return
 	}
@@ -121,8 +130,8 @@ func (r *recorder) tryRecode() {
 		return
 	}
 	r.setAndCloseParser(p)
-	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, file))
-	removeEmptyFile(file)
+	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, fileName))
+	removeEmptyFile(fileName)
 }
 
 func (r *recorder) run() {

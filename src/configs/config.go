@@ -53,6 +53,7 @@ type Config struct {
 	OutPutPath           string   `yaml:"out_put_path"`
 	Feature              Feature  `yaml:"feature"`
 	LiveRooms            []string `yaml:"live_rooms"`
+	OutputTmpl           string   `yaml:"out_put_tmpl"`
 	file                 string
 	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 }
