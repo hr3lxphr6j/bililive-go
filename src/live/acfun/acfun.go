@@ -18,7 +18,7 @@ const (
 	domain = "live.acfun.cn"
 	cnName = "acfun"
 
-	roomInfoApi = "https://live.acfun.cn/api/live/info"
+	roomInfoApi = "https://api-new.app.acfun.cn/rest/app/live/info"
 	loginApi    = "https://id.app.acfun.cn/rest/app/visitor/login"
 	liveInfoApi = "https://api.kuaishouzt.com/rest/zt/live/web/startPlay"
 )
@@ -58,9 +58,9 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	res := gjson.ParseBytes(body)
 	return &live.Info{
 		Live:     l,
-		HostName: res.Get("liveInfo.user.name").String(),
-		RoomName: res.Get("liveInfo.title").String(),
-		Status:   res.Get("liveInfo.liveId").Exists(),
+		HostName: res.Get("user.name").String(),
+		RoomName: res.Get("title").String(),
+		Status:   res.Get("liveId").Exists(),
 	}, nil
 }
 
