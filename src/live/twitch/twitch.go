@@ -55,7 +55,7 @@ func (l *Live) parseInfo() error {
 	}
 	chanId := paths[1]
 	resp, err := requests.Get(fmt.Sprintf(userApiUrl, chanId), live.CommonUserAgent,
-		requests.Header("client-id", clientId),requests.Header("Accept","application/vnd.twitchtv.v5+json"))
+		requests.Header("client-id", clientId),requests.Header("Accept",v5Header))
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (l *Live) parseInfo() error {
 	l.userId = gjson.GetBytes(body,"users").Array()[0].Get("_id").String()
 
 	resp, err = requests.Get(fmt.Sprintf(channelApiUrl, l.userId), live.CommonUserAgent,
-		requests.Header("client-id", clientId),requests.Header("Accept","application/vnd.twitchtv.v5+json"))
+		requests.Header("client-id", clientId),requests.Header("Accept",v5Header))
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		}
 	}
 	resp, err := requests.Get(fmt.Sprintf(streamApiUrl, l.userId), live.CommonUserAgent,
-		requests.Header("client-id", clientId),requests.Header("Accept","application/vnd.twitchtv.v5+json"))
+		requests.Header("client-id", clientId),requests.Header("Accept",v5Header))
 	if err != nil {
 		return nil, err
 	}
