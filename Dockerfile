@@ -1,7 +1,7 @@
 # Build Frontend Start
 
 # NOTE: Yarn has problems executing on ARM, so build on x86.
-FROM --platform=$BUILDPLATFORM node:14.3-alpine as NODE_BUILD
+FROM --platform=$BUILDPLATFORM node:15.5.1-alpine as NODE_BUILD
 
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
@@ -17,7 +17,7 @@ RUN apk update && \
 
 # Build Backend Start
 
-FROM golang:1.15.5-alpine AS GO_BUILD
+FROM golang:1.15.6-alpine AS GO_BUILD
 
 COPY --from=NODE_BUILD /bililive-go/ /go/src/github.com/hr3lxphr6j/bililive-go/
 
@@ -44,9 +44,7 @@ EXPOSE $PORT
 RUN mkdir -p $OUTPUT_DIR && \
     mkdir -p $CONF_DIR && \
     apk update && \
-    apk upgrade && \
-    apk --no-cache add ffmpeg libc6-compat curl bash tree tzdata && \
-    cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    apk --no-cache add ffmpeg libc6-compat curl
 
 VOLUME $OUTPUT_DIR
 
