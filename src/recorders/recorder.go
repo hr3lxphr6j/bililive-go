@@ -61,6 +61,7 @@ var defaultFileNameTmpl = template.Must(template.New("filename").Funcs(utils.Get
 
 type Recorder interface {
 	Start() error
+	StartTime() time.Time
 	Close()
 }
 
@@ -68,11 +69,11 @@ type recorder struct {
 	Live       live.Live
 	OutPutPath string
 
-	config *configs.Config
-	ed     events.Dispatcher
-	logger *interfaces.Logger
-	cache  gcache.Cache
-
+	config     *configs.Config
+	ed         events.Dispatcher
+	logger     *interfaces.Logger
+	cache      gcache.Cache
+	startTime  time.Time
 	parser     parser.Parser
 	parserLock *sync.RWMutex
 
@@ -87,6 +88,7 @@ func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 		OutPutPath: instance.GetInstance(ctx).Config.OutPutPath,
 		config:     inst.Config,
 		cache:      inst.Cache,
+		startTime:  time.Now(),
 		ed:         inst.EventDispatcher.(events.Dispatcher),
 		logger:     inst.Logger,
 		state:      begin,
@@ -130,6 +132,7 @@ func (r *recorder) tryRecode() {
 		return
 	}
 	r.setAndCloseParser(p)
+	r.startTime = time.Now()
 	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, fileName))
 	removeEmptyFile(fileName)
 }
@@ -169,6 +172,10 @@ func (r *recorder) Start() error {
 	r.ed.DispatchEvent(events.NewEvent(RecorderStart, r.Live))
 	atomic.CompareAndSwapUint32(&r.state, pending, running)
 	return nil
+}
+
+func (r *recorder) StartTime() time.Time {
+	return r.startTime
 }
 
 func (r *recorder) Close() {

@@ -57,7 +57,7 @@ func (m *manager) registryListener(ctx context.Context, ed events.Dispatcher) {
 			return
 		}
 		if err := m.RestartRecorder(ctx, live); err != nil {
-			instance.GetInstance(ctx).Logger.Errorf("failed to restart recorder, err: %v", err)
+			instance.GetInstance(ctx).Logger.Errorf("failed to cronRestart recorder, err: %v", err)
 		}
 	}))
 
@@ -107,23 +107,25 @@ func (m *manager) AddRecorder(ctx context.Context, live live.Live) error {
 	m.savers[live.GetLiveId()] = recorder
 
 	if maxDur := m.cfg.VideoSplitStrategies.MaxDuration; maxDur != 0 {
-		time.AfterFunc(maxDur, func() {
-			m.restart(ctx, live)
-		})
+		go m.cronRestart(ctx, live)
 	}
 	return recorder.Start()
 }
 
-func (m *manager) restart(ctx context.Context, live live.Live) {
-	if _, err := m.GetRecorder(ctx, live.GetLiveId()); err != nil {
+func (m *manager) cronRestart(ctx context.Context, live live.Live) {
+	recorder, err := m.GetRecorder(ctx, live.GetLiveId())
+	if err != nil {
+		return
+	}
+	if time.Now().Sub(recorder.StartTime()) < m.cfg.VideoSplitStrategies.MaxDuration {
+		time.AfterFunc(time.Minute/4, func() {
+			m.cronRestart(ctx, live)
+		})
 		return
 	}
 	if err := m.RestartRecorder(ctx, live); err != nil {
 		return
 	}
-	time.AfterFunc(m.cfg.VideoSplitStrategies.MaxDuration, func() {
-		m.restart(ctx, live)
-	})
 }
 
 func (m *manager) RestartRecorder(ctx context.Context, live live.Live) error {
