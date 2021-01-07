@@ -17,7 +17,7 @@ before_deploy:
   - mkdir -p $HOME/.docker
   - echo '{"experimental":"enabled"}' | sudo tee $HOME/.docker/config.json
   - sudo service docker start
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker run --rm --privileged multiarch/qemu-user-static:register --reset -p yes
   - docker buildx create --name xbuilder --use
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
   - make release-docker

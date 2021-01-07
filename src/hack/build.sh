@@ -1,11 +1,10 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 set -o errexit
-set -o pipefail
 set -o nounset
 
-OUTPUT_PATH=bin
-CONSTS_PATH="github.com/hr3lxphr6j/bililive-go/src/consts"
+readonly OUTPUT_PATH=bin
+readonly CONSTS_PATH="github.com/hr3lxphr6j/bililive-go/src/consts"
 
 _build() {
   target=$1
@@ -21,14 +20,14 @@ _build() {
 build() {
   target=$1
 
-  if [[ ${target} == 'bililive' ]]; then
+  if [ ${target} = 'bililive' ]; then
     now=$(date '+%Y-%m-%d_%H:%M:%S')
     rev=$(echo "${rev:-$(git rev-parse HEAD)}")
     ver=$(git describe --tags --always)
     ld_flags="-s -w -X ${CONSTS_PATH}.BuildTime=${now} -X ${CONSTS_PATH}.AppVersion=${ver} -X ${CONSTS_PATH}.GitHash=${rev}"
   fi
 
-  if [[ $(go env GOOS) == "windows" ]]; then
+  if [ $(go env GOOS) = "windows" ]; then
     ext=".exe"
   fi
 
@@ -36,13 +35,13 @@ build() {
 
   _build "${target}" "${bin_name}" "${ld_flags:-}"
 
-  if [[ ${UPX_ENABLE:-"0"} == "1" ]]; then
+  if [ ${UPX_ENABLE:-"0"} = "1" ]; then
     upx --no-progress ${OUTPUT_PATH}/"${bin_name}"
   fi
 }
 
 main() {
-  if [[ ! -d src/cmd/$1 ]]; then
+  if [ ! -d src/cmd/$1 ]; then
     echo 'Target not exist in src/cmd/'
     exit 1
   fi

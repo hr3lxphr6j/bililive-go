@@ -1,7 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 set -o errexit
-set -o pipefail
 set -o nounset
 
 IMAGE_NAME=chigusa/bililive-go
@@ -20,6 +19,5 @@ docker buildx build \
   -t $IMAGE_TAG $(add_latest_tag) \
   --build-arg "tag=${VERSION}" \
   --progress plain \
-  --no-cache \
   --push \
   ./

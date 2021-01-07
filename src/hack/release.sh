@@ -1,13 +1,13 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 set -o errexit
-set -o pipefail
 set -o nounset
 
-BIN_PATH=bin
+readonly BIN_PATH=bin
 
 package() {
-  pushd $BIN_PATH >/dev/null 2>&1
+  last_dir=$(pwd)
+  cd $BIN_PATH
   file=$1
   type=$2
   case $type in
@@ -23,26 +23,34 @@ package() {
   *) ;;
 
   esac
-  popd >/dev/null 2>&1
+  cd "$last_dir"
 }
 
 for dist in $(go tool dist list); do
-  if [[ $dist == android/* || $dist == darwin/arm64 || $dist == js/wasm ]]; then
+  case $dist in
+  android/* | darwin/arm64 | js/wasm)
     continue
-  fi
+    ;;
+  *) ;;
+
+  esac
   platform=$(echo ${dist} | cut -d'/' -f1)
   arch=$(echo ${dist} | cut -d'/' -f2)
   make PLATFORM=${platform} ARCH=${arch} bililive
 done
 
 for file in $(ls $BIN_PATH); do
-  if [[ $file == *".tar.gz" || $file == *".zip" || $file == *".7z" || $file == *".yml" ]]; then
+  case $file in
+  *.tar.gz | *.zip | *.7z | *.yml | *.yaml)
     continue
-  fi
-  package_type=tar
-  if [[ $file == *"windows"* ]]; then
+    ;;
+  *windows*)
     package_type=zip
-  fi
+    ;;
+  *)
+    package_type=tar
+    ;;
+  esac
   package $file $package_type
   rm -f $BIN_PATH/$file
 done

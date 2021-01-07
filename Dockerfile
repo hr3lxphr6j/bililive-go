@@ -1,7 +1,7 @@
 # Build Frontend Start
 
 # NOTE: Yarn has problems executing on ARM, so build on x86.
-FROM --platform=$BUILDPLATFORM node:15.5.1-alpine as NODE_BUILD
+FROM --platform=linux/amd64 node:15.5.1-alpine as NODE_BUILD
 
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
@@ -22,7 +22,7 @@ FROM golang:1.15.6-alpine AS GO_BUILD
 COPY --from=NODE_BUILD /bililive-go/ /go/src/github.com/hr3lxphr6j/bililive-go/
 
 RUN apk update && \
-    apk add git make bash && \
+    apk add git make && \
     go get github.com/rakyll/statik && \
     go get github.com/golang/mock/mockgen && \
     cd /go/src/github.com/hr3lxphr6j/bililive-go && \
