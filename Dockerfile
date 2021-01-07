@@ -44,7 +44,8 @@ EXPOSE $PORT
 RUN mkdir -p $OUTPUT_DIR && \
     mkdir -p $CONF_DIR && \
     apk update && \
-    apk --no-cache add ffmpeg libc6-compat curl
+    apk --no-cache add ffmpeg libc6-compat curl tzdata && \
+    cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 VOLUME $OUTPUT_DIR
 
