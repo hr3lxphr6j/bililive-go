@@ -5,11 +5,10 @@
 package mock
 
 import (
-	url "net/url"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	live "github.com/hr3lxphr6j/bililive-go/src/live"
+	url "net/url"
+	reflect "reflect"
 )
 
 // MockParser is a mock of Parser interface.

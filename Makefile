@@ -1,6 +1,7 @@
 UPX_ENABLE ?= 0
 PLATFORM ?= $(shell go env GOHOSTOS)
 ARCH ?= $(shell go env GOHOSTARCH)
+GPG ?= 1
 
 
 .PHONY: $(notdir $(abspath $(wildcard src/cmd/*/)))
@@ -15,7 +16,7 @@ $(notdir $(abspath $(wildcard src/cmd/*/))):
 
 .PHONY: release
 release: build-web generate
-	@./src/hack/release.sh
+	@GPG=$(GPG) ./src/hack/release.sh
 
 .PHONY: release-docker
 release-docker:

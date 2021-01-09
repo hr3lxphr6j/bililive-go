@@ -6,11 +6,10 @@ package recorders
 
 import (
 	context "context"
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	live "github.com/hr3lxphr6j/bililive-go/src/live"
+	reflect "reflect"
+	time "time"
 )
 
 // MockRecorder is a mock of Recorder interface.

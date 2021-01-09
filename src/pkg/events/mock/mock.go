@@ -6,10 +6,9 @@ package mock
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	events "github.com/hr3lxphr6j/bililive-go/src/pkg/events"
+	reflect "reflect"
 )
 
 // MockDispatcher is a mock of Dispatcher interface.

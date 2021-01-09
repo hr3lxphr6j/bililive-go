@@ -21,6 +21,9 @@ before_deploy:
   - docker buildx create --name xbuilder --use
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
   - make release-docker
+  - openssl aes-256-cbc -K $encrypted_442f41e226a3_key -iv $encrypted_442f41e226a3_iv -in .ci/sign.gpg.enc -out .ci/sign.gpg -d
+  - gpg --batch --import .ci/sign.gpg
+  - rm .ci/sign.gpg
   - make release
 deploy:
   provider: releases

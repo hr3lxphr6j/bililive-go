@@ -6,10 +6,9 @@ package listeners
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	live "github.com/hr3lxphr6j/bililive-go/src/live"
+	reflect "reflect"
 )
 
 // MockListener is a mock of Listener interface.

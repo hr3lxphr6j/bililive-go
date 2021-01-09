@@ -5,12 +5,11 @@
 package mock
 
 import (
+	gomock "github.com/golang/mock/gomock"
+	live "github.com/hr3lxphr6j/bililive-go/src/live"
 	url "net/url"
 	reflect "reflect"
 	time "time"
-
-	gomock "github.com/golang/mock/gomock"
-	live "github.com/hr3lxphr6j/bililive-go/src/live"
 )
 
 // MockLive is a mock of Live interface.

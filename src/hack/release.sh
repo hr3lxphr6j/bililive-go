@@ -12,18 +12,22 @@ package() {
   type=$2
   case $type in
   zip)
-    zip ${file%.exe}.zip ${file} ../config.yml
+    res=${file%.exe}.zip
+    zip $res ${file} ../config.yml >/dev/null 2>&1
     ;;
   tar)
-    tar zcvf ${file}.tar.gz ${file} -C ../ config.yml
+    res=${file}.tar.gz
+    tar zcvf $res ${file} -C ../ config.yml >/dev/null 2>&1
     ;;
   7z)
-    7z a ${file}.7z ${file} ../config.yml
+    res=${file}.7z
+    7z a $res ${file} ../config.yml >/dev/null 2>&1
     ;;
   *) ;;
 
   esac
   cd "$last_dir"
+  echo $BIN_PATH/$res
 }
 
 for dist in $(go tool dist list); do
@@ -51,6 +55,9 @@ for file in $(ls $BIN_PATH); do
     package_type=tar
     ;;
   esac
-  package $file $package_type
+  res=$(package $file $package_type)
   rm -f $BIN_PATH/$file
+  if [ ${GPG:-"0"} = "1" ]; then
+    gpg --default-key B51C710FE9873576 -s $res
+  fi
 done
