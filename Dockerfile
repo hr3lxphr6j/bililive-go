@@ -5,11 +5,11 @@ FROM --platform=linux/amd64 node:15.5.1-alpine as NODE_BUILD
 
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
-ARG tag
 
-RUN apk update && \
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories && \
+    apk update && \
     apk add git yarn make && \
-    git clone -b $tag --depth 1 https://github.com/hr3lxphr6j/bililive-go.git /bililive-go && \
+    git clone https://github.com/hr3lxphr6j/bililive-go.git /bililive-go && \
     cd /bililive-go && \
     make build-web
 
@@ -21,7 +21,11 @@ FROM golang:1.15.6-alpine AS GO_BUILD
 
 COPY --from=NODE_BUILD /bililive-go/ /go/src/github.com/hr3lxphr6j/bililive-go/
 
-RUN apk update && \
+ENV GO111MODULE = ON \
+    GOPROXY=https://goproxy.cn,direct
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories && \
+    apk update && \
     apk add git make && \
     go get github.com/rakyll/statik && \
     go get github.com/golang/mock/mockgen && \
@@ -41,7 +45,8 @@ ENV OUTPUT_DIR="/srv/bililive" \
 
 EXPOSE $PORT
 
-RUN mkdir -p $OUTPUT_DIR && \
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories && \
+    mkdir -p $OUTPUT_DIR && \
     mkdir -p $CONF_DIR && \
     apk update && \
     apk --no-cache add ffmpeg libc6-compat curl tzdata && \
