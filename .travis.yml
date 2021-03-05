@@ -1,9 +1,9 @@
 language: go
 sudo: required
 go:
-  - "1.15.6"
+  - "1.16"
 env:
-  - GO111MODULE=on NODE_VERSION=15.5.1
+  - GO111MODULE=on NODE_VERSION=15.11.0
 before_install:
   - nvm install $NODE_VERSION
 script:

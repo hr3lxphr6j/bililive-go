@@ -1,7 +1,7 @@
 # Build Frontend Start
 
 # NOTE: Yarn has problems executing on ARM, so build on x86.
-FROM --platform=linux/amd64 node:15.5.1-alpine as NODE_BUILD
+FROM --platform=linux/amd64 node:15.11.0-alpine as NODE_BUILD
 
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
@@ -17,7 +17,7 @@ RUN apk update && \
 
 # Build Backend Start
 
-FROM golang:1.15.6-alpine AS GO_BUILD
+FROM golang:1.16-alpine AS GO_BUILD
 
 COPY --from=NODE_BUILD /bililive-go/ /go/src/github.com/hr3lxphr6j/bililive-go/
 

@@ -1,6 +1,6 @@
 module github.com/hr3lxphr6j/bililive-go
 
-go 1.13
+go 1.16
 
 require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -20,7 +20,6 @@ require (
 	github.com/lthibault/jitterbug v2.0.0+incompatible
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/rakyll/statik v0.1.7
 	github.com/robertkrimen/otto v0.0.0-20191219234010-c382bd3c16ff
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/sirupsen/logrus v1.6.0
