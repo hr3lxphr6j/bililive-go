@@ -47,6 +47,21 @@ func (mr *MockRecorderMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockRecorder)(nil).Close))
 }
 
+// GetStatus mocks base method.
+func (m *MockRecorder) GetStatus() (map[string]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatus")
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatus indicates an expected call of GetStatus.
+func (mr *MockRecorderMockRecorder) GetStatus() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatus", reflect.TypeOf((*MockRecorder)(nil).GetStatus))
+}
+
 // Start mocks base method.
 func (m *MockRecorder) Start() error {
 	m.ctrl.T.Helper()

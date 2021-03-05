@@ -37,12 +37,12 @@ const (
 
 // for test
 var (
-	newParser = func(u *url.URL, useNativeFlvParser bool) (parser.Parser, error) {
+	newParser = func(u *url.URL, useNativeFlvParser bool, cfg map[string]string) (parser.Parser, error) {
 		parserName := ffmpeg.Name
 		if strings.Contains(u.Path, ".flv") && useNativeFlvParser {
 			parserName = flv.Name
 		}
-		return parser.New(parserName)
+		return parser.New(parserName, cfg)
 	}
 
 	mkdir = func(path string) error {
@@ -62,6 +62,7 @@ var defaultFileNameTmpl = template.Must(template.New("filename").Funcs(utils.Get
 type Recorder interface {
 	Start() error
 	StartTime() time.Time
+	GetStatus() (map[string]string, error)
 	Close()
 }
 
@@ -126,7 +127,11 @@ func (r *recorder) tryRecode() {
 		r.getLogger().WithError(err).Errorf("failed to create output path[%s]", outputPath)
 		return
 	}
-	p, err := newParser(url, r.config.Feature.UseNativeFlvParser)
+	parserCfg := map[string]string{}
+	if r.config.Debug {
+		parserCfg["debug"] = "true"
+	}
+	p, err := newParser(url, r.config.Feature.UseNativeFlvParser, parserCfg)
 	if err != nil {
 		r.getLogger().WithError(err).Error("failed to init parse")
 		return
@@ -204,4 +209,12 @@ func (r *recorder) getFields() map[string]interface{} {
 		"host": info.HostName,
 		"room": info.RoomName,
 	}
+}
+
+func (r *recorder) GetStatus() (map[string]string, error) {
+	statusP, ok := r.getParser().(parser.StatusParser)
+	if !ok {
+		return nil, ErrParserNotSupportStatus
+	}
+	return statusP.Status()
 }

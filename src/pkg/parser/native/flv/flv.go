@@ -36,7 +36,7 @@ func init() {
 
 type builder struct{}
 
-func (b *builder) Build() (parser.Parser, error) {
+func (b *builder) Build(_ map[string]string) (parser.Parser, error) {
 	return &Parser{
 		Metadata:  Metadata{},
 		hc:        &http.Client{},

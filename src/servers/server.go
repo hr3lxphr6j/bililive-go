@@ -7,6 +7,7 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/webapp"
@@ -47,6 +48,8 @@ func initMux(ctx context.Context) *mux.Router {
 	apiRoute.HandleFunc("/lives/{id}", getLive).Methods("GET")
 	apiRoute.HandleFunc("/lives/{id}", removeLive).Methods("DELETE")
 	apiRoute.HandleFunc("/lives/{id}/{action}", parseLiveAction).Methods("GET")
+	apiRoute.Handle("/metrics", promhttp.Handler())
+
 	fs, err := fs.Sub(webapp.FS, "build")
 	if err != nil {
 		instance.GetInstance(ctx).Logger.Fatal(err)

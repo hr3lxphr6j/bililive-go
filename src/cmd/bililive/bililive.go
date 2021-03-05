@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/bluele/gcache"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/log"
+	"github.com/hr3lxphr6j/bililive-go/src/metrics"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/hr3lxphr6j/bililive-go/src/recorders"
@@ -97,10 +99,15 @@ func main() {
 		logger.Fatalf("failed to init recorder manager, error: %s", err)
 	}
 
+	if err = metrics.NewCollector(ctx).Start(ctx); err != nil {
+		logger.Fatalf("failed to init metrics collector, error: %s", err)
+	}
+
 	for _, _live := range inst.Lives {
 		if err := lm.AddListener(ctx, _live); err != nil {
 			logger.WithFields(map[string]interface{}{"url": _live.GetRawUrl()}).Error(err)
 		}
+		time.Sleep(time.Second * 5)
 	}
 
 	c := make(chan os.Signal)
