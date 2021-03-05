@@ -7,11 +7,11 @@ env:
 before_install:
   - nvm install $NODE_VERSION
 script:
+  - make build-web
   - make
   - make test
 before_deploy:
   - go install github.com/golang/mock/mockgen
-  - go install github.com/rakyll/statik
   - curl -fsSL https://get.docker.com | sh
   - echo '{"experimental":"enabled"}' | sudo tee /etc/docker/daemon.json
   - mkdir -p $HOME/.docker
