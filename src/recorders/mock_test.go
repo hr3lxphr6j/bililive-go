@@ -62,6 +62,20 @@ func (mr *MockRecorderMockRecorder) GetStatus() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatus", reflect.TypeOf((*MockRecorder)(nil).GetStatus))
 }
 
+// ID mocks base method
+func (m *MockRecorder) ID() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ID")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// ID indicates an expected call of ID
+func (mr *MockRecorderMockRecorder) ID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockRecorder)(nil).ID))
+}
+
 // Start mocks base method
 func (m *MockRecorder) Start() error {
 	m.ctrl.T.Helper()

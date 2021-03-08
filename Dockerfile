@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:experimental
 # Build Frontend Start
 
 # NOTE: Yarn has problems executing on ARM, so build on x86.
@@ -21,9 +22,8 @@ FROM golang:1.16-alpine AS GO_BUILD
 
 COPY --from=NODE_BUILD /bililive-go/ /go/src/github.com/hr3lxphr6j/bililive-go/
 
-RUN apk update && \
+RUN --mount=type=cache,target=/go/pkg apk update && \
     apk add git make && \
-    go get github.com/rakyll/statik && \
     go get github.com/golang/mock/mockgen && \
     cd /go/src/github.com/hr3lxphr6j/bililive-go && \
     make generate bililive && \

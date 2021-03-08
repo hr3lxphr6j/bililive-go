@@ -18,21 +18,21 @@ import (
 
 var (
 	liveStatus = prometheus.NewDesc(
-		prometheus.BuildFQName("bgo", "", "live_status"),
+		prometheus.BuildFQName("bgo", "live", "status"),
 		"live status",
 		[]string{"live_id", "live_url", "live_host_name", "live_room_name", "live_listening"},
 		nil,
 	)
 	liveDurationSeconds = prometheus.NewDesc(
-		prometheus.BuildFQName("bgo", "", "live_duration_seconds"),
+		prometheus.BuildFQName("bgo", "live", "duration_seconds"),
 		"live status",
 		[]string{"live_id", "live_url", "live_host_name", "live_room_name"},
 		nil,
 	)
 	recorderTotalBytes = prometheus.NewDesc(
-		prometheus.BuildFQName("bgo", "", "recorder_total_bytes"),
+		prometheus.BuildFQName("bgo", "recorder", "total_bytes"),
 		"recorder total bytes",
-		[]string{"live_id", "live_url", "live_host_name", "live_room_name"},
+		[]string{"live_id", "live_url", "live_host_name", "live_room_name", "recoder_id"},
 		nil,
 	)
 )
@@ -81,7 +81,7 @@ func (c collector) Collect(ch chan<- prometheus.Metric) {
 					if status, err := r.GetStatus(); err == nil {
 						if value, err := strconv.ParseFloat(status["total_size"], 64); err == nil {
 							ch <- prometheus.MustNewConstMetric(recorderTotalBytes, prometheus.CounterValue, value,
-								string(id), l.GetRawUrl(), info.HostName, info.RoomName)
+								string(id), l.GetRawUrl(), info.HostName, info.RoomName, r.ID())
 						}
 					}
 				}
