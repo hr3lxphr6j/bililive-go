@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/bluele/gcache"
-	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
@@ -61,7 +60,6 @@ var defaultFileNameTmpl = template.Must(template.New("filename").Funcs(utils.Get
 	Parse(`{{ .Live.GetPlatformCNName }}/{{ .HostName | filenameFilter }}/[{{ now | date "2006-01-02 15-04-05"}}][{{ .HostName | filenameFilter }}][{{ .RoomName | filenameFilter }}].flv`))
 
 type Recorder interface {
-	ID() string
 	Start() error
 	StartTime() time.Time
 	GetStatus() (map[string]string, error)
@@ -69,7 +67,6 @@ type Recorder interface {
 }
 
 type recorder struct {
-	id         string
 	Live       live.Live
 	OutPutPath string
 
@@ -88,7 +85,6 @@ type recorder struct {
 func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 	inst := instance.GetInstance(ctx)
 	return &recorder{
-		id:         uuid.Must(uuid.NewV4()).String(),
 		Live:       live,
 		OutPutPath: instance.GetInstance(ctx).Config.OutPutPath,
 		config:     inst.Config,
@@ -170,10 +166,6 @@ func (r *recorder) setAndCloseParser(p parser.Parser) {
 		r.parser.Stop()
 	}
 	r.parser = p
-}
-
-func (r *recorder) ID() string {
-	return r.id
 }
 
 func (r *recorder) Start() error {
