@@ -1,45 +1,9 @@
-# syntax = docker/dockerfile:experimental
-# Build Frontend Start
-
-# NOTE: Yarn has problems executing on ARM, so build on x86.
-FROM --platform=linux/amd64 node:15.11.0-alpine as NODE_BUILD
-
-ARG BUILDPLATFORM
-ARG TARGETPLATFORM
-ARG tag
-
-RUN apk update && \
-    apk add git yarn make && \
-    git clone -b $tag --depth 1 https://github.com/hr3lxphr6j/bililive-go.git /bililive-go && \
-    cd /bililive-go && \
-    make build-web
-
-# Build Frontend End
-
-# Build Backend Start
-
-FROM golang:1.16.4-alpine AS GO_BUILD
-
-COPY --from=NODE_BUILD /bililive-go/ /go/src/github.com/hr3lxphr6j/bililive-go/
-
-RUN --mount=type=cache,target=/go/pkg apk update && \
-    apk add git make && \
-    go get github.com/golang/mock/mockgen && \
-    cd /go/src/github.com/hr3lxphr6j/bililive-go && \
-    make generate bililive && \
-    mv bin/bililive-linux-* bin/bililive-go
-
-# Build Backend End
-
-# Build Runtime Image Start
-
 FROM alpine
 
+ARG tag
 ENV OUTPUT_DIR="/srv/bililive" \
     CONF_DIR="/etc/bililive-go" \
     PORT=8080
-
-EXPOSE $PORT
 
 RUN mkdir -p $OUTPUT_DIR && \
     mkdir -p $CONF_DIR && \
@@ -47,12 +11,18 @@ RUN mkdir -p $OUTPUT_DIR && \
     apk --no-cache add ffmpeg libc6-compat curl tzdata && \
     cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
+RUN sh -c "case $(arch) in aarch64) go_arch=arm64 ;; arm*) go_arch=arm ;; i386|i686) go_arch=386 ;; x86_64) go_arch=amd64;; esac && \
+    cd /tmp && curl -sSLO https://github.com/hr3lxphr6j/bililive-go/releases/download/$tag/bililive-linux-\${go_arch}.tar.gz && \
+    tar zxvf bililive-linux-\${go_arch}.tar.gz && \
+    chmod +x bililive-linux-\${go_arch} && \
+    mv ./bililive-linux-\${go_arch} /usr/bin/bililive-go && \
+    mv ./config.yml $CONF_DIR/config.yml && \
+    rm ./bililive-linux-\${go_arch}.tar.gz" && \
+    sh -c "if [ $tag != $(/usr/bin/bililive-go --version | tr -d '\n') ]; then return 1; fi"
+
 VOLUME $OUTPUT_DIR
 
-COPY --from=GO_BUILD /go/src/github.com/hr3lxphr6j/bililive-go/bin/bililive-go /usr/bin/bililive-go
-ADD config.docker.yml $CONF_DIR/config.yml
+EXPOSE $PORT
 
 ENTRYPOINT ["/usr/bin/bililive-go"]
-CMD ["-c", "/etc/bililive-go/config.yml"]
-
-# Build Runtime Image End
+CMD ["-c", "$CONF_DIR/config.yml"]

@@ -12,15 +12,6 @@ script:
   - make test
 before_deploy:
   - go install github.com/golang/mock/mockgen
-  - curl -fsSL https://get.docker.com | sh
-  - echo '{"experimental":"enabled"}' | sudo tee /etc/docker/daemon.json
-  - mkdir -p $HOME/.docker
-  - echo '{"experimental":"enabled"}' | sudo tee $HOME/.docker/config.json
-  - sudo service docker start
-  - docker run --rm --privileged multiarch/qemu-user-static:register --reset -p yes
-  - docker buildx create --name xbuilder --use
-  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-  - make release-docker
   - openssl aes-256-cbc -K $encrypted_442f41e226a3_key -iv $encrypted_442f41e226a3_iv -in .ci/sign.gpg.enc -out .ci/sign.gpg -d
   - gpg --batch --import .ci/sign.gpg
   - rm .ci/sign.gpg
@@ -34,3 +25,13 @@ deploy:
   file: "bin/*"
   on:
     tags: true
+after_deploy:
+  - curl -fsSL https://get.docker.com | sh
+  - echo '{"experimental":"enabled"}' | sudo tee /etc/docker/daemon.json
+  - mkdir -p $HOME/.docker
+  - echo '{"experimental":"enabled"}' | sudo tee $HOME/.docker/config.json
+  - sudo service docker start
+  - docker run --rm --privileged multiarch/qemu-user-static:register --reset -p yes
+  - docker buildx create --name xbuilder --use
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  - make release-docker
