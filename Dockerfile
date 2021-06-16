@@ -25,4 +25,4 @@ VOLUME $OUTPUT_DIR
 EXPOSE $PORT
 
 ENTRYPOINT ["/usr/bin/bililive-go"]
-CMD ["-c", "$CONF_DIR/config.yml"]
+CMD ["-c", "/etc/bililive-go/config.yml"]
