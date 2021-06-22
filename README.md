@@ -87,6 +87,11 @@ Bililive-go是一个支持多种直播平台的直播录制工具
         <td>www.huajiao.com</td>
         <td>滋瓷</td>
     </tr>
+    <tr align="center">
+        <td>抖音直播</td>
+        <td>live.douyin.com</td>
+        <td>滋瓷</td>
+    </tr>
 </table>
 
 ## 依赖
