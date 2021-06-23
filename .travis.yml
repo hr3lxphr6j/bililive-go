@@ -1,20 +1,16 @@
 language: go
 sudo: required
 go:
-  - "1.16.4"
+  - "1.16.5"
 env:
-  - GO111MODULE=on NODE_VERSION=15.11.0
+  - GO111MODULE=on NODE_VERSION=16.3.0
 before_install:
   - nvm install $NODE_VERSION
 script:
-  - make build-web
-  - make
+  - make build-web bililive
   - make test
 before_deploy:
   - go install github.com/golang/mock/mockgen
-  - openssl aes-256-cbc -K $encrypted_442f41e226a3_key -iv $encrypted_442f41e226a3_iv -in .ci/sign.gpg.enc -out .ci/sign.gpg -d
-  - gpg --batch --import .ci/sign.gpg
-  - rm .ci/sign.gpg
   - make release
 deploy:
   provider: releases

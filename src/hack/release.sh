@@ -57,7 +57,4 @@ for file in $(ls $BIN_PATH); do
   esac
   res=$(package $file $package_type)
   rm -f $BIN_PATH/$file
-  if [ ${GPG:-"0"} = "1" ]; then
-    gpg --default-key B51C710FE9873576 -s $res
-  fi
 done
