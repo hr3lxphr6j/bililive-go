@@ -18,7 +18,7 @@ const (
 	domain = "live.acfun.cn"
 	cnName = "acfun"
 
-	roomInfoApi = "https://api-new.app.acfun.cn/rest/app/live/info"
+	roomInfoApi = "https://live.acfun.cn/api/live/info"
 	loginApi    = "https://id.app.acfun.cn/rest/app/visitor/login"
 	liveInfoApi = "https://api.kuaishouzt.com/rest/zt/live/web/startPlay"
 )
