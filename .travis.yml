@@ -10,7 +10,7 @@ script:
   - make build-web bililive
   - make test
 before_deploy:
-  - go install github.com/golang/mock/mockgen
+  - go install github.com/golang/mock/mockgen@v1.6.0
   - make release
 deploy:
   provider: releases
