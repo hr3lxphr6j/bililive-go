@@ -1,17 +1,16 @@
 package servers
 
-//go:generate statik -f -src=../webapp/build/
-
 import (
 	"context"
+	"io/fs"
 	"net/http"
 	_ "net/http/pprof"
 
 	"github.com/gorilla/mux"
-	"github.com/rakyll/statik/fs"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	_ "github.com/hr3lxphr6j/bililive-go/src/servers/statik"
+	"github.com/hr3lxphr6j/bililive-go/src/webapp"
 )
 
 const (
@@ -49,12 +48,13 @@ func initMux(ctx context.Context) *mux.Router {
 	apiRoute.HandleFunc("/lives/{id}", getLive).Methods("GET")
 	apiRoute.HandleFunc("/lives/{id}", removeLive).Methods("DELETE")
 	apiRoute.HandleFunc("/lives/{id}/{action}", parseLiveAction).Methods("GET")
+	apiRoute.Handle("/metrics", promhttp.Handler())
 
-	statikFS, err := fs.New()
+	fs, err := fs.Sub(webapp.FS, "build")
 	if err != nil {
 		instance.GetInstance(ctx).Logger.Fatal(err)
 	}
-	m.PathPrefix("/").Handler(http.FileServer(statikFS))
+	m.PathPrefix("/").Handler(http.FileServer(http.FS(fs)))
 
 	// pprof
 	if instance.GetInstance(ctx).Config.Debug {

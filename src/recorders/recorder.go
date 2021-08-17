@@ -2,6 +2,7 @@
 package recorders
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"text/template"
 	"time"
 
 	"github.com/bluele/gcache"
@@ -35,12 +37,12 @@ const (
 
 // for test
 var (
-	newParser = func(u *url.URL, useNativeFlvParser bool) (parser.Parser, error) {
+	newParser = func(u *url.URL, useNativeFlvParser bool, cfg map[string]string) (parser.Parser, error) {
 		parserName := ffmpeg.Name
 		if strings.Contains(u.Path, ".flv") && useNativeFlvParser {
 			parserName = flv.Name
 		}
-		return parser.New(parserName)
+		return parser.New(parserName, cfg)
 	}
 
 	mkdir = func(path string) error {
@@ -54,8 +56,13 @@ var (
 	}
 )
 
+var defaultFileNameTmpl = template.Must(template.New("filename").Funcs(utils.GetFuncMap()).
+	Parse(`{{ .Live.GetPlatformCNName }}/{{ .HostName | filenameFilter }}/[{{ now | date "2006-01-02 15-04-05"}}][{{ .HostName | filenameFilter }}][{{ .RoomName | filenameFilter }}].flv`))
+
 type Recorder interface {
 	Start() error
+	StartTime() time.Time
+	GetStatus() (map[string]string, error)
 	Close()
 }
 
@@ -63,11 +70,11 @@ type recorder struct {
 	Live       live.Live
 	OutPutPath string
 
-	config *configs.Config
-	ed     events.Dispatcher
-	logger *interfaces.Logger
-	cache  gcache.Cache
-
+	config     *configs.Config
+	ed         events.Dispatcher
+	logger     *interfaces.Logger
+	cache      gcache.Cache
+	startTime  time.Time
 	parser     parser.Parser
 	parserLock *sync.RWMutex
 
@@ -82,6 +89,7 @@ func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 		OutPutPath: instance.GetInstance(ctx).Config.OutPutPath,
 		config:     inst.Config,
 		cache:      inst.Cache,
+		startTime:  time.Now(),
 		ed:         inst.EventDispatcher.(events.Dispatcher),
 		logger:     inst.Logger,
 		state:      begin,
@@ -100,29 +108,38 @@ func (r *recorder) tryRecode() {
 
 	obj, _ := r.cache.Get(r.Live)
 	info := obj.(*live.Info)
-	var (
-		strFilter    = utils.NewStringFilterChain(utils.ReplaceIllegalChar, utils.UnescapeHTMLEntity)
-		platformName = strFilter.Do(r.Live.GetPlatformCNName())
-		hostName     = strFilter.Do(info.HostName)
-		roomName     = strFilter.Do(info.RoomName)
-		ts           = time.Now().Format("2006-01-02 15-04-05")
-		fileName     = fmt.Sprintf("[%s][%s][%s].flv", ts, hostName, roomName)
-		outputPath   = filepath.Join(r.OutPutPath, platformName, hostName)
-		file         = filepath.Join(outputPath, fileName)
-		url          = urls[0]
-	)
-	if err := mkdir(outputPath); err != nil {
+
+	tmpl := defaultFileNameTmpl
+	if r.config.OutputTmpl != "" {
+		_tmpl, err := template.New("user_filename").Funcs(utils.GetFuncMap()).Parse(r.config.OutputTmpl)
+		if err == nil {
+			tmpl = _tmpl
+		}
+	}
+	buf := new(bytes.Buffer)
+	if err = tmpl.Execute(buf, info); err != nil {
+		panic(fmt.Sprintf("failed to render filename, err: %v", err))
+	}
+	fileName := filepath.Join(r.OutPutPath, buf.String())
+	outputPath, _ := filepath.Split(fileName)
+	url := urls[0]
+	if err = mkdir(outputPath); err != nil {
 		r.getLogger().WithError(err).Errorf("failed to create output path[%s]", outputPath)
 		return
 	}
-	p, err := newParser(url, r.config.Feature.UseNativeFlvParser)
+	parserCfg := map[string]string{}
+	if r.config.Debug {
+		parserCfg["debug"] = "true"
+	}
+	p, err := newParser(url, r.config.Feature.UseNativeFlvParser, parserCfg)
 	if err != nil {
 		r.getLogger().WithError(err).Error("failed to init parse")
 		return
 	}
 	r.setAndCloseParser(p)
-	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, file))
-	removeEmptyFile(file)
+	r.startTime = time.Now()
+	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, fileName))
+	removeEmptyFile(fileName)
 }
 
 func (r *recorder) run() {
@@ -162,6 +179,10 @@ func (r *recorder) Start() error {
 	return nil
 }
 
+func (r *recorder) StartTime() time.Time {
+	return r.startTime
+}
+
 func (r *recorder) Close() {
 	if !atomic.CompareAndSwapUint32(&r.state, running, stopped) {
 		return
@@ -188,4 +209,12 @@ func (r *recorder) getFields() map[string]interface{} {
 		"host": info.HostName,
 		"room": info.RoomName,
 	}
+}
+
+func (r *recorder) GetStatus() (map[string]string, error) {
+	statusP, ok := r.getParser().(parser.StatusParser)
+	if !ok {
+		return nil, ErrParserNotSupportStatus
+	}
+	return statusP.Status()
 }

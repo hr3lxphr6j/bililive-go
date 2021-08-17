@@ -6,47 +6,64 @@ package recorders
 
 import (
 	context "context"
+	reflect "reflect"
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	live "github.com/hr3lxphr6j/bililive-go/src/live"
-	reflect "reflect"
 )
 
-// MockRecorder is a mock of Recorder interface
+// MockRecorder is a mock of Recorder interface.
 type MockRecorder struct {
 	ctrl     *gomock.Controller
 	recorder *MockRecorderMockRecorder
 }
 
-// MockRecorderMockRecorder is the mock recorder for MockRecorder
+// MockRecorderMockRecorder is the mock recorder for MockRecorder.
 type MockRecorderMockRecorder struct {
 	mock *MockRecorder
 }
 
-// NewMockRecorder creates a new mock instance
+// NewMockRecorder creates a new mock instance.
 func NewMockRecorder(ctrl *gomock.Controller) *MockRecorder {
 	mock := &MockRecorder{ctrl: ctrl}
 	mock.recorder = &MockRecorderMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRecorder) EXPECT() *MockRecorderMockRecorder {
 	return m.recorder
 }
 
-// Close mocks base method
+// Close mocks base method.
 func (m *MockRecorder) Close() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Close")
 }
 
-// Close indicates an expected call of Close
+// Close indicates an expected call of Close.
 func (mr *MockRecorderMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockRecorder)(nil).Close))
 }
 
-// Start mocks base method
+// GetStatus mocks base method.
+func (m *MockRecorder) GetStatus() (map[string]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatus")
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatus indicates an expected call of GetStatus.
+func (mr *MockRecorderMockRecorder) GetStatus() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatus", reflect.TypeOf((*MockRecorder)(nil).GetStatus))
+}
+
+// Start mocks base method.
 func (m *MockRecorder) Start() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Start")
@@ -54,36 +71,50 @@ func (m *MockRecorder) Start() error {
 	return ret0
 }
 
-// Start indicates an expected call of Start
+// Start indicates an expected call of Start.
 func (mr *MockRecorderMockRecorder) Start() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockRecorder)(nil).Start))
 }
 
-// MockManager is a mock of Manager interface
+// StartTime mocks base method.
+func (m *MockRecorder) StartTime() time.Time {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartTime")
+	ret0, _ := ret[0].(time.Time)
+	return ret0
+}
+
+// StartTime indicates an expected call of StartTime.
+func (mr *MockRecorderMockRecorder) StartTime() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartTime", reflect.TypeOf((*MockRecorder)(nil).StartTime))
+}
+
+// MockManager is a mock of Manager interface.
 type MockManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerMockRecorder
 }
 
-// MockManagerMockRecorder is the mock recorder for MockManager
+// MockManagerMockRecorder is the mock recorder for MockManager.
 type MockManagerMockRecorder struct {
 	mock *MockManager
 }
 
-// NewMockManager creates a new mock instance
+// NewMockManager creates a new mock instance.
 func NewMockManager(ctrl *gomock.Controller) *MockManager {
 	mock := &MockManager{ctrl: ctrl}
 	mock.recorder = &MockManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
-// AddRecorder mocks base method
+// AddRecorder mocks base method.
 func (m *MockManager) AddRecorder(arg0 context.Context, arg1 live.Live) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddRecorder", arg0, arg1)
@@ -91,25 +122,25 @@ func (m *MockManager) AddRecorder(arg0 context.Context, arg1 live.Live) error {
 	return ret0
 }
 
-// AddRecorder indicates an expected call of AddRecorder
+// AddRecorder indicates an expected call of AddRecorder.
 func (mr *MockManagerMockRecorder) AddRecorder(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRecorder", reflect.TypeOf((*MockManager)(nil).AddRecorder), arg0, arg1)
 }
 
-// Close mocks base method
+// Close mocks base method.
 func (m *MockManager) Close(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Close", arg0)
 }
 
-// Close indicates an expected call of Close
+// Close indicates an expected call of Close.
 func (mr *MockManagerMockRecorder) Close(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockManager)(nil).Close), arg0)
 }
 
-// GetRecorder mocks base method
+// GetRecorder mocks base method.
 func (m *MockManager) GetRecorder(arg0 context.Context, arg1 live.ID) (Recorder, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRecorder", arg0, arg1)
@@ -118,13 +149,13 @@ func (m *MockManager) GetRecorder(arg0 context.Context, arg1 live.ID) (Recorder,
 	return ret0, ret1
 }
 
-// GetRecorder indicates an expected call of GetRecorder
+// GetRecorder indicates an expected call of GetRecorder.
 func (mr *MockManagerMockRecorder) GetRecorder(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRecorder", reflect.TypeOf((*MockManager)(nil).GetRecorder), arg0, arg1)
 }
 
-// HasRecorder mocks base method
+// HasRecorder mocks base method.
 func (m *MockManager) HasRecorder(arg0 context.Context, arg1 live.ID) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HasRecorder", arg0, arg1)
@@ -132,13 +163,13 @@ func (m *MockManager) HasRecorder(arg0 context.Context, arg1 live.ID) bool {
 	return ret0
 }
 
-// HasRecorder indicates an expected call of HasRecorder
+// HasRecorder indicates an expected call of HasRecorder.
 func (mr *MockManagerMockRecorder) HasRecorder(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasRecorder", reflect.TypeOf((*MockManager)(nil).HasRecorder), arg0, arg1)
 }
 
-// RemoveRecorder mocks base method
+// RemoveRecorder mocks base method.
 func (m *MockManager) RemoveRecorder(arg0 context.Context, arg1 live.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveRecorder", arg0, arg1)
@@ -146,13 +177,27 @@ func (m *MockManager) RemoveRecorder(arg0 context.Context, arg1 live.ID) error {
 	return ret0
 }
 
-// RemoveRecorder indicates an expected call of RemoveRecorder
+// RemoveRecorder indicates an expected call of RemoveRecorder.
 func (mr *MockManagerMockRecorder) RemoveRecorder(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveRecorder", reflect.TypeOf((*MockManager)(nil).RemoveRecorder), arg0, arg1)
 }
 
-// Start mocks base method
+// RestartRecorder mocks base method.
+func (m *MockManager) RestartRecorder(arg0 context.Context, arg1 live.Live) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestartRecorder", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RestartRecorder indicates an expected call of RestartRecorder.
+func (mr *MockManagerMockRecorder) RestartRecorder(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestartRecorder", reflect.TypeOf((*MockManager)(nil).RestartRecorder), arg0, arg1)
+}
+
+// Start mocks base method.
 func (m *MockManager) Start(arg0 context.Context) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Start", arg0)
@@ -160,7 +205,7 @@ func (m *MockManager) Start(arg0 context.Context) error {
 	return ret0
 }
 
-// Start indicates an expected call of Start
+// Start indicates an expected call of Start.
 func (mr *MockManagerMockRecorder) Start(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockManager)(nil).Start), arg0)

@@ -1,5 +1,5 @@
 # Bililive-go
-[![Build Status](https://travis-ci.org/hr3lxphr6j/bililive-go.svg?branch=master)](https://travis-ci.org/hr3lxphr6j/bililive-go)
+[![Build Status](https://travis-ci.com/hr3lxphr6j/bililive-go.svg?branch=master)](https://travis-ci.com/hr3lxphr6j/bililive-go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/hr3lxphr6j/bililive-go)](https://goreportcard.com/report/github.com/hr3lxphr6j/bililive-go)
 [![Github release](https://img.shields.io/github/release/hr3lxphr6j/bililive-go.svg)](https://github.com/hr3lxphr6j/bililive-go/releases/latest)
 [![Docker Pulls](https://img.shields.io/docker/pulls/chigusa/bililive-go.svg)](https://hub.docker.com/r/chigusa/bililive-go/)
@@ -80,6 +80,16 @@ Bililive-go是一个支持多种直播平台的直播录制工具
     <tr align="center">
         <td>浪live</td>
         <td>play.lang.live & www.lang.live</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>花椒</td>
+        <td>www.huajiao.com</td>
+        <td>滋瓷</td>
+    </tr>
+    <tr align="center">
+        <td>抖音直播</td>
+        <td>live.douyin.com</td>
         <td>滋瓷</td>
     </tr>
 </table>

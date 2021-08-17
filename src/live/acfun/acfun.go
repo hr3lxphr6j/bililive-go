@@ -58,9 +58,9 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	res := gjson.ParseBytes(body)
 	return &live.Info{
 		Live:     l,
-		HostName: res.Get("liveInfo.user.name").String(),
-		RoomName: res.Get("liveInfo.title").String(),
-		Status:   res.Get("liveInfo.liveId").Exists(),
+		HostName: res.Get("user.name").String(),
+		RoomName: res.Get("title").String(),
+		Status:   res.Get("liveId").Exists(),
 	}, nil
 }
 
@@ -99,6 +99,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 			"authorId":       strings.Split(l.Url.Path, "/")[2],
 			"pullStreamType": "FLV",
 		}),
+		requests.Referer(l.GetRawUrl()),
 	)
 	if err != nil {
 		return nil, err

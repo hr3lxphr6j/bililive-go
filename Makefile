@@ -2,7 +2,6 @@ UPX_ENABLE ?= 0
 PLATFORM ?= $(shell go env GOHOSTOS)
 ARCH ?= $(shell go env GOHOSTARCH)
 
-
 .PHONY: $(notdir $(abspath $(wildcard src/cmd/*/)))
 local_go_version := $(shell go version | cut -d' ' -f3 | sed -e 's/go//g')
 $(notdir $(abspath $(wildcard src/cmd/*/))):

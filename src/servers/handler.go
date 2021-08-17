@@ -135,9 +135,12 @@ func removeLive(writer http.ResponseWriter, r *http.Request) {
 		writeMsg(writer, http.StatusNotFound, fmt.Sprintf("live id: %s can not find", vars["id"]))
 		return
 	}
-	if err := inst.ListenerManager.(listeners.Manager).RemoveListener(r.Context(), live.GetLiveId()); err != nil {
-		writeMsg(writer, http.StatusBadRequest, err.Error())
-		return
+	lm := inst.ListenerManager.(listeners.Manager)
+	if lm.HasListener(r.Context(), live.GetLiveId()) {
+		if err := lm.RemoveListener(r.Context(), live.GetLiveId()); err != nil {
+			writeMsg(writer, http.StatusBadRequest, err.Error())
+			return
+		}
 	}
 	delete(inst.Lives, live.GetLiveId())
 	writeMsg(writer, http.StatusOK, "OK")

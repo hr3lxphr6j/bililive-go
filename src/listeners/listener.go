@@ -6,6 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/lthibault/jitterbug"
+
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
@@ -29,7 +31,7 @@ func NewListener(ctx context.Context, live live.Live) Listener {
 	inst := instance.GetInstance(ctx)
 	return &listener{
 		Live:   live,
-		status: false,
+		status: status{},
 		config: inst.Config,
 		stop:   make(chan struct{}),
 		ed:     inst.EventDispatcher.(events.Dispatcher),
@@ -40,7 +42,7 @@ func NewListener(ctx context.Context, live live.Live) Listener {
 
 type listener struct {
 	Live   live.Live
-	status bool
+	status status
 
 	config *configs.Config
 	ed     events.Dispatcher
@@ -79,33 +81,46 @@ func (l *listener) refresh() {
 			Error("failed to load room info")
 		return
 	}
-	if info.Status == l.status {
-		return
-	}
-	l.status = info.Status
 
 	var (
-		evtTyp  events.EventType
-		logInfo string
-		fields  = map[string]interface{}{
+		latestStatus = status{roomName: info.RoomName, roomStatus: info.Status}
+		evtTyp       events.EventType
+		logInfo      string
+		fields       = map[string]interface{}{
 			"room": info.RoomName,
 			"host": info.HostName,
 		}
 	)
-	if l.status {
+	defer func() { l.status = latestStatus }()
+	switch l.status.Diff(latestStatus) {
+	case 0:
+		return
+	case statusToTrueEvt:
 		l.Live.SetLastStartTime(time.Now())
 		evtTyp = LiveStart
 		logInfo = "Live Start"
-	} else {
+	case statusToFalseEvt:
 		evtTyp = LiveEnd
 		logInfo = "Live end"
+	case roomNameChangedEvt:
+		if !l.config.VideoSplitStrategies.OnRoomNameChanged {
+			return
+		}
+		evtTyp = RoomNameChanged
+		logInfo = "Room name was changed"
 	}
+
 	l.ed.DispatchEvent(events.NewEvent(evtTyp, l.Live))
 	l.logger.WithFields(fields).Info(logInfo)
 }
 
 func (l *listener) run() {
-	ticker := time.NewTicker(time.Duration(l.config.Interval) * time.Second)
+	ticker := jitterbug.New(
+		time.Duration(l.config.Interval)*time.Second,
+		jitterbug.Norm{
+			Stdev: time.Second * 3,
+		},
+	)
 	defer ticker.Stop()
 
 	for {

@@ -3,7 +3,9 @@ package recorders
 import (
 	"context"
 	"sync"
+	"time"
 
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
@@ -14,8 +16,10 @@ import (
 func NewManager(ctx context.Context) Manager {
 	rm := &manager{
 		savers: make(map[live.ID]Recorder),
+		cfg:    instance.GetInstance(ctx).Config,
 	}
 	instance.GetInstance(ctx).RecorderManager = rm
+
 	return rm
 }
 
@@ -23,6 +27,7 @@ type Manager interface {
 	interfaces.Module
 	AddRecorder(ctx context.Context, live live.Live) error
 	RemoveRecorder(ctx context.Context, liveId live.ID) error
+	RestartRecorder(ctx context.Context, liveId live.Live) error
 	GetRecorder(ctx context.Context, liveId live.ID) (Recorder, error)
 	HasRecorder(ctx context.Context, liveId live.ID) bool
 }
@@ -35,14 +40,24 @@ var (
 type manager struct {
 	lock   sync.RWMutex
 	savers map[live.ID]Recorder
+	cfg    *configs.Config
 }
 
 func (m *manager) registryListener(ctx context.Context, ed events.Dispatcher) {
 	ed.AddEventListener(listeners.LiveStart, events.NewEventListener(func(event *events.Event) {
 		live := event.Object.(live.Live)
 		if err := m.AddRecorder(ctx, live); err != nil {
-			instance.GetInstance(ctx).Logger.
-				Errorf("failed to add recorder, err: %v", err)
+			instance.GetInstance(ctx).Logger.Errorf("failed to add recorder, err: %v", err)
+		}
+	}))
+
+	ed.AddEventListener(listeners.RoomNameChanged, events.NewEventListener(func(event *events.Event) {
+		live := event.Object.(live.Live)
+		if !m.HasRecorder(ctx, live.GetLiveId()) {
+			return
+		}
+		if err := m.RestartRecorder(ctx, live); err != nil {
+			instance.GetInstance(ctx).Logger.Errorf("failed to cronRestart recorder, err: %v", err)
 		}
 	}))
 
@@ -52,8 +67,7 @@ func (m *manager) registryListener(ctx context.Context, ed events.Dispatcher) {
 			return
 		}
 		if err := m.RemoveRecorder(ctx, live.GetLiveId()); err != nil {
-			instance.GetInstance(ctx).Logger.
-				Errorf("failed to remove recorder, err: %v", err)
+			instance.GetInstance(ctx).Logger.Errorf("failed to remove recorder, err: %v", err)
 		}
 	})
 	ed.AddEventListener(listeners.LiveEnd, removeEvtListener)
@@ -91,8 +105,37 @@ func (m *manager) AddRecorder(ctx context.Context, live live.Live) error {
 		return err
 	}
 	m.savers[live.GetLiveId()] = recorder
-	return recorder.Start()
 
+	if maxDur := m.cfg.VideoSplitStrategies.MaxDuration; maxDur != 0 {
+		go m.cronRestart(ctx, live)
+	}
+	return recorder.Start()
+}
+
+func (m *manager) cronRestart(ctx context.Context, live live.Live) {
+	recorder, err := m.GetRecorder(ctx, live.GetLiveId())
+	if err != nil {
+		return
+	}
+	if time.Now().Sub(recorder.StartTime()) < m.cfg.VideoSplitStrategies.MaxDuration {
+		time.AfterFunc(time.Minute/4, func() {
+			m.cronRestart(ctx, live)
+		})
+		return
+	}
+	if err := m.RestartRecorder(ctx, live); err != nil {
+		return
+	}
+}
+
+func (m *manager) RestartRecorder(ctx context.Context, live live.Live) error {
+	if err := m.RemoveRecorder(ctx, live.GetLiveId()); err != nil {
+		return err
+	}
+	if err := m.AddRecorder(ctx, live); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *manager) RemoveRecorder(ctx context.Context, liveId live.ID) error {

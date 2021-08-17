@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -38,15 +39,23 @@ type Feature struct {
 	UseNativeFlvParser bool `yaml:"use_native_flv_parser"`
 }
 
+// VideoSplitStrategies info.
+type VideoSplitStrategies struct {
+	OnRoomNameChanged bool          `yaml:"on_room_name_changed"`
+	MaxDuration       time.Duration `yaml:"max_duration"`
+}
+
 // Config content all config info.
 type Config struct {
-	RPC        RPC      `yaml:"rpc"`
-	Debug      bool     `yaml:"debug"`
-	Interval   int      `yaml:"interval"`
-	OutPutPath string   `yaml:"out_put_path"`
-	Feature    Feature  `yaml:"feature"`
-	LiveRooms  []string `yaml:"live_rooms"`
-	file       string
+	RPC                  RPC      `yaml:"rpc"`
+	Debug                bool     `yaml:"debug"`
+	Interval             int      `yaml:"interval"`
+	OutPutPath           string   `yaml:"out_put_path"`
+	Feature              Feature  `yaml:"feature"`
+	LiveRooms            []string `yaml:"live_rooms"`
+	OutputTmpl           string   `yaml:"out_put_tmpl"`
+	file                 string
+	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 }
 
 var defaultConfig = Config{
@@ -59,6 +68,9 @@ var defaultConfig = Config{
 	},
 	LiveRooms: []string{},
 	file:      "",
+	VideoSplitStrategies: VideoSplitStrategies{
+		OnRoomNameChanged: false,
+	},
 }
 
 // Verify will return an error when this config has problem.
@@ -74,6 +86,9 @@ func (c *Config) Verify() error {
 	}
 	if _, err := os.Stat(c.OutPutPath); err != nil {
 		return fmt.Errorf(`the out put path: "%s" is not exist`, c.OutPutPath)
+	}
+	if maxDur := c.VideoSplitStrategies.MaxDuration; maxDur > 0 && maxDur <= time.Minute {
+		return fmt.Errorf("the minimum value of max_duration is one minute")
 	}
 	return nil
 }

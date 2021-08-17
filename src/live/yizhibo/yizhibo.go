@@ -70,11 +70,15 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	data, err := l.requestRoomInfo()
+	resp, err := requests.Get(l.GetRawUrl(), live.CommonUserAgent)
 	if err != nil {
 		return nil, err
 	}
-	return utils.GenUrls(gjson.GetBytes(data, "data.play_url").String())
+	body, err := resp.Text()
+	if err != nil {
+		return nil, err
+	}
+	return utils.GenUrls(utils.Match1(`play_url:"(.*?)",?`, body))
 }
 
 func (l *Live) GetPlatformCNName() string {
