@@ -117,7 +117,7 @@ class LiveList extends React.Component<Props, IState> {
             title: '直播间名称',
             dataIndex: 'room',
             key: 'room',
-            render: (room: Room) => <a href={room.url}>{room.roomName}</a>
+            render: (room: Room) => <a href={room.url} rel="noopener noreferrer" target="_blank">{room.roomName}</a>
         },
         {
             title: '直播平台',
