@@ -3,6 +3,7 @@ import { Button, Divider, PageHeader, Table, Tag } from 'antd';
 import PopDialog from '../pop-dialog/index';
 import AddRoomDialog from '../add-room-dialog/index';
 import API from '../../utils/api';
+import './live-list.css';
 
 const api = new API();
 
@@ -14,7 +15,8 @@ interface Props {
 
 interface IState {
     list: ItemData[],
-    addRoomDialogVisible: boolean
+    addRoomDialogVisible: boolean,
+    window: any
 }
 
 interface ItemData {
@@ -38,6 +40,73 @@ class LiveList extends React.Component<Props, IState> {
     //定时器
     timer!: NodeJS.Timeout;
 
+    runStatus = {
+        title: '运行状态',
+        key: 'tags',
+        dataIndex: 'tags',
+        render: (tags: { map: (arg0: (tag: any) => JSX.Element) => React.ReactNode; }) => (
+            <span>
+                {tags.map(tag => {
+                    let color = 'green';
+                    if (tag === '已停止') {
+                        color = 'grey';
+                    }
+                    if (tag === '监控中') {
+                        color = 'green';
+                    }
+                    if (tag === '录制中') {
+                        color = 'red';
+                    }
+
+                    return (
+                        <Tag color={color} key={tag}>
+                            {tag.toUpperCase()}
+                        </Tag>
+                    );
+                })}
+            </span>
+        ),
+    };
+
+    runAction = {
+        title: '操作',
+        key: 'action',
+        dataIndex: 'listening',
+        render: (listening: boolean, data: ItemData) => (
+            <span>
+                <PopDialog
+                    title={listening ? "确定停止监控？" : "确定开启监控？"}
+                    onConfirm={(e) => {
+                        if (listening) {
+                            //停止监控
+                            api.stopRecord(data.roomId)
+                                .then(rsp => {
+                                    this.refresh();
+                                });
+                        } else {
+                            //开启监控
+                            api.startRecord(data.roomId)
+                                .then(rsp => {
+                                    this.refresh();
+                                });
+                        }
+                    }}>
+                    <Button type="link" size="small">{listening ? "停止监控" : "开启监控"}</Button>
+                </PopDialog>
+                <Divider type="vertical" />
+                <PopDialog title="确定删除当前直播间？"
+                    onConfirm={(e) => {
+                        api.deleteRoom(data.roomId)
+                            .then(rsp => {
+                                this.refresh();
+                            });
+                    }}>
+                    <Button type="link" size="small">删除</Button>
+                </PopDialog>
+            </span>
+        ),
+    };
+
     columns = [
         {
             title: '主播名称',
@@ -48,85 +117,33 @@ class LiveList extends React.Component<Props, IState> {
             title: '直播间名称',
             dataIndex: 'room',
             key: 'room',
-            render: (room: Room) => <a href={room.url}>{room.roomName}</a>
+            render: (room: Room) => <a href={room.url} rel="noopener noreferrer" target="_blank">{room.roomName}</a>
         },
         {
             title: '直播平台',
             dataIndex: 'address',
             key: 'address',
         },
-        {
-            title: '运行状态',
-            key: 'tags',
-            dataIndex: 'tags',
-            render: (tags: { map: (arg0: (tag: any) => JSX.Element) => React.ReactNode; }) => (
-                <span>
-                    {tags.map(tag => {
-                        let color = 'green';
-                        if (tag === '已停止') {
-                            color = 'grey';
-                        }
-                        if (tag === '监控中') {
-                            color = 'green';
-                        }
-                        if (tag === '录制中') {
-                            color = 'red';
-                        }
+        this.runStatus,
+        this.runAction
+    ];
 
-                        return (
-                            <Tag color={color} key={tag}>
-                                {tag.toUpperCase()}
-                            </Tag>
-                        );
-                    })}
-                </span>
-            ),
-        },
+    smallColums = [
         {
-            title: '操作',
-            key: 'action',
-            dataIndex: 'listening',
-            render: (listening: boolean, data: ItemData) => (
-                <span>
-                    <PopDialog
-                        title={listening ? "确定停止监控？" : "确定开启监控？"}
-                        onConfirm={(e) => {
-                            if (listening) {
-                                //停止监控
-                                api.stopRecord(data.roomId)
-                                    .then(rsp => {
-                                        this.refresh();
-                                    });
-                            } else {
-                                //开启监控
-                                api.startRecord(data.roomId)
-                                    .then(rsp => {
-                                        this.refresh();
-                                    });
-                            }
-                        }}>
-                        <Button type="link" size="small">{listening ? "停止监控" : "开启监控"}</Button>
-                    </PopDialog>
-                    <Divider type="vertical" />
-                    <PopDialog title="确定删除当前直播间？"
-                        onConfirm={(e) => {
-                            api.deleteRoom(data.roomId)
-                                .then(rsp => {
-                                    this.refresh();
-                                });
-                        }}>
-                        <Button type="link" size="small">删除</Button>
-                    </PopDialog>
-                </span>
-            ),
+            title: '主播名称',
+            dataIndex: 'name',
+            key: 'name',
         },
+        this.runStatus,
+        this.runAction
     ];
 
     constructor(props: Props) {
         super(props);
         this.state = {
             list: [],
-            addRoomDialogVisible: false
+            addRoomDialogVisible: false,
+            window: window
         }
     }
 
@@ -235,7 +252,11 @@ class LiveList extends React.Component<Props, IState> {
                         ]}>
                     </PageHeader>
                 </div>
-                <Table columns={this.columns} dataSource={this.state.list} pagination={false} />
+                <Table className="item-pad" columns={
+                    (this.state.window.screen.width > 768) ? this.columns : this.smallColums}
+                    dataSource={this.state.list}
+                    size={(this.state.window.screen.width > 768) ? "default" : "middle"}
+                    pagination={false} />
             </div>
         );
     };

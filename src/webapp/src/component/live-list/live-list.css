@@ -1,0 +1,5 @@
+@media(max-device-width: 768px) {
+    .item-pad {
+        padding: 8px;
+    }
+}
