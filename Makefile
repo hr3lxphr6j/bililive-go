@@ -22,7 +22,7 @@ release-docker:
 
 .PHONY: test
 test:
-	@go test --cover ./src/...
+	@go test --cover -coverprofile=coverage.txt ./src/...
 
 .PHONY: clean
 clean:
