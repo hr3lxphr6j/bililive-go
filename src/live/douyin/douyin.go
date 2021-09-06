@@ -72,9 +72,9 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	}
 	info = &live.Info{
 		Live:     l,
-		HostName: data.Get("routeInitialProps.roomInfo.room.owner.nickname").String(),
-		RoomName: data.Get("routeInitialProps.roomInfo.anchor.nickname").String(),
-		Status:   data.Get("routeInitialProps.roomInfo.room.status").Int() == 2,
+		HostName: data.Get("initialState.roomStore.roomInfo.room.owner.nickname").String(),
+		RoomName: data.Get("initialState.roomStore.roomInfo.room.title").String(),
+		Status:   data.Get("initialState.roomStore.roomInfo.room.status").Int() == 2,
 	}
 	return
 }
@@ -85,7 +85,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, err
 	}
 	var urls []string
-	data.Get("routeInitialProps.roomInfo.room.stream_url.flv_pull_url").ForEach(func(key, value gjson.Result) bool {
+	data.Get("initialState.roomStore.roomInfo.room.stream_url.flv_pull_url").ForEach(func(key, value gjson.Result) bool {
 		urls = append(urls, value.String())
 		return true
 	})

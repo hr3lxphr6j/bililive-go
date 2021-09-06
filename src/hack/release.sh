@@ -13,7 +13,7 @@ package() {
   case $type in
   zip)
     res=${file%.exe}.zip
-    zip $res ${file} ../config.yml >/dev/null 2>&1
+    zip $res ${file} -j ../config.yml >/dev/null 2>&1
     ;;
   tar)
     res=${file}.tar.gz
