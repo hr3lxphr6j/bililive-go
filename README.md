@@ -124,7 +124,3 @@ $ make
 - [you-get](https://github.com/soimort/you-get)
 - [ykdl](https://github.com/zhangn1985/ykdl)
 - [youtube-dl](https://github.com/ytdl-org/youtube-dl)
-
-## 给点给点
-
-![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/gdgd.jpg)
