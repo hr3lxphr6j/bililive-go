@@ -13,16 +13,18 @@ type BaseLive struct {
 	Url           *url.URL
 	LastStartTime time.Time
 	LiveId        live.ID
+	Options       *live.Options
 }
 
 func genLiveId(url *url.URL) live.ID {
 	return live.ID(utils.GetMd5String([]byte(fmt.Sprintf("%s%s", url.Host, url.Path))))
 }
 
-func NewBaseLive(url *url.URL) BaseLive {
+func NewBaseLive(url *url.URL, opt ...live.Option) BaseLive {
 	return BaseLive{
-		Url:    url,
-		LiveId: genLiveId(url),
+		Url:     url,
+		LiveId:  genLiveId(url),
+		Options: live.MustNewOptions(opt...),
 	}
 }
 

@@ -3,7 +3,10 @@ package live
 
 import (
 	"errors"
+	"net/http"
+	"net/http/cookiejar"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/bluele/gcache"
@@ -23,7 +26,50 @@ func getBuilder(domain string) (Builder, bool) {
 }
 
 type Builder interface {
-	Build(*url.URL) (Live, error)
+	Build(*url.URL, ...Option) (Live, error)
+}
+
+type Options struct {
+	Cookies *cookiejar.Jar
+}
+
+func NewOptions(opts ...Option) (*Options, error) {
+	cookieJar, err := cookiejar.New(&cookiejar.Options{})
+	if err != nil {
+		return nil, err
+	}
+	options := &Options{Cookies: cookieJar}
+	for _, opt := range opts {
+		opt(options)
+	}
+	return options, nil
+}
+
+func MustNewOptions(opts ...Option) *Options {
+	options, err := NewOptions(opts...)
+	if err != nil {
+		panic(err)
+	}
+	return options
+}
+
+type Option func(*Options)
+
+func WithKVStringCookies(u *url.URL, cookies string) Option {
+	return func(opts *Options) {
+		cookiesList := make([]*http.Cookie, 0)
+		for _, pairStr := range strings.Split(cookies, ";") {
+			pairs := strings.SplitN(pairStr, "=", 2)
+			if len(pairs) != 2 {
+				continue
+			}
+			cookiesList = append(cookiesList, &http.Cookie{
+				Name:  strings.TrimSpace(pairs[0]),
+				Value: strings.TrimSpace(pairs[1]),
+			})
+		}
+		opts.Cookies.SetCookies(u, cookiesList)
+	}
 }
 
 type ID string
@@ -61,12 +107,12 @@ func (w *wrappedLive) GetInfo() (*Info, error) {
 	return i, nil
 }
 
-func New(url *url.URL, cache gcache.Cache) (live Live, err error) {
+func New(url *url.URL, cache gcache.Cache, opts ...Option) (live Live, err error) {
 	builder, ok := getBuilder(url.Host)
 	if !ok {
 		return nil, errors.New("not support this url")
 	}
-	live, err = builder.Build(url)
+	live, err = builder.Build(url, opts...)
 	if err != nil {
 		return
 	}

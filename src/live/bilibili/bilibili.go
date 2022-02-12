@@ -29,9 +29,9 @@ func init() {
 
 type builder struct{}
 
-func (b *builder) Build(url *url.URL) (live.Live, error) {
+func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 	return &Live{
-		BaseLive: internal.NewBaseLive(url),
+		BaseLive: internal.NewBaseLive(url, opt...),
 	}, nil
 }
 
@@ -67,11 +67,17 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 			return nil, err
 		}
 	}
+	cookies := l.Options.Cookies.Cookies(l.Url)
+	cookieKVs := make(map[string]string)
+	for _, item := range cookies {
+		cookieKVs[item.Name] = item.Value
+	}
 	resp, err := requests.Get(
 		roomApiUrl,
 		live.CommonUserAgent,
 		requests.Query("room_id", l.realID),
 		requests.Query("from", "room"),
+		requests.Cookies(cookieKVs),
 	)
 	if err != nil {
 		return nil, err

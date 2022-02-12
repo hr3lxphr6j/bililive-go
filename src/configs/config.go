@@ -47,15 +47,17 @@ type VideoSplitStrategies struct {
 
 // Config content all config info.
 type Config struct {
-	RPC                  RPC      `yaml:"rpc"`
-	Debug                bool     `yaml:"debug"`
-	Interval             int      `yaml:"interval"`
-	OutPutPath           string   `yaml:"out_put_path"`
-	Feature              Feature  `yaml:"feature"`
-	LiveRooms            []string `yaml:"live_rooms"`
-	OutputTmpl           string   `yaml:"out_put_tmpl"`
-	file                 string
+	file string
+
+	RPC                  RPC                  `yaml:"rpc"`
+	Debug                bool                 `yaml:"debug"`
+	Interval             int                  `yaml:"interval"`
+	OutPutPath           string               `yaml:"out_put_path"`
+	Feature              Feature              `yaml:"feature"`
+	LiveRooms            []string             `yaml:"live_rooms"`
+	OutputTmpl           string               `yaml:"out_put_tmpl"`
 	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
+	Cookies              map[string]string    `yaml:"cookies"`
 }
 
 var defaultConfig = Config{
