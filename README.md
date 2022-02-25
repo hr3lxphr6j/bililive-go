@@ -7,7 +7,7 @@
 
 Bililive-go是一个支持多种直播平台的直播录制工具   
 
-![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/screenshot.png)
+![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/screenshot.webp)
 
 ## 支持网站
 
@@ -90,9 +90,15 @@ Bililive-go是一个支持多种直播平台的直播录制工具
     <tr align="center">
         <td>抖音直播</td>
         <td>live.douyin.com</td>
-        <td>滋瓷</td>
+        <td>TODO</td>
     </tr>
 </table>
+
+## Grafana 面板
+
+> 请自行部署 prometheus 和 grafana
+
+![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/dashboard.webp)
 
 ## 依赖
 * [ffmpeg](https://ffmpeg.org/)
