@@ -29,9 +29,9 @@ func init() {
 
 type builder struct{}
 
-func (b *builder) Build(url *url.URL) (live.Live, error) {
+func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 	return &Live{
-		BaseLive: internal.NewBaseLive(url),
+		BaseLive: internal.NewBaseLive(url, opt...),
 	}, nil
 }
 
@@ -45,7 +45,12 @@ func (l *Live) parseRealId() error {
 	if len(paths) < 2 {
 		return live.ErrRoomUrlIncorrect
 	}
-	resp, err := requests.Get(roomInitUrl, live.CommonUserAgent, requests.Query("id", paths[1]))
+	cookies := l.Options.Cookies.Cookies(l.Url)
+	cookieKVs := make(map[string]string)
+	for _, item := range cookies {
+		cookieKVs[item.Name] = item.Value
+	}
+	resp, err := requests.Get(roomInitUrl, live.CommonUserAgent, requests.Query("id", paths[1]), requests.Cookies(cookieKVs))
 	if err != nil {
 		return err
 	}
@@ -67,11 +72,17 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 			return nil, err
 		}
 	}
+	cookies := l.Options.Cookies.Cookies(l.Url)
+	cookieKVs := make(map[string]string)
+	for _, item := range cookies {
+		cookieKVs[item.Name] = item.Value
+	}
 	resp, err := requests.Get(
 		roomApiUrl,
 		live.CommonUserAgent,
 		requests.Query("room_id", l.realID),
 		requests.Query("from", "room"),
+		requests.Cookies(cookieKVs),
 	)
 	if err != nil {
 		return nil, err
@@ -118,11 +129,16 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 			return nil, err
 		}
 	}
+	cookies := l.Options.Cookies.Cookies(l.Url)
+	cookieKVs := make(map[string]string)
+	for _, item := range cookies {
+		cookieKVs[item.Name] = item.Value
+	}
 	resp, err := requests.Get(liveApiUrl, live.CommonUserAgent, requests.Queries(map[string]string{
 		"cid":      l.realID,
 		"quality":  "4",
 		"platform": "web",
-	}))
+	}), requests.Cookies(cookieKVs))
 	if err != nil {
 		return nil, err
 	}

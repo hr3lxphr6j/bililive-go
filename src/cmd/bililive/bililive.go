@@ -73,7 +73,11 @@ func main() {
 			logger.WithField("url", room).Error(err)
 			continue
 		}
-		l, err := live.New(u, inst.Cache)
+		opts := make([]live.Option, 0)
+		if v, ok := inst.Config.Cookies[u.Host]; ok {
+			opts = append(opts, live.WithKVStringCookies(u, v))
+		}
+		l, err := live.New(u, inst.Cache, opts...)
 		if err != nil {
 			logger.WithField("url", room).Error(err.Error())
 			continue

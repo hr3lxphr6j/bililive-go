@@ -1,5 +1,5 @@
 # Bililive-go
-[![Build Status](https://travis-ci.com/hr3lxphr6j/bililive-go.svg?branch=master)](https://travis-ci.com/hr3lxphr6j/bililive-go)
+[![CI](https://github.com/hr3lxphr6j/bililive-go/actions/workflows/tests.yaml/badge.svg?branch=master)](https://github.com/hr3lxphr6j/bililive-go/actions/workflows/tests.yaml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/hr3lxphr6j/bililive-go)](https://goreportcard.com/report/github.com/hr3lxphr6j/bililive-go)
 [![Github release](https://img.shields.io/github/release/hr3lxphr6j/bililive-go.svg)](https://github.com/hr3lxphr6j/bililive-go/releases/latest)
 [![Docker Pulls](https://img.shields.io/docker/pulls/chigusa/bililive-go.svg)](https://hub.docker.com/r/chigusa/bililive-go/)
@@ -7,7 +7,7 @@
 
 Bililive-go是一个支持多种直播平台的直播录制工具   
 
-![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/screenshot.png)
+![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/screenshot.webp)
 
 ## 支持网站
 
@@ -90,9 +90,15 @@ Bililive-go是一个支持多种直播平台的直播录制工具
     <tr align="center">
         <td>抖音直播</td>
         <td>live.douyin.com</td>
-        <td>滋瓷</td>
+        <td>TODO</td>
     </tr>
 </table>
+
+## Grafana 面板
+
+> 请自行部署 prometheus 和 grafana
+
+![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/dashboard.webp)
 
 ## 依赖
 * [ffmpeg](https://ffmpeg.org/)
@@ -124,7 +130,3 @@ $ make
 - [you-get](https://github.com/soimort/you-get)
 - [ykdl](https://github.com/zhangn1985/ykdl)
 - [youtube-dl](https://github.com/ytdl-org/youtube-dl)
-
-## 给点给点
-
-![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/gdgd.jpg)

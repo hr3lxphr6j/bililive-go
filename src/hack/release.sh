@@ -13,7 +13,7 @@ package() {
   case $type in
   zip)
     res=${file%.exe}.zip
-    zip $res ${file} ../config.yml >/dev/null 2>&1
+    zip $res ${file} -j ../config.yml >/dev/null 2>&1
     ;;
   tar)
     res=${file}.tar.gz
@@ -32,7 +32,7 @@ package() {
 
 for dist in $(go tool dist list); do
   case $dist in
-  android/* | ios/* | js/wasm | linux/riscv64)
+  android/* | ios/* | js/wasm )
     continue
     ;;
   *) ;;

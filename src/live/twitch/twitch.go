@@ -24,7 +24,7 @@ const (
 	streamApiUrl  = "https://api.twitch.tv/kraken/streams/%s"
 	tokenApiUrl   = "https://api.twitch.tv/api/channels/%s/access_token"
 
-	v5Header = "application/vnd.twitchtv.v5+json"
+	v5Header   = "application/vnd.twitchtv.v5+json"
 	userApiUrl = "https://api.twitch.tv/kraken/users?login=%s"
 )
 
@@ -34,9 +34,9 @@ func init() {
 
 type builder struct{}
 
-func (b *builder) Build(url *url.URL) (live.Live, error) {
+func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 	return &Live{
-		BaseLive: internal.NewBaseLive(url),
+		BaseLive: internal.NewBaseLive(url, opt...),
 	}, nil
 }
 
@@ -55,7 +55,7 @@ func (l *Live) parseInfo() error {
 	}
 	chanId := paths[1]
 	resp, err := requests.Get(fmt.Sprintf(userApiUrl, chanId), live.CommonUserAgent,
-		requests.Header("client-id", clientId),requests.Header("Accept",v5Header))
+		requests.Header("client-id", clientId), requests.Header("Accept", v5Header))
 	if err != nil {
 		return err
 	}
@@ -66,13 +66,13 @@ func (l *Live) parseInfo() error {
 	if resp.StatusCode != http.StatusOK {
 		return live.ErrRoomNotExist
 	}
-	if gjson.GetBytes(body,"_total").Int() < 1{
+	if gjson.GetBytes(body, "_total").Int() < 1 {
 		return live.ErrRoomNotExist
 	}
-	l.userId = gjson.GetBytes(body,"users").Array()[0].Get("_id").String()
+	l.userId = gjson.GetBytes(body, "users").Array()[0].Get("_id").String()
 
 	resp, err = requests.Get(fmt.Sprintf(channelApiUrl, l.userId), live.CommonUserAgent,
-		requests.Header("client-id", clientId),requests.Header("Accept",v5Header))
+		requests.Header("client-id", clientId), requests.Header("Accept", v5Header))
 	if err != nil {
 		return err
 	}
@@ -89,13 +89,13 @@ func (l *Live) parseInfo() error {
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
-	if l.hostName == "" || l.roomName == "" || l.userId == ""{
+	if l.hostName == "" || l.roomName == "" || l.userId == "" {
 		if err := l.parseInfo(); err != nil {
 			return nil, err
 		}
 	}
 	resp, err := requests.Get(fmt.Sprintf(streamApiUrl, l.userId), live.CommonUserAgent,
-		requests.Header("client-id", clientId),requests.Header("Accept",v5Header))
+		requests.Header("client-id", clientId), requests.Header("Accept", v5Header))
 	if err != nil {
 		return nil, err
 	}

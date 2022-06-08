@@ -41,9 +41,9 @@ func init() {
 
 type builder struct{}
 
-func (b *builder) Build(url *url.URL) (live.Live, error) {
+func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 	return &Live{
-		BaseLive: internal.NewBaseLive(url),
+		BaseLive: internal.NewBaseLive(url, opt...),
 	}, nil
 }
 
@@ -112,7 +112,7 @@ func loadCryptoJS() {
 		"https://cdn.jsdelivr.net/npm/crypto-js@3.1.9-1/crypto-js.min.js",
 		"https://cdn.staticfile.org/crypto-js/3.1.9-1/crypto-js.min.js",
 		"https://cdn.bootcdn.net/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"}
-	
+
 	for _, url := range cdnUrls {
 		resp, err = requests.Get(url)
 		if err != nil || resp.StatusCode != http.StatusOK {
