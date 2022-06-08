@@ -36,10 +36,11 @@ class AddRoomDialog extends React.Component<Props> {
                 });
                 this.props.refresh();
             })
+        // 保存设置
+        api.saveSettingsInBackground();
     };
 
     handleCancel = () => {
-        console.log('Clicked cancel button');
         this.setState({
             visible: false,
         });

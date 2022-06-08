@@ -70,6 +70,20 @@ class API {
         return utils.requestPut(`${BASE_URL}/config`);
     }
 
+    /**
+     * 保存设置至config文件，且不处理返回结果
+     */
+    saveSettingsInBackground(){
+        this.saveSettings()
+            .then((rsp: any) => {
+                if (rsp.err_no === 0) {
+                    console.log('Save Settings success !!');
+                } else {
+                    console.log('Server Error !!');
+                }
+            })
+    }
+
 }
 
 export default API;
