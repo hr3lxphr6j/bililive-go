@@ -23,8 +23,7 @@ require (
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.6.1
-	github.com/tidwall/gjson v1.8.1
-	github.com/tidwall/pretty v1.2.0 // indirect
+	github.com/tidwall/gjson v1.9.3
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
