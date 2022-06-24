@@ -83,12 +83,14 @@ class LiveList extends React.Component<Props, IState> {
                                 .then(rsp => {
                                     this.refresh();
                                 });
+                            api.saveSettingsInBackground();
                         } else {
                             //开启监控
                             api.startRecord(data.roomId)
                                 .then(rsp => {
                                     this.refresh();
                                 });
+                            api.saveSettingsInBackground();
                         }
                     }}>
                     <Button type="link" size="small">{listening ? "停止监控" : "开启监控"}</Button>
@@ -100,6 +102,7 @@ class LiveList extends React.Component<Props, IState> {
                             .then(rsp => {
                                 this.refresh();
                             });
+                            api.saveSettingsInBackground();
                     }}>
                     <Button type="link" size="small">删除</Button>
                 </PopDialog>
@@ -111,7 +114,7 @@ class LiveList extends React.Component<Props, IState> {
         {
             title: '主播名称',
             dataIndex: 'name',
-            key: 'name',
+            key: 'name'
         },
         {
             title: '直播间名称',
@@ -133,6 +136,7 @@ class LiveList extends React.Component<Props, IState> {
             title: '主播名称',
             dataIndex: 'name',
             key: 'name',
+            render: (name: String, data: ItemData) => <a href={data.room.url} rel="noopener noreferrer" target="_blank">{name}</a>
         },
         this.runStatus,
         this.runAction
