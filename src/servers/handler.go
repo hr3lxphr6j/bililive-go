@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/tidwall/gjson"
@@ -92,7 +93,11 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 	info := liveSlice(make([]*live.Info, 0))
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
-		u, _ := url.Parse(value.Get("url").String())
+		urlStr := value.Get("url").String()
+		if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
+			urlStr = "https://" + urlStr
+		}
+		u, _ := url.Parse(urlStr)
 		if live, err := live.New(u, instance.GetInstance(r.Context()).Cache); err == nil {
 			inst := instance.GetInstance(r.Context())
 			if _, ok := inst.Lives[live.GetLiveId()]; !ok {
