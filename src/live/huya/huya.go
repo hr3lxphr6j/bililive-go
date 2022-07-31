@@ -88,7 +88,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 
 	// Decode stream part.
-	streamInfo := utils.Match1(`"stream": "(.*?)"`, body)
+	streamInfo := utils.Match1_V2(`"stream": "(.*?)"`, body)
 	if streamInfo == "" {
 		return nil, live.ErrInternalError
 	}
