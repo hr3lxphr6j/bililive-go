@@ -1,7 +1,6 @@
 package huya
 
 import (
-	"encoding/base64"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -88,15 +87,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 
 	// Decode stream part.
-	streamInfo := utils.Match1(`"stream": "(.*?)"`, body)
-	if streamInfo == "" {
-		return nil, live.ErrInternalError
-	}
-	streamByte, err := base64.StdEncoding.DecodeString(streamInfo)
-	if err != nil {
-		return nil, err
-	}
-	streamStr := utils.UnescapeHTMLEntity(string(streamByte))
+	streamStr := utils.Match1(`(?m)stream: (.*?)$`, body)
 
 	var (
 		sStreamName  = utils.Match1(`"sStreamName":"([^"]*)"`, streamStr)
