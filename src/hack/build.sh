@@ -36,7 +36,12 @@ build() {
   _build "${target}" "${bin_name}" "${ld_flags:-}"
 
   if [ ${UPX_ENABLE:-"0"} = "1" ]; then
-    upx --no-progress ${OUTPUT_PATH}/"${bin_name}"
+    case "${bin_name}" in
+    *-aix-* | *bsd-* | *-mips64* | *-riscv64 | *-s390x | *-plan9-* | *-windows-arm*) ;;
+    *)
+      upx --no-progress ${OUTPUT_PATH}/"${bin_name}"
+      ;;
+    esac
   fi
 }
 
