@@ -89,7 +89,7 @@ func (c *Config) Verify() error {
 	if _, err := os.Stat(c.OutPutPath); err != nil {
 		return fmt.Errorf(`the out put path: "%s" is not exist`, c.OutPutPath)
 	}
-	if maxDur := c.VideoSplitStrategies.MaxDuration; maxDur > 0 && maxDur <= time.Minute {
+	if maxDur := c.VideoSplitStrategies.MaxDuration; maxDur > 0 && maxDur < time.Minute {
 		return fmt.Errorf("the minimum value of max_duration is one minute")
 	}
 	return nil
