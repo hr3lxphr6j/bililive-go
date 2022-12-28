@@ -155,15 +155,7 @@ func (r *recorder) tryRecode() {
 			convertCmd.Process.Kill()
 			r.getLogger().Debugln(err)
 		} else if r.config.OnRecordFinished.DeleteFlvAfterConvert {
-			deleteCmd := exec.Command(
-				"rm",
-				"-rf",
-				fileName,
-			)
-			if err = deleteCmd.Run(); err != nil {
-				deleteCmd.Process.Kill()
-				r.getLogger().Debugln(err)
-			}
+			os.Remove(fileName)
 		}
 	}
 }
