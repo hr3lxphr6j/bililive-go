@@ -45,6 +45,12 @@ type VideoSplitStrategies struct {
 	MaxDuration       time.Duration `yaml:"max_duration"`
 }
 
+// On record finished actions.
+type OnRecordFinished struct {
+	ConvertToMp4          bool `yaml:"convert_to_mp4"`
+	DeleteFlvAfterConvert bool `yaml:"delete_flv_after_convert"`
+}
+
 // Config content all config info.
 type Config struct {
 	file string
@@ -58,6 +64,7 @@ type Config struct {
 	OutputTmpl           string               `yaml:"out_put_tmpl"`
 	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 	Cookies              map[string]string    `yaml:"cookies"`
+	OnRecordFinished     OnRecordFinished     `yaml:"on_record_finished"`
 }
 
 var defaultConfig = Config{
@@ -72,6 +79,10 @@ var defaultConfig = Config{
 	file:      "",
 	VideoSplitStrategies: VideoSplitStrategies{
 		OnRoomNameChanged: false,
+	},
+	OnRecordFinished: OnRecordFinished{
+		ConvertToMp4:          false,
+		DeleteFlvAfterConvert: false,
 	},
 }
 

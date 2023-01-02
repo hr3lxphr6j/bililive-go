@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -140,6 +141,23 @@ func (r *recorder) tryRecode() {
 	r.startTime = time.Now()
 	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, fileName))
 	removeEmptyFile(fileName)
+	if r.config.OnRecordFinished.ConvertToMp4 {
+		convertCmd := exec.Command(
+			"ffmpeg",
+			"-hide_banner",
+			"-i",
+			fileName,
+			"-c",
+			"copy",
+			fileName+".mp4",
+		)
+		if err = convertCmd.Run(); err != nil {
+			convertCmd.Process.Kill()
+			r.getLogger().Debugln(err)
+		} else if r.config.OnRecordFinished.DeleteFlvAfterConvert {
+			os.Remove(fileName)
+		}
+	}
 }
 
 func (r *recorder) run() {
