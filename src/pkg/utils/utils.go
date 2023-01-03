@@ -5,13 +5,19 @@ import (
 	"encoding/hex"
 	"math/rand"
 	"net/url"
+	"os"
 	"os/exec"
 	"regexp"
 )
 
 func IsFFmpegExist() bool {
-	_, ok := exec.LookPath("ffmpeg")
-	return ok == nil
+	_, err := exec.LookPath("ffmpeg")
+	if err != nil {
+		// exec.LookPath no longer searches current directory since golang 1.19,
+		// so we check the current directory separately
+		_, err = os.Stat("ffmpeg")
+	}
+	return err == nil
 }
 
 func GetMd5String(b []byte) string {
