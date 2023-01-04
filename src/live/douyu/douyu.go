@@ -17,7 +17,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 
 	"github.com/robertkrimen/otto"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/tidwall/gjson"
 )
 
@@ -187,13 +187,13 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		return nil, err
 	}
 	info = &live.Info{
-		Live:     l,
-		HostName: gjson.GetBytes(body, "room.owner_name").String(),
-		RoomName: gjson.GetBytes(body, "room.room_name").String(),
-		Status:   gjson.GetBytes(body, "room.show_status").Int() == 1 && gjson.GetBytes(body, "room.videoLoop").Int() == 0,
+		Live:         l,
+		HostName:     gjson.GetBytes(body, "room.owner_name").String(),
+		RoomName:     gjson.GetBytes(body, "room.room_name").String(),
+		Status:       gjson.GetBytes(body, "room.show_status").Int() == 1 && gjson.GetBytes(body, "room.videoLoop").Int() == 0,
+		CustomLiveId: "douyu/" + l.roomID,
 	}
 	return info, nil
-
 }
 
 func (l *Live) getSignParams() (map[string]string, error) {
