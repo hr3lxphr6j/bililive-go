@@ -43,11 +43,32 @@ func (l *Live) getUid() (string, error) {
 		return l.uid, nil
 	}
 
-	if uid := utils.Match1(`https?:\/\/www.huajiao.com\/user\/(\d+)`, l.GetRawUrl()); uid == "" {
-		return "", live.ErrRoomUrlIncorrect
-	} else {
+	var uid string
+	if uid = utils.Match1(`https?:\/\/www.huajiao.com\/user\/(\d+)`, l.GetRawUrl()); uid != "" {
+		// nothing to do
+	} else if liveId := utils.Match1(`https?:\/\/www.huajiao.com\/l\/(\d+)`, l.GetRawUrl()); liveId != "" {
+		resp, err := requests.Get(l.GetRawUrl(), live.CommonUserAgent)
+		if err != nil {
+			return "", err
+		}
+		if resp.StatusCode != http.StatusOK {
+			return "", live.ErrRoomNotExist
+		}
+		body, err := resp.Text()
+		if err != nil {
+			return "", err
+		}
+		uid = utils.Match1(`<span class="js-author-id">(\d+)</span>`, body)
+		// if uid == "" {
+		// 	TODO: error log
+		// }
+	}
+
+	if uid != "" && uid != "0" {
 		l.uid = uid
 		return l.uid, nil
+	} else {
+		return "", live.ErrRoomUrlIncorrect
 	}
 }
 
@@ -88,10 +109,11 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	}
 
 	info = &live.Info{
-		Live:     l,
-		HostName: "",
-		RoomName: "",
-		Status:   false,
+		Live:         l,
+		HostName:     "",
+		RoomName:     "",
+		Status:       false,
+		CustomLiveId: "huajiao/" + uid,
 	}
 	nickname, err := l.getNickname(uid)
 	if err != nil {
