@@ -8,6 +8,7 @@ type Info struct {
 	Live                        Live
 	HostName, RoomName          string
 	Status, Listening, Recoding bool
+	CustomLiveId                string
 }
 
 func (i *Info) MarshalJSON() ([]byte, error) {

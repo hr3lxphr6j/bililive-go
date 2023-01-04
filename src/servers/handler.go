@@ -93,7 +93,7 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 	info := liveSlice(make([]*live.Info, 0))
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
-		urlStr := value.Get("url").String()
+		urlStr := strings.Trim(value.Get("url").String(), " ")
 		if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 			urlStr = "https://" + urlStr
 		}
