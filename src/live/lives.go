@@ -75,6 +75,7 @@ func WithKVStringCookies(u *url.URL, cookies string) Option {
 type ID string
 
 type Live interface {
+	SetLiveIdByString(string)
 	GetLiveId() ID
 	GetRawUrl() string
 	GetInfo() (*Info, error)
@@ -118,10 +119,14 @@ func New(url *url.URL, cache gcache.Cache, opts ...Option) (live Live, err error
 	}
 	live = newWrappedLive(live, cache)
 	for i := 0; i < 3; i++ {
-		if _, err = live.GetInfo(); err == nil {
-			break
+		var info *Info
+		if info, err = live.GetInfo(); err == nil {
+			if info.CustomLiveId != "" {
+				live.SetLiveIdByString(info.CustomLiveId)
+			}
+			return
 		}
 		time.Sleep(1 * time.Second)
 	}
-	return
+	return nil, err
 }
