@@ -3,19 +3,18 @@ package utils
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"math/rand"
 	"net/url"
-	"os"
 	"os/exec"
 	"regexp"
 )
 
 func IsFFmpegExist() bool {
 	_, err := exec.LookPath("ffmpeg")
-	if err != nil {
-		// exec.LookPath no longer searches current directory since golang 1.19,
-		// so we check the current directory separately
-		_, err = os.Stat("ffmpeg")
+	if errors.Is(err, exec.ErrDot) {
+		// put ffmpeg.exe and binary like bililive-windows-amd64.exe to the same folder is allowed
+		err = nil
 	}
 	return err == nil
 }
