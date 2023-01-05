@@ -142,8 +142,13 @@ func (r *recorder) tryRecode() {
 	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, fileName))
 	removeEmptyFile(fileName)
 	if r.config.OnRecordFinished.ConvertToMp4 {
+		ffmpegPath, err := utils.GetFFmpegPath()
+		if err != nil {
+			r.getLogger().WithError(err).Error("failed to find ffmpeg")
+			return
+		}
 		convertCmd := exec.Command(
-			"ffmpeg",
+			ffmpegPath,
 			"-hide_banner",
 			"-i",
 			fileName,
