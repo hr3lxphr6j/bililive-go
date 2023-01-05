@@ -12,6 +12,7 @@ import (
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
 const (
@@ -119,8 +120,12 @@ func (p *Parser) Status() (map[string]string, error) {
 }
 
 func (p *Parser) ParseLiveStream(url *url.URL, live live.Live, file string) (err error) {
+	ffmpegPath, err := utils.GetFFmpegPath()
+	if err != nil {
+		return err
+	}
 	p.cmd = exec.Command(
-		"ffmpeg",
+		ffmpegPath,
 		"-nostats",
 		"-progress", "-",
 		"-y", "-re",

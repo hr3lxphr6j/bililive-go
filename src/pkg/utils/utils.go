@@ -10,12 +10,17 @@ import (
 	"regexp"
 )
 
-func IsFFmpegExist() bool {
-	_, err := exec.LookPath("ffmpeg")
+func GetFFmpegPath() (string, error) {
+	path, err := exec.LookPath("ffmpeg")
 	if errors.Is(err, exec.ErrDot) {
 		// put ffmpeg.exe and binary like bililive-windows-amd64.exe to the same folder is allowed
-		err = nil
+		path, err = exec.LookPath("./ffmpeg")
 	}
+	return path, err
+}
+
+func IsFFmpegExist() bool {
+	_, err := GetFFmpegPath()
 	return err == nil
 }
 
