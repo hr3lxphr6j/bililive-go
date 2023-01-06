@@ -128,7 +128,7 @@ func putConfig(writer http.ResponseWriter, r *http.Request) {
 	for _, live := range instance.GetInstance(r.Context()).Lives {
 		configRoom = append(configRoom, configs.LiveRoom{
 			Url:         live.GetRawUrl(),
-			IsRecording: true,
+			IsListening: true,
 		})
 	}
 	instance.GetInstance(r.Context()).Config.LiveRooms = configRoom

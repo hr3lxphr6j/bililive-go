@@ -70,7 +70,7 @@ type Config struct {
 
 type LiveRoom struct {
 	Url         string `yaml:"url"`
-	IsRecording bool   `yaml:"is_recording"`
+	IsListening bool   `yaml:"is_listening"`
 }
 
 type liveRoomAlias LiveRoom
@@ -78,7 +78,7 @@ type liveRoomAlias LiveRoom
 // allow both string and LiveRoom format in config
 func (l *LiveRoom) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	liveRoomAlias := liveRoomAlias{
-		IsRecording: true,
+		IsListening: true,
 	}
 	if err := unmarshal(&liveRoomAlias); err != nil {
 		var url string
@@ -99,7 +99,7 @@ func NewLiveRoomsWithStrings(strings []string) []LiveRoom {
 	liveRooms := make([]LiveRoom, len(strings))
 	for index, url := range strings {
 		liveRooms[index].Url = url
-		liveRooms[index].IsRecording = true
+		liveRooms[index].IsListening = true
 	}
 	return liveRooms
 }
