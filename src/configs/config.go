@@ -60,12 +60,48 @@ type Config struct {
 	Interval             int                  `yaml:"interval"`
 	OutPutPath           string               `yaml:"out_put_path"`
 	Feature              Feature              `yaml:"feature"`
-	LiveRooms            []string             `yaml:"live_rooms"`
+	LiveRooms            []LiveRoom           `yaml:"live_rooms"`
 	OutputTmpl           string               `yaml:"out_put_tmpl"`
 	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 	Cookies              map[string]string    `yaml:"cookies"`
 	OnRecordFinished     OnRecordFinished     `yaml:"on_record_finished"`
 	TimeoutInUs          int                  `yaml:"timeout_in_us"`
+}
+
+type LiveRoom struct {
+	Url         string `yaml:"url"`
+	IsRecording bool   `yaml:"is_recording"`
+}
+
+type liveRoomAlias LiveRoom
+
+// allow both string and LiveRoom format in config
+func (l *LiveRoom) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	liveRoomAlias := liveRoomAlias{
+		IsRecording: true,
+	}
+	if err := unmarshal(&liveRoomAlias); err != nil {
+		var url string
+		if err = unmarshal(&url); err != nil {
+			return err
+		}
+		liveRoomAlias.Url = url
+	}
+	*l = LiveRoom(liveRoomAlias)
+
+	return nil
+}
+
+func NewLiveRoomsWithStrings(strings []string) []LiveRoom {
+	if len(strings) == 0 {
+		return make([]LiveRoom, 0, 4)
+	}
+	liveRooms := make([]LiveRoom, len(strings))
+	for index, url := range strings {
+		liveRooms[index].Url = url
+		liveRooms[index].IsRecording = true
+	}
+	return liveRooms
 }
 
 var defaultConfig = Config{
@@ -76,7 +112,7 @@ var defaultConfig = Config{
 	Feature: Feature{
 		UseNativeFlvParser: false,
 	},
-	LiveRooms: []string{},
+	LiveRooms: []LiveRoom{},
 	file:      "",
 	VideoSplitStrategies: VideoSplitStrategies{
 		OnRoomNameChanged: false,

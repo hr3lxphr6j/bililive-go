@@ -70,7 +70,7 @@ func main() {
 
 	inst.Lives = make(map[live.ID]live.Live)
 	for _, room := range inst.Config.LiveRooms {
-		u, err := url.Parse(room)
+		u, err := url.Parse(room.Url)
 		if err != nil {
 			logger.WithField("url", room).Error(err)
 			continue

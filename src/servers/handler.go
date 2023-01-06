@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tidwall/gjson"
 
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/consts"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
@@ -76,8 +77,11 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 	writeJSON(writer, parseInfo(r.Context(), live))
 }
 
-/* Post data example
+/*
+	Post data example
+
 [
+
 	{
 		"url": "http://live.bilibili.com/1030",
 		"listen": true
@@ -86,6 +90,7 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 		"url": "https://live.bilibili.com/493",
 		"listen": true
 	}
+
 ]
 */
 func addLives(writer http.ResponseWriter, r *http.Request) {
@@ -119,10 +124,12 @@ func getConfig(writer http.ResponseWriter, r *http.Request) {
 }
 
 func putConfig(writer http.ResponseWriter, r *http.Request) {
-	configRoom := instance.GetInstance(r.Context()).Config.LiveRooms
-	configRoom = make([]string, 0, 4)
+	configRoom := make([]configs.LiveRoom, 0, 4)
 	for _, live := range instance.GetInstance(r.Context()).Lives {
-		configRoom = append(configRoom, live.GetRawUrl())
+		configRoom = append(configRoom, configs.LiveRoom{
+			Url:         live.GetRawUrl(),
+			IsRecording: true,
+		})
 	}
 	instance.GetInstance(r.Context()).Config.LiveRooms = configRoom
 	if err := instance.GetInstance(r.Context()).Config.Marshal(); err != nil {
