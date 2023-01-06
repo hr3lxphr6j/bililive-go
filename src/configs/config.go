@@ -65,6 +65,7 @@ type Config struct {
 	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 	Cookies              map[string]string    `yaml:"cookies"`
 	OnRecordFinished     OnRecordFinished     `yaml:"on_record_finished"`
+	TimeoutInUs          int                  `yaml:"timeout_in_us"`
 }
 
 var defaultConfig = Config{
@@ -84,6 +85,7 @@ var defaultConfig = Config{
 		ConvertToMp4:          false,
 		DeleteFlvAfterConvert: false,
 	},
+	TimeoutInUs: 60000000,
 }
 
 // Verify will return an error when this config has problem.
