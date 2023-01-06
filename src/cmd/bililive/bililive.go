@@ -56,7 +56,9 @@ func main() {
 
 	inst := new(instance.Instance)
 	inst.Config = config
-	inst.Cache = gcache.New(128).LRU().Build()
+	// TODO: Replace gcache with hashmap.
+	// LRU seems not necessary here.
+	inst.Cache = gcache.New(1024).LRU().Build()
 	ctx := context.WithValue(context.Background(), instance.Key, inst)
 
 	logger := log.New(ctx)
