@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -128,7 +129,9 @@ func (r *recorder) tryRecode() {
 		r.getLogger().WithError(err).Errorf("failed to create output path[%s]", outputPath)
 		return
 	}
-	parserCfg := map[string]string{}
+	parserCfg := map[string]string{
+		"timeout_in_us": strconv.Itoa(r.config.TimeoutInUs),
+	}
 	if r.config.Debug {
 		parserCfg["debug"] = "true"
 	}
