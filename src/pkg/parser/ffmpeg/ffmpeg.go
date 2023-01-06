@@ -33,19 +33,21 @@ func (b *builder) Build(cfg map[string]string) (parser.Parser, error) {
 		debug = true
 	}
 	return &Parser{
-		debug:      debug,
-		closeOnce:  new(sync.Once),
-		statusReq:  make(chan struct{}, 1),
-		statusResp: make(chan map[string]string, 1),
+		debug:       debug,
+		closeOnce:   new(sync.Once),
+		statusReq:   make(chan struct{}, 1),
+		statusResp:  make(chan map[string]string, 1),
+		timeoutInUs: cfg["timeout_in_us"],
 	}, nil
 }
 
 type Parser struct {
-	cmd       *exec.Cmd
-	cmdStdIn  io.WriteCloser
-	cmdStdout io.ReadCloser
-	closeOnce *sync.Once
-	debug     bool
+	cmd         *exec.Cmd
+	cmdStdIn    io.WriteCloser
+	cmdStdout   io.ReadCloser
+	closeOnce   *sync.Once
+	debug       bool
+	timeoutInUs string
 
 	statusReq  chan struct{}
 	statusResp chan map[string]string
@@ -131,7 +133,7 @@ func (p *Parser) ParseLiveStream(url *url.URL, live live.Live, file string) (err
 		"-y", "-re",
 		"-user_agent", userAgent,
 		"-referer", live.GetRawUrl(),
-		"-timeout", "60000000",
+		"-timeout", p.timeoutInUs,
 		"-i", url.String(),
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
