@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -53,7 +54,8 @@ type OnRecordFinished struct {
 
 // Config content all config info.
 type Config struct {
-	file string
+	file               string
+	liveRoomIndexCache map[string]int
 
 	RPC                  RPC                  `yaml:"rpc"`
 	Debug                bool                 `yaml:"debug"`
@@ -112,8 +114,9 @@ var defaultConfig = Config{
 	Feature: Feature{
 		UseNativeFlvParser: false,
 	},
-	LiveRooms: []LiveRoom{},
-	file:      "",
+	LiveRooms:          []LiveRoom{},
+	file:               "",
+	liveRoomIndexCache: map[string]int{},
 	VideoSplitStrategies: VideoSplitStrategies{
 		OnRoomNameChanged: false,
 	},
@@ -144,6 +147,43 @@ func (c *Config) Verify() error {
 	return nil
 }
 
+func (c *Config) RefreshLiveRoomIndexCache() {
+	for index, room := range c.LiveRooms {
+		c.liveRoomIndexCache[room.Url] = index
+	}
+}
+
+func (c *Config) RemoveLiveRoomByUrl(url string) error {
+	c.RefreshLiveRoomIndexCache()
+	if index, ok := c.liveRoomIndexCache[url]; ok {
+		if index >= 0 && index < len(c.LiveRooms) && c.LiveRooms[index].Url == url {
+			c.LiveRooms = append(c.LiveRooms[:index], c.LiveRooms[index+1:]...)
+			return nil
+		}
+	}
+	return errors.New("failed removing room: " + url)
+}
+
+func (c *Config) GetLiveRoomByUrl(url string) (*LiveRoom, error) {
+	room, err := c.getLiveRoomByUrlImpl(url)
+	if err != nil {
+		c.RefreshLiveRoomIndexCache()
+		if room, err = c.getLiveRoomByUrlImpl(url); err != nil {
+			return nil, err
+		}
+	}
+	return room, nil
+}
+
+func (c Config) getLiveRoomByUrlImpl(url string) (*LiveRoom, error) {
+	if index, ok := c.liveRoomIndexCache[url]; ok {
+		if index >= 0 && index < len(c.LiveRooms) && c.LiveRooms[index].Url == url {
+			return &c.LiveRooms[index], nil
+		}
+	}
+	return nil, errors.New("room " + url + " doesn't exist.")
+}
+
 func NewConfigWithFile(file string) (*Config, error) {
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -154,6 +194,7 @@ func NewConfigWithFile(file string) (*Config, error) {
 		return nil, err
 	}
 	config.file = file
+	config.RefreshLiveRoomIndexCache()
 	return config, nil
 }
 

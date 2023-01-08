@@ -110,8 +110,15 @@ func main() {
 	}
 
 	for _, _live := range inst.Lives {
-		if err := lm.AddListener(ctx, _live); err != nil {
-			logger.WithFields(map[string]interface{}{"url": _live.GetRawUrl()}).Error(err)
+		room, err := inst.Config.GetLiveRoomByUrl(_live.GetRawUrl())
+		if err != nil {
+			logger.WithFields(map[string]interface{}{"room": _live.GetRawUrl()}).Error(err)
+			panic(err)
+		}
+		if room.IsListening {
+			if err := lm.AddListener(ctx, _live); err != nil {
+				logger.WithFields(map[string]interface{}{"url": _live.GetRawUrl()}).Error(err)
+			}
 		}
 		time.Sleep(time.Second * 5)
 	}
