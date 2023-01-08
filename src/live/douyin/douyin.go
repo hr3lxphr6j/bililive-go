@@ -37,7 +37,13 @@ type Live struct {
 }
 
 func (l *Live) getData() (*gjson.Result, error) {
-	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent, requests.Cookie("__ac_nonce", "123456789012345678901"))
+	cookies := l.Options.Cookies.Cookies(l.Url)
+	cookieKVs := make(map[string]string)
+	cookieKVs["__ac_nonce"] = "123456789012345678901"
+	for _, item := range cookies {
+		cookieKVs[item.Name] = item.Value
+	}
+	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent, requests.Cookies(cookieKVs))
 	if err != nil {
 		return nil, err
 	}
