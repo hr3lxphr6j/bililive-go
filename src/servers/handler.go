@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tidwall/gjson"
 
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/consts"
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
@@ -58,16 +59,25 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 		writeMsg(writer, http.StatusNotFound, fmt.Sprintf("live id: %s can not find", vars["id"]))
 		return
 	}
+	room, err := inst.Config.GetLiveRoomByUrl(live.GetRawUrl())
+	if err != nil {
+		writeMsg(writer, http.StatusNotFound, fmt.Sprintf("room : %s can not find", live.GetRawUrl()))
+		return
+	}
 	switch vars["action"] {
 	case "start":
 		if err := inst.ListenerManager.(listeners.Manager).AddListener(r.Context(), live); err != nil {
 			writeMsg(writer, http.StatusBadRequest, err.Error())
 			return
+		} else {
+			room.IsListening = true
 		}
 	case "stop":
 		if err := inst.ListenerManager.(listeners.Manager).RemoveListener(r.Context(), live.GetLiveId()); err != nil {
 			writeMsg(writer, http.StatusBadRequest, err.Error())
 			return
+		} else {
+			room.IsListening = false
 		}
 	default:
 		writeMsg(writer, http.StatusBadRequest, fmt.Sprintf("invalid Action: %s", vars["action"]))
@@ -76,8 +86,11 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 	writeJSON(writer, parseInfo(r.Context(), live))
 }
 
-/* Post data example
+/*
+	Post data example
+
 [
+
 	{
 		"url": "http://live.bilibili.com/1030",
 		"listen": true
@@ -86,31 +99,52 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 		"url": "https://live.bilibili.com/493",
 		"listen": true
 	}
+
 ]
 */
 func addLives(writer http.ResponseWriter, r *http.Request) {
-	b, _ := ioutil.ReadAll(r.Body)
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		writeJSON(writer, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
 	info := liveSlice(make([]*live.Info, 0))
+	errorMessages := make([]string, 0, 4)
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
 		urlStr := strings.Trim(value.Get("url").String(), " ")
 		if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 			urlStr = "https://" + urlStr
 		}
-		u, _ := url.Parse(urlStr)
-		if live, err := live.New(u, instance.GetInstance(r.Context()).Cache); err == nil {
+		u, err := url.Parse(urlStr)
+		if err != nil {
+			errorMessages = append(errorMessages, "can't parse url: "+urlStr)
+			return true
+		}
+		if newLive, err := live.New(u, instance.GetInstance(r.Context()).Cache); err == nil {
 			inst := instance.GetInstance(r.Context())
-			if _, ok := inst.Lives[live.GetLiveId()]; !ok {
-				inst.Lives[live.GetLiveId()] = live
+			if _, ok := inst.Lives[newLive.GetLiveId()]; !ok {
+				inst.Lives[newLive.GetLiveId()] = newLive
 				if isListen {
-					inst.ListenerManager.(listeners.Manager).AddListener(r.Context(), live)
+					inst.ListenerManager.(listeners.Manager).AddListener(r.Context(), newLive)
 				}
-				info = append(info, parseInfo(r.Context(), live))
+				info = append(info, parseInfo(r.Context(), newLive))
+
+				liveRoom := configs.LiveRoom{
+					Url:         u.String(),
+					IsListening: isListen,
+				}
+				inst.Config.LiveRooms = append(inst.Config.LiveRooms, liveRoom)
 			}
+		} else {
+			errorMessages = append(errorMessages, err.Error())
 		}
 		return true
 	})
 	sort.Sort(info)
+	// TODO return error messages too
 	writeJSON(writer, info)
 }
 
@@ -119,13 +153,9 @@ func getConfig(writer http.ResponseWriter, r *http.Request) {
 }
 
 func putConfig(writer http.ResponseWriter, r *http.Request) {
-	configRoom := instance.GetInstance(r.Context()).Config.LiveRooms
-	configRoom = make([]string, 0, 4)
-	for _, live := range instance.GetInstance(r.Context()).Lives {
-		configRoom = append(configRoom, live.GetRawUrl())
-	}
-	instance.GetInstance(r.Context()).Config.LiveRooms = configRoom
-	if err := instance.GetInstance(r.Context()).Config.Marshal(); err != nil {
+	config := instance.GetInstance(r.Context()).Config
+	config.RefreshLiveRoomIndexCache()
+	if err := config.Marshal(); err != nil {
 		writeMsg(writer, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -148,6 +178,7 @@ func removeLive(writer http.ResponseWriter, r *http.Request) {
 		}
 	}
 	delete(inst.Lives, live.GetLiveId())
+	inst.Config.RemoveLiveRoomByUrl(live.GetRawUrl())
 	writeMsg(writer, http.StatusOK, "OK")
 }
 
