@@ -41,7 +41,7 @@ func GenConfigFromFlags() *configs.Config {
 		Interval:   *Interval,
 		OutPutPath: *Output,
 		OutputTmpl: *OutputFileTmpl,
-		LiveRooms:  *Input,
+		LiveRooms:  configs.NewLiveRoomsWithStrings(*Input),
 		Feature: configs.Feature{
 			UseNativeFlvParser: *NativeFlvParser,
 		},
