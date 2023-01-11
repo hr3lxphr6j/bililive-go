@@ -11,6 +11,7 @@ _build() {
   bin_name=$2
   ld_flags=$3
   go build \
+    -tags ${TAGS:-"release"} \
     -gcflags=${GOFLAGS:-""} \
     -o ${OUTPUT_PATH}/${bin_name} \
     -ldflags="${ld_flags}" \

@@ -189,13 +189,13 @@ func NewConfigWithFile(file string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can`t open file: %s", file)
 	}
-	config := &defaultConfig
-	if err = yaml.Unmarshal(b, config); err != nil {
+	config := defaultConfig
+	if err = yaml.Unmarshal(b, &config); err != nil {
 		return nil, err
 	}
 	config.file = file
 	config.RefreshLiveRoomIndexCache()
-	return config, nil
+	return &config, nil
 }
 
 func (c *Config) Marshal() error {
@@ -204,4 +204,11 @@ func (c *Config) Marshal() error {
 		return err
 	}
 	return ioutil.WriteFile(c.file, b, os.ModeAppend)
+}
+
+func (c Config) GetFilePath() (string, error) {
+	if c.file == "" {
+		return "", errors.New("config path not set")
+	}
+	return c.file, nil
 }

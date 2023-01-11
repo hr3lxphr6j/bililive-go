@@ -2,15 +2,18 @@ package servers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/tidwall/gjson"
+	"gopkg.in/yaml.v2"
 
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/consts"
@@ -160,6 +163,47 @@ func putConfig(writer http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeMsg(writer, http.StatusOK, "OK")
+}
+
+func getRawConfig(writer http.ResponseWriter, r *http.Request) {
+	b, err := yaml.Marshal(instance.GetInstance(r.Context()).Config)
+	if err != nil {
+		writeMsg(writer, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(writer, map[string]string{
+		"config": string(b),
+	})
+}
+
+func putRawConfig(writer http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		writeJSON(writer, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+	inst := instance.GetInstance(r.Context())
+	var jsonResponse map[string]interface{}
+	json.Unmarshal(b, &jsonResponse)
+	configPath, err := inst.Config.GetFilePath()
+	if err != nil {
+		writeJSON(writer, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+	ioutil.WriteFile(configPath, []byte(jsonResponse["config"].(string)), os.ModePerm)
+	config, err := configs.NewConfigWithFile(configPath)
+	if err != nil {
+		writeJSON(writer, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+	inst.Config = config
+	writeJSON(writer, map[string]interface{}{})
 }
 
 func removeLive(writer http.ResponseWriter, r *http.Request) {
