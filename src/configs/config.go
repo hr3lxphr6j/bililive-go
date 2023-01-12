@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"gopkg.in/yaml.v2"
 )
 
@@ -54,9 +55,7 @@ type OnRecordFinished struct {
 
 // Config content all config info.
 type Config struct {
-	file               string
-	liveRoomIndexCache map[string]int
-
+	File                 string               `yaml:"-"`
 	RPC                  RPC                  `yaml:"rpc"`
 	Debug                bool                 `yaml:"debug"`
 	Interval             int                  `yaml:"interval"`
@@ -68,11 +67,14 @@ type Config struct {
 	Cookies              map[string]string    `yaml:"cookies"`
 	OnRecordFinished     OnRecordFinished     `yaml:"on_record_finished"`
 	TimeoutInUs          int                  `yaml:"timeout_in_us"`
+
+	liveRoomIndexCache map[string]int
 }
 
 type LiveRoom struct {
-	Url         string `yaml:"url"`
-	IsListening bool   `yaml:"is_listening"`
+	Url         string  `yaml:"url"`
+	IsListening bool    `yaml:"is_listening"`
+	LiveId      live.ID `yaml:"-"`
 }
 
 type liveRoomAlias LiveRoom
@@ -115,7 +117,7 @@ var defaultConfig = Config{
 		UseNativeFlvParser: false,
 	},
 	LiveRooms:          []LiveRoom{},
-	file:               "",
+	File:               "",
 	liveRoomIndexCache: map[string]int{},
 	VideoSplitStrategies: VideoSplitStrategies{
 		OnRoomNameChanged: false,
@@ -158,6 +160,7 @@ func (c *Config) RemoveLiveRoomByUrl(url string) error {
 	if index, ok := c.liveRoomIndexCache[url]; ok {
 		if index >= 0 && index < len(c.LiveRooms) && c.LiveRooms[index].Url == url {
 			c.LiveRooms = append(c.LiveRooms[:index], c.LiveRooms[index+1:]...)
+			delete(c.liveRoomIndexCache, url)
 			return nil
 		}
 	}
@@ -184,17 +187,25 @@ func (c Config) getLiveRoomByUrlImpl(url string) (*LiveRoom, error) {
 	return nil, errors.New("room " + url + " doesn't exist.")
 }
 
+func NewConfigWithBytes(b []byte) (*Config, error) {
+	config := defaultConfig
+	if err := yaml.Unmarshal(b, &config); err != nil {
+		return nil, err
+	}
+	config.RefreshLiveRoomIndexCache()
+	return &config, nil
+}
+
 func NewConfigWithFile(file string) (*Config, error) {
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, fmt.Errorf("can`t open file: %s", file)
 	}
-	config := &defaultConfig
-	if err = yaml.Unmarshal(b, config); err != nil {
+	config, err := NewConfigWithBytes(b)
+	if err != nil {
 		return nil, err
 	}
-	config.file = file
-	config.RefreshLiveRoomIndexCache()
+	config.File = file
 	return config, nil
 }
 
@@ -203,5 +214,12 @@ func (c *Config) Marshal() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(c.file, b, os.ModeAppend)
+	return ioutil.WriteFile(c.File, b, os.ModeAppend)
+}
+
+func (c Config) GetFilePath() (string, error) {
+	if c.File == "" {
+		return "", errors.New("config path not set")
+	}
+	return c.File, nil
 }
