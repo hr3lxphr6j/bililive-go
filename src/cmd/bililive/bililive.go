@@ -69,7 +69,8 @@ func main() {
 	events.NewDispatcher(ctx)
 
 	inst.Lives = make(map[live.ID]live.Live)
-	for _, room := range inst.Config.LiveRooms {
+	for index, _ := range inst.Config.LiveRooms {
+		room := &inst.Config.LiveRooms[index]
 		u, err := url.Parse(room.Url)
 		if err != nil {
 			logger.WithField("url", room).Error(err)
@@ -89,6 +90,7 @@ func main() {
 			continue
 		}
 		inst.Lives[l.GetLiveId()] = l
+		room.LiveId = l.GetLiveId()
 	}
 
 	if inst.Config.RPC.Enable {

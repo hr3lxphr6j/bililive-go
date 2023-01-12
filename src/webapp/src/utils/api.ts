@@ -73,7 +73,7 @@ class API {
     /**
      * 保存设置至config文件，且不处理返回结果
      */
-    saveSettingsInBackground(){
+    saveSettingsInBackground() {
         this.saveSettings()
             .then((rsp: any) => {
                 if (rsp.err_no === 0) {
@@ -82,6 +82,17 @@ class API {
                     console.log('Server Error !!');
                 }
             })
+    }
+
+    /**
+     * 获取设置列表
+     */
+    getConfigInfo() {
+        return utils.requestGet(`${BASE_URL}/raw-config`);
+    }
+
+    saveRawConfig(json: any) {
+        return utils.requestPut(`${BASE_URL}/raw-config`, json);
     }
 
 }

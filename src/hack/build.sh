@@ -11,6 +11,7 @@ _build() {
   bin_name=$2
   ld_flags=$3
   go build \
+    -tags ${TAGS:-"release"} \
     -gcflags=${GOFLAGS:-""} \
     -o ${OUTPUT_PATH}/${bin_name} \
     -ldflags="${ld_flags}" \
@@ -24,7 +25,11 @@ build() {
     now=$(date '+%Y-%m-%d_%H:%M:%S')
     rev=$(echo "${rev:-$(git rev-parse HEAD)}")
     ver=$(git describe --tags --always)
-    ld_flags="-s -w -X ${CONSTS_PATH}.BuildTime=${now} -X ${CONSTS_PATH}.AppVersion=${ver} -X ${CONSTS_PATH}.GitHash=${rev}"
+    debug_build_flags=""
+    if [ ${TAGS} = 'release' ]; then
+      debug_build_flags=" -s -w "
+    fi
+    ld_flags="${debug_build_flags} -X ${CONSTS_PATH}.BuildTime=${now} -X ${CONSTS_PATH}.AppVersion=${ver} -X ${CONSTS_PATH}.GitHash=${rev}"
   fi
 
   if [ $(go env GOOS) = "windows" ]; then
