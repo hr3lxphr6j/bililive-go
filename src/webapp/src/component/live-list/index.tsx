@@ -102,7 +102,7 @@ class LiveList extends React.Component<Props, IState> {
                             .then(rsp => {
                                 this.refresh();
                             });
-                            api.saveSettingsInBackground();
+                        api.saveSettingsInBackground();
                     }}>
                     <Button type="link" size="small">删除</Button>
                 </PopDialog>
@@ -214,7 +214,7 @@ class LiveList extends React.Component<Props, IState> {
                         tags = ['已停止'];
                     }
 
-                    if (item.recoding === true) {
+                    if (item.recording === true) {
                         tags = ['录制中'];
                     }
 
