@@ -2,7 +2,6 @@ package servers
 
 import (
 	"context"
-	"io/fs"
 	"net/http"
 	_ "net/http/pprof"
 
@@ -43,6 +42,8 @@ func initMux(ctx context.Context) *mux.Router {
 	apiRoute.HandleFunc("/info", getInfo).Methods("GET")
 	apiRoute.HandleFunc("/config", getConfig).Methods("GET")
 	apiRoute.HandleFunc("/config", putConfig).Methods("PUT")
+	apiRoute.HandleFunc("/raw-config", getRawConfig).Methods("GET")
+	apiRoute.HandleFunc("/raw-config", putRawConfig).Methods("PUT")
 	apiRoute.HandleFunc("/lives", getAllLives).Methods("GET")
 	apiRoute.HandleFunc("/lives", addLives).Methods("POST")
 	apiRoute.HandleFunc("/lives/{id}", getLive).Methods("GET")
@@ -50,11 +51,11 @@ func initMux(ctx context.Context) *mux.Router {
 	apiRoute.HandleFunc("/lives/{id}/{action}", parseLiveAction).Methods("GET")
 	apiRoute.Handle("/metrics", promhttp.Handler())
 
-	fs, err := fs.Sub(webapp.FS, "build")
+	fs, err := webapp.FS()
 	if err != nil {
 		instance.GetInstance(ctx).Logger.Fatal(err)
 	}
-	m.PathPrefix("/").Handler(http.FileServer(http.FS(fs)))
+	m.PathPrefix("/").Handler(http.FileServer(fs))
 
 	// pprof
 	if instance.GetInstance(ctx).Config.Debug {

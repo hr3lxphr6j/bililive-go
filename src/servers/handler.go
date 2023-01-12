@@ -2,15 +2,19 @@ package servers
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/tidwall/gjson"
+	"gopkg.in/yaml.v2"
 
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/consts"
@@ -66,14 +70,14 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 	}
 	switch vars["action"] {
 	case "start":
-		if err := inst.ListenerManager.(listeners.Manager).AddListener(r.Context(), live); err != nil {
+		if err := startListening(r.Context(), live); err != nil {
 			writeMsg(writer, http.StatusBadRequest, err.Error())
 			return
 		} else {
 			room.IsListening = true
 		}
 	case "stop":
-		if err := inst.ListenerManager.(listeners.Manager).RemoveListener(r.Context(), live.GetLiveId()); err != nil {
+		if err := stopListening(r.Context(), live.GetLiveId()); err != nil {
 			writeMsg(writer, http.StatusBadRequest, err.Error())
 			return
 		} else {
@@ -84,6 +88,16 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(writer, parseInfo(r.Context(), live))
+}
+
+func startListening(ctx context.Context, live live.Live) error {
+	inst := instance.GetInstance(ctx)
+	return inst.ListenerManager.(listeners.Manager).AddListener(ctx, live)
+}
+
+func stopListening(ctx context.Context, liveId live.ID) error {
+	inst := instance.GetInstance(ctx)
+	return inst.ListenerManager.(listeners.Manager).RemoveListener(ctx, liveId)
 }
 
 /*
@@ -115,37 +129,75 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
 		urlStr := strings.Trim(value.Get("url").String(), " ")
-		if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
-			urlStr = "https://" + urlStr
-		}
-		u, err := url.Parse(urlStr)
-		if err != nil {
-			errorMessages = append(errorMessages, "can't parse url: "+urlStr)
-			return true
-		}
-		if newLive, err := live.New(u, instance.GetInstance(r.Context()).Cache); err == nil {
-			inst := instance.GetInstance(r.Context())
-			if _, ok := inst.Lives[newLive.GetLiveId()]; !ok {
-				inst.Lives[newLive.GetLiveId()] = newLive
-				if isListen {
-					inst.ListenerManager.(listeners.Manager).AddListener(r.Context(), newLive)
-				}
-				info = append(info, parseInfo(r.Context(), newLive))
-
-				liveRoom := configs.LiveRoom{
-					Url:         u.String(),
-					IsListening: isListen,
-				}
-				inst.Config.LiveRooms = append(inst.Config.LiveRooms, liveRoom)
-			}
-		} else {
+		if retInfo, err := addLiveImpl(r.Context(), urlStr, isListen); err != nil {
 			errorMessages = append(errorMessages, err.Error())
+			return true
+		} else {
+			info = append(info, retInfo)
 		}
 		return true
 	})
 	sort.Sort(info)
 	// TODO return error messages too
 	writeJSON(writer, info)
+}
+
+func addLiveImpl(ctx context.Context, urlStr string, isListen bool) (info *live.Info, err error) {
+	if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
+		urlStr = "https://" + urlStr
+	}
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, errors.New("can't parse url: " + urlStr)
+	}
+	inst := instance.GetInstance(ctx)
+	newLive, err := live.New(u, inst.Cache)
+	if err != nil {
+		return nil, err
+	}
+	if _, ok := inst.Lives[newLive.GetLiveId()]; !ok {
+		inst.Lives[newLive.GetLiveId()] = newLive
+		if isListen {
+			inst.ListenerManager.(listeners.Manager).AddListener(ctx, newLive)
+		}
+		info = parseInfo(ctx, newLive)
+
+		liveRoom := configs.LiveRoom{
+			Url:         u.String(),
+			IsListening: isListen,
+			LiveId:      newLive.GetLiveId(),
+		}
+		inst.Config.LiveRooms = append(inst.Config.LiveRooms, liveRoom)
+	}
+	return info, nil
+}
+
+func removeLive(writer http.ResponseWriter, r *http.Request) {
+	inst := instance.GetInstance(r.Context())
+	vars := mux.Vars(r)
+	live, ok := inst.Lives[live.ID(vars["id"])]
+	if !ok {
+		writeMsg(writer, http.StatusNotFound, fmt.Sprintf("live id: %s can not find", vars["id"]))
+		return
+	}
+	if err := removeLiveImpl(r.Context(), live); err != nil {
+		writeMsg(writer, http.StatusBadRequest, err.Error())
+		return
+	}
+	writeMsg(writer, http.StatusOK, "OK")
+}
+
+func removeLiveImpl(ctx context.Context, live live.Live) error {
+	inst := instance.GetInstance(ctx)
+	lm := inst.ListenerManager.(listeners.Manager)
+	if lm.HasListener(ctx, live.GetLiveId()) {
+		if err := lm.RemoveListener(ctx, live.GetLiveId()); err != nil {
+			return err
+		}
+	}
+	delete(inst.Lives, live.GetLiveId())
+	inst.Config.RemoveLiveRoomByUrl(live.GetRawUrl())
+	return nil
 }
 
 func getConfig(writer http.ResponseWriter, r *http.Request) {
@@ -162,24 +214,103 @@ func putConfig(writer http.ResponseWriter, r *http.Request) {
 	writeMsg(writer, http.StatusOK, "OK")
 }
 
-func removeLive(writer http.ResponseWriter, r *http.Request) {
-	inst := instance.GetInstance(r.Context())
-	vars := mux.Vars(r)
-	live, ok := inst.Lives[live.ID(vars["id"])]
-	if !ok {
-		writeMsg(writer, http.StatusNotFound, fmt.Sprintf("live id: %s can not find", vars["id"]))
+func getRawConfig(writer http.ResponseWriter, r *http.Request) {
+	b, err := yaml.Marshal(instance.GetInstance(r.Context()).Config)
+	if err != nil {
+		writeMsg(writer, http.StatusInternalServerError, err.Error())
 		return
 	}
-	lm := inst.ListenerManager.(listeners.Manager)
-	if lm.HasListener(r.Context(), live.GetLiveId()) {
-		if err := lm.RemoveListener(r.Context(), live.GetLiveId()); err != nil {
-			writeMsg(writer, http.StatusBadRequest, err.Error())
-			return
+	writeJSON(writer, map[string]string{
+		"config": string(b),
+	})
+}
+
+func putRawConfig(writer http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		writeJSON(writer, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+	ctx := r.Context()
+	inst := instance.GetInstance(ctx)
+	var jsonResponse map[string]interface{}
+	json.Unmarshal(b, &jsonResponse)
+	configPath, err := inst.Config.GetFilePath()
+	if err != nil {
+		writeJSON(writer, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+	newConfig, err := configs.NewConfigWithBytes([]byte(jsonResponse["config"].(string)))
+	if err != nil {
+		writeJSON(writer, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+	oldConfig := inst.Config
+	newConfig.File = oldConfig.File
+	if err := applyLiveRoomsByConfig(ctx, newConfig.LiveRooms); err != nil {
+		writeJSON(writer, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+	newConfig.LiveRooms = oldConfig.LiveRooms
+	ioutil.WriteFile(configPath, []byte(jsonResponse["config"].(string)), os.ModePerm)
+	inst.Config = newConfig
+	newConfig.RefreshLiveRoomIndexCache()
+	writeJSON(writer, map[string]interface{}{})
+}
+
+func applyLiveRoomsByConfig(ctx context.Context, newLiveRooms []configs.LiveRoom) error {
+	inst := instance.GetInstance(ctx)
+	currentConfig := inst.Config
+	currentConfig.RefreshLiveRoomIndexCache()
+	newUrlMap := make(map[string]*configs.LiveRoom)
+	for _, newRoom := range newLiveRooms {
+		newUrlMap[newRoom.Url] = &newRoom
+		if room, err := currentConfig.GetLiveRoomByUrl(newRoom.Url); err != nil {
+			// add live
+			if _, err := addLiveImpl(ctx, newRoom.Url, newRoom.IsListening); err != nil {
+				return err
+			}
+		} else {
+			live, ok := inst.Lives[live.ID(room.LiveId)]
+			if !ok {
+				return errors.New(fmt.Sprintf("live id: %s can not find", room.LiveId))
+			}
+			if room.IsListening != newRoom.IsListening {
+				if newRoom.IsListening {
+					// start listening
+					if err := startListening(ctx, live); err != nil {
+						return err
+					}
+				} else {
+					// stop listening
+					if err := stopListening(ctx, live.GetLiveId()); err != nil {
+						return err
+					}
+				}
+				room.IsListening = newRoom.IsListening
+			}
 		}
 	}
-	delete(inst.Lives, live.GetLiveId())
-	inst.Config.RemoveLiveRoomByUrl(live.GetRawUrl())
-	writeMsg(writer, http.StatusOK, "OK")
+	loopRooms := currentConfig.LiveRooms
+	for _, room := range loopRooms {
+		if _, ok := newUrlMap[room.Url]; !ok {
+			// remove live
+			live, ok := inst.Lives[live.ID(room.LiveId)]
+			if !ok {
+				return errors.New(fmt.Sprintf("live id: %s can not find", room.LiveId))
+			}
+			removeLiveImpl(ctx, live)
+		}
+	}
+	return nil
 }
 
 func getInfo(writer http.ResponseWriter, r *http.Request) {
