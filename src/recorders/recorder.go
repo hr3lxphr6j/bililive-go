@@ -100,7 +100,7 @@ func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 	}, nil
 }
 
-func (r *recorder) tryRecode() {
+func (r *recorder) tryRecord() {
 	urls, err := r.Live.GetStreamUrls()
 	if err != nil || len(urls) == 0 {
 		r.getLogger().WithError(err).Warn("failed to get stream url, will retry after 5s...")
@@ -174,7 +174,7 @@ func (r *recorder) run() {
 		case <-r.stop:
 			return
 		default:
-			r.tryRecode()
+			r.tryRecord()
 		}
 	}
 }
