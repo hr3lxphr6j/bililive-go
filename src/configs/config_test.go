@@ -11,7 +11,7 @@ func TestNewConfig(t *testing.T) {
 	file := "../../config.yml"
 	c, err := NewConfigWithFile("../../config.yml")
 	assert.NoError(t, err)
-	assert.Equal(t, file, c.file)
+	assert.Equal(t, file, c.File)
 }
 
 func TestRPC_Verify(t *testing.T) {
