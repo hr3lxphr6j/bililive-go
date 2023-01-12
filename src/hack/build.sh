@@ -36,6 +36,14 @@ build() {
     ext=".exe"
   fi
 
+  if [ $(go env GOARCH) = "mips" ]; then
+    bin_name="${target}-$(go env GOOS)-$(go env GOARCH)-softfloat${ext:-}"
+
+    export GOMIPS=softfloat
+    _build "${target}" "${bin_name}" "${ld_flags:-}"
+    unset GOMIPS
+  fi
+
   bin_name="${target}-$(go env GOOS)-$(go env GOARCH)${ext:-}"
 
   _build "${target}" "${bin_name}" "${ld_flags:-}"
