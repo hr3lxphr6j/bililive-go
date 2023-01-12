@@ -133,3 +133,15 @@ func (mr *MockLiveMockRecorder) SetLastStartTime(arg0 interface{}) *gomock.Call 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLastStartTime", reflect.TypeOf((*MockLive)(nil).SetLastStartTime), arg0)
 }
+
+// SetLiveIdByString mocks base method.
+func (m *MockLive) SetLiveIdByString(arg0 string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetLiveIdByString", arg0)
+}
+
+// SetLiveIdByString indicates an expected call of SetLiveIdByString.
+func (mr *MockLiveMockRecorder) SetLiveIdByString(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLiveIdByString", reflect.TypeOf((*MockLive)(nil).SetLiveIdByString), arg0)
+}
