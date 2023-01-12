@@ -30,7 +30,7 @@ func parseInfo(ctx context.Context, l live.Live) *live.Info {
 	obj, _ := inst.Cache.Get(l)
 	info := obj.(*live.Info)
 	info.Listening = inst.ListenerManager.(listeners.Manager).HasListener(ctx, l.GetLiveId())
-	info.Recoding = inst.RecorderManager.(recorders.Manager).HasRecorder(ctx, l.GetLiveId())
+	info.Recording = inst.RecorderManager.(recorders.Manager).HasRecorder(ctx, l.GetLiveId())
 	return info
 }
 

@@ -36,7 +36,7 @@
         "room_name": "【B站限定】棉花糖＆唱歌！！！！",
         "status": false,
         "listening": true,
-        "recoding": false
+        "recording": false
       },
       {
         "id": "63dc965c77d3d81058c92c3e38822256",
@@ -46,7 +46,7 @@
         "room_name": "古老niconico老人会with☆乐园",
         "status": false,
         "listening": true,
-        "recoding": false
+        "recording": false
       },
       {
         "id": "dfb964a56725bbad165cb9ea1ef8ac5b",
@@ -56,7 +56,7 @@
         "room_name": "直播做饭",
         "status": false,
         "listening": true,
-        "recoding": false
+        "recording": false
       }
     ]
     ```
@@ -77,7 +77,7 @@
       "room_name": "【B站限定】棉花糖＆唱歌！！！！",
       "status": false,
       "listening": true,
-      "recoding": false
+      "recording": false
     }
     ```
         
@@ -105,7 +105,7 @@
             "room_name": "【B站限定】棉花糖＆唱歌！！！！",
             "status": false,
             "listening": true,
-            "recoding": false
+            "recording": false
         }
     ]
     ```        
@@ -137,7 +137,7 @@
         "room_name": "【B站限定】棉花糖＆唱歌！！！！",
         "status": false,
         "listening": true,
-        "recoding": false
+        "recording": false
     }
     ```
         
@@ -157,7 +157,7 @@
         "room_name": "【B站限定】棉花糖＆唱歌！！！！",
         "status": false,
         "listening": false,
-        "recoding": false
+        "recording": false
     }
     ```
         
