@@ -117,8 +117,12 @@
     path: http://127.0.0.1:8080/api/lives/212d9c98c7b376b730d4336bb49f6d3f
     ```
 - Response:
-    ```text
-    OK
+    ```json
+    {
+        "err_no": 0,
+        "err_msg": "",
+        "data": "OK"
+    }
     ```
 
 ## `GET /api/lives/{id}/start` Start listen live by id
@@ -191,6 +195,42 @@
     path: http://127.0.0.1:8080/api/config
     ```
 - Response:
+    ```json
+    {
+        "err_no": 0,
+        "err_msg": "",
+        "data": "OK"
+    }
+    ```
+
+## `GET /api/raw-config` Get raw config file
+- Request:
     ```text
-    OK
+    method: GET
+    path: http://127.0.0.1:8080/api/raw-config
+    ```
+- Response:
+    ```json
+    {
+        "config": "rpc:\n  enable: true\n  bind: 0.0.0.0:8080\ndebug: false\ninterval: 15\nout_put_path: ./\nfeature:\n  use_native_flv_parser: false\nlive_rooms:\n- url: https://www.huya.com/991111\n  is_listening: false\nout_put_tmpl: \"\"\nvideo_split_strategies:\n  on_room_name_changed: false\n  max_duration: 0s\ncookies:\n  live.douyin.com: name1=qwer;name2=asdf;aaaa\non_record_finished:\n  convert_to_mp4: true\n  delete_flv_after_convert: false\ntimeout_in_us: 50000000\n"
+    }
+    ```
+
+## `PUT /api/raw-config` Save the whole config file
+- Request:
+    ```text
+    method: PUT
+    path: http://127.0.0.1:8080/api/raw-config
+    body:
+        {
+            "config": "rpc:\n  enable: true\n  bind: 0.0.0.0:8080\ndebug: false\ninterval: 15\nout_put_path: ./\nfeature:\n  use_native_flv_parser: false\nlive_rooms:\n- url: https://www.huya.com/991111\n  is_listening: false\nout_put_tmpl: \"\"\nvideo_split_strategies:\n  on_room_name_changed: false\n  max_duration: 0s\ncookies:\n  live.douyin.com: name1=qwer;name2=asdf;aaaa\non_record_finished:\n  convert_to_mp4: true\n  delete_flv_after_convert: false\ntimeout_in_us: 50000000\n"
+        }
+    ```
+- Response:
+    ```json
+    {
+        "err_no": 0,
+        "err_msg": "",
+        "data": "OK"
+    }
     ```
