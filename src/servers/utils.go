@@ -24,3 +24,14 @@ func writeJSON(w http.ResponseWriter, obj interface{}) {
 	w.Header().Set(contentType, contentTypeJSON)
 	_, _ = w.Write(b)
 }
+
+func writeJsonWithStatusCode(w http.ResponseWriter, code int, obj interface{}) {
+	b, err := json.Marshal(obj)
+	if err != nil {
+		writeMsg(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(code)
+	w.Header().Set(contentType, contentTypeJSON)
+	_, _ = w.Write(b)
+}
