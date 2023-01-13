@@ -49,7 +49,10 @@ func getLive(writer http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	live, ok := inst.Lives[live.ID(vars["id"])]
 	if !ok {
-		writeMsg(writer, http.StatusNotFound, fmt.Sprintf("live id: %s can not find", vars["id"]))
+		writeJsonWithStatusCode(writer, http.StatusNotFound, commonResp{
+			ErrNo:  http.StatusNotFound,
+			ErrMsg: fmt.Sprintf("live id: %s can not find", vars["id"]),
+		})
 		return
 	}
 	writeJSON(writer, parseInfo(r.Context(), live))
@@ -58,33 +61,44 @@ func getLive(writer http.ResponseWriter, r *http.Request) {
 func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(r.Context())
 	vars := mux.Vars(r)
+	resp := commonResp{}
 	live, ok := inst.Lives[live.ID(vars["id"])]
 	if !ok {
-		writeMsg(writer, http.StatusNotFound, fmt.Sprintf("live id: %s can not find", vars["id"]))
+		resp.ErrNo = http.StatusNotFound
+		resp.ErrMsg = fmt.Sprintf("live id: %s can not find", vars["id"])
+		writeJsonWithStatusCode(writer, http.StatusNotFound, resp)
 		return
 	}
 	room, err := inst.Config.GetLiveRoomByUrl(live.GetRawUrl())
 	if err != nil {
-		writeMsg(writer, http.StatusNotFound, fmt.Sprintf("room : %s can not find", live.GetRawUrl()))
+		resp.ErrNo = http.StatusNotFound
+		resp.ErrMsg = fmt.Sprintf("room : %s can not find", live.GetRawUrl())
+		writeJsonWithStatusCode(writer, http.StatusNotFound, resp)
 		return
 	}
 	switch vars["action"] {
 	case "start":
 		if err := startListening(r.Context(), live); err != nil {
-			writeMsg(writer, http.StatusBadRequest, err.Error())
+			resp.ErrNo = http.StatusBadRequest
+			resp.ErrMsg = err.Error()
+			writeJsonWithStatusCode(writer, http.StatusBadRequest, resp)
 			return
 		} else {
 			room.IsListening = true
 		}
 	case "stop":
 		if err := stopListening(r.Context(), live.GetLiveId()); err != nil {
-			writeMsg(writer, http.StatusBadRequest, err.Error())
+			resp.ErrNo = http.StatusBadRequest
+			resp.ErrMsg = err.Error()
+			writeJsonWithStatusCode(writer, http.StatusBadRequest, resp)
 			return
 		} else {
 			room.IsListening = false
 		}
 	default:
-		writeMsg(writer, http.StatusBadRequest, fmt.Sprintf("invalid Action: %s", vars["action"]))
+		resp.ErrNo = http.StatusBadRequest
+		resp.ErrMsg = fmt.Sprintf("invalid Action: %s", vars["action"])
+		writeJsonWithStatusCode(writer, http.StatusBadRequest, resp)
 		return
 	}
 	writeJSON(writer, parseInfo(r.Context(), live))
@@ -177,14 +191,22 @@ func removeLive(writer http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	live, ok := inst.Lives[live.ID(vars["id"])]
 	if !ok {
-		writeMsg(writer, http.StatusNotFound, fmt.Sprintf("live id: %s can not find", vars["id"]))
+		writeJsonWithStatusCode(writer, http.StatusNotFound, commonResp{
+			ErrNo:  http.StatusNotFound,
+			ErrMsg: fmt.Sprintf("live id: %s can not find", vars["id"]),
+		})
 		return
 	}
 	if err := removeLiveImpl(r.Context(), live); err != nil {
-		writeMsg(writer, http.StatusBadRequest, err.Error())
+		writeJsonWithStatusCode(writer, http.StatusBadRequest, commonResp{
+			ErrNo:  http.StatusBadRequest,
+			ErrMsg: err.Error(),
+		})
 		return
 	}
-	writeMsg(writer, http.StatusOK, "OK")
+	writeJSON(writer, commonResp{
+		Data: "OK",
+	})
 }
 
 func removeLiveImpl(ctx context.Context, live live.Live) error {
@@ -208,16 +230,24 @@ func putConfig(writer http.ResponseWriter, r *http.Request) {
 	config := instance.GetInstance(r.Context()).Config
 	config.RefreshLiveRoomIndexCache()
 	if err := config.Marshal(); err != nil {
-		writeMsg(writer, http.StatusBadRequest, err.Error())
+		writeJsonWithStatusCode(writer, http.StatusBadRequest, commonResp{
+			ErrNo:  http.StatusBadRequest,
+			ErrMsg: err.Error(),
+		})
 		return
 	}
-	writeMsg(writer, http.StatusOK, "OK")
+	writeJsonWithStatusCode(writer, http.StatusOK, commonResp{
+		Data: "OK",
+	})
 }
 
 func getRawConfig(writer http.ResponseWriter, r *http.Request) {
 	b, err := yaml.Marshal(instance.GetInstance(r.Context()).Config)
 	if err != nil {
-		writeMsg(writer, http.StatusInternalServerError, err.Error())
+		writeJsonWithStatusCode(writer, http.StatusInternalServerError, commonResp{
+			ErrNo:  http.StatusBadRequest,
+			ErrMsg: err.Error(),
+		})
 		return
 	}
 	writeJSON(writer, map[string]string{
@@ -228,26 +258,29 @@ func getRawConfig(writer http.ResponseWriter, r *http.Request) {
 func putRawConfig(writer http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeJSON(writer, map[string]interface{}{
-			"error": err.Error(),
+		writeJsonWithStatusCode(writer, http.StatusBadRequest, commonResp{
+			ErrNo:  http.StatusBadRequest,
+			ErrMsg: err.Error(),
 		})
 		return
 	}
 	ctx := r.Context()
 	inst := instance.GetInstance(ctx)
-	var jsonResponse map[string]interface{}
-	json.Unmarshal(b, &jsonResponse)
+	var jsonBody map[string]interface{}
+	json.Unmarshal(b, &jsonBody)
 	configPath, err := inst.Config.GetFilePath()
 	if err != nil {
-		writeJSON(writer, map[string]interface{}{
-			"error": err.Error(),
+		writeJsonWithStatusCode(writer, http.StatusInternalServerError, commonResp{
+			ErrNo:  http.StatusInternalServerError,
+			ErrMsg: err.Error(),
 		})
 		return
 	}
-	newConfig, err := configs.NewConfigWithBytes([]byte(jsonResponse["config"].(string)))
+	newConfig, err := configs.NewConfigWithBytes([]byte(jsonBody["config"].(string)))
 	if err != nil {
-		writeJSON(writer, map[string]interface{}{
-			"error": err.Error(),
+		writeJsonWithStatusCode(writer, http.StatusInternalServerError, commonResp{
+			ErrNo:  http.StatusInternalServerError,
+			ErrMsg: err.Error(),
 		})
 		return
 	}
@@ -260,10 +293,12 @@ func putRawConfig(writer http.ResponseWriter, r *http.Request) {
 		return
 	}
 	newConfig.LiveRooms = oldConfig.LiveRooms
-	ioutil.WriteFile(configPath, []byte(jsonResponse["config"].(string)), os.ModePerm)
+	ioutil.WriteFile(configPath, []byte(jsonBody["config"].(string)), os.ModePerm)
 	inst.Config = newConfig
 	newConfig.RefreshLiveRoomIndexCache()
-	writeJSON(writer, map[string]interface{}{})
+	writeJSON(writer, commonResp{
+		Data: "OK",
+	})
 }
 
 func applyLiveRoomsByConfig(ctx context.Context, newLiveRooms []configs.LiveRoom) error {
