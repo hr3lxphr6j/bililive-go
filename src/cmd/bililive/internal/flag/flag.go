@@ -32,20 +32,20 @@ func init() {
 
 // GenConfigFromFlags generates configuration by parsing command line parameters.
 func GenConfigFromFlags() *configs.Config {
-	cfg := &configs.Config{
-		RPC: configs.RPC{
-			Enable: *RPC,
-			Bind:   *RPCBind,
-		},
-		Debug:      *Debug,
-		Interval:   *Interval,
-		OutPutPath: *Output,
-		OutputTmpl: *OutputFileTmpl,
-		LiveRooms:  configs.NewLiveRoomsWithStrings(*Input),
-		Feature: configs.Feature{
-			UseNativeFlvParser: *NativeFlvParser,
-		},
+	cfg := configs.NewConfig()
+	cfg.RPC = configs.RPC{
+		Enable: *RPC,
+		Bind:   *RPCBind,
 	}
+	cfg.Debug = *Debug
+	cfg.Interval = *Interval
+	cfg.OutPutPath = *Output
+	cfg.OutputTmpl = *OutputFileTmpl
+	cfg.LiveRooms = configs.NewLiveRoomsWithStrings(*Input)
+	cfg.Feature = configs.Feature{
+		UseNativeFlvParser: *NativeFlvParser,
+	}
+
 	if SplitStrategies != nil && len(*SplitStrategies) > 0 {
 		for _, s := range *SplitStrategies {
 			// TODO: not hard code

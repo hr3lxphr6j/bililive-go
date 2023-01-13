@@ -129,6 +129,12 @@ var defaultConfig = Config{
 	TimeoutInUs: 60000000,
 }
 
+func NewConfig() *Config {
+	config := new(Config)
+	config.liveRoomIndexCache = map[string]int{}
+	return config
+}
+
 // Verify will return an error when this config has problem.
 func (c *Config) Verify() error {
 	if c == nil {
