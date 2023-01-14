@@ -47,6 +47,9 @@ class LiveInfo extends React.Component<Props, IState> {
                     goVersion: rsp.go_version
                 })
             })
+            .catch(err => {
+                alert("请求服务器失败");
+            })
     }
 
     render() {

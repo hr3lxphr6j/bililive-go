@@ -82,15 +82,22 @@ class API {
                     console.log('Server Error !!');
                 }
             })
+            .catch(err => {
+                alert(`保存设置失败:\n${err}`);
+            })
     }
 
     /**
-     * 获取设置列表
+     * 获取设置明文
      */
     getConfigInfo() {
         return utils.requestGet(`${BASE_URL}/raw-config`);
     }
 
+    /**
+     * 保存设置明文
+     * @param json \{config: "yaml格式的设置原文"\}
+     */
     saveRawConfig(json: any) {
         return utils.requestPut(`${BASE_URL}/raw-config`, json);
     }

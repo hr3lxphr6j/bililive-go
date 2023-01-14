@@ -32,6 +32,9 @@ class ConfigInfo extends React.Component<Props, IState> {
         this.setState({
           config: rsp.config
         });
+      })
+      .catch(err => {
+        alert("获取配置信息失败");
       });
   }
 
@@ -46,6 +49,9 @@ class ConfigInfo extends React.Component<Props, IState> {
         } else {
           alert("Server Error!");
         }
+      })
+      .catch(err => {
+        alert("设置保存失败！");
       })
   }
 
