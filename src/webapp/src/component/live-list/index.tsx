@@ -81,16 +81,22 @@ class LiveList extends React.Component<Props, IState> {
                             //停止监控
                             api.stopRecord(data.roomId)
                                 .then(rsp => {
+                                    api.saveSettingsInBackground();
                                     this.refresh();
+                                })
+                                .catch(err => {
+                                    alert(`停止监控失败:\n${err}`);
                                 });
-                            api.saveSettingsInBackground();
                         } else {
                             //开启监控
                             api.startRecord(data.roomId)
                                 .then(rsp => {
+                                    api.saveSettingsInBackground();
                                     this.refresh();
+                                })
+                                .catch(err => {
+                                    alert(`开启监控失败:\n${err}`);
                                 });
-                            api.saveSettingsInBackground();
                         }
                     }}>
                     <Button type="link" size="small">{listening ? "停止监控" : "开启监控"}</Button>
@@ -100,9 +106,12 @@ class LiveList extends React.Component<Props, IState> {
                     onConfirm={(e) => {
                         api.deleteRoom(data.roomId)
                             .then(rsp => {
+                                api.saveSettingsInBackground();
                                 this.refresh();
+                            })
+                            .catch(err => {
+                                alert(`删除直播间失败:\n${err}`);
                             });
-                        api.saveSettingsInBackground();
                     }}>
                     <Button type="link" size="small">删除</Button>
                 </PopDialog>
@@ -186,6 +195,8 @@ class LiveList extends React.Component<Props, IState> {
                 } else {
                     alert("Server Error!");
                 }
+            }).catch(err => {
+                alert(`Server Error!:\n${err}`);
             })
     }
 
@@ -236,6 +247,9 @@ class LiveList extends React.Component<Props, IState> {
                 this.setState({
                     list: data
                 });
+            })
+            .catch(err => {
+                alert(`加载列表数据失败:\n${err}`);
             });
     }
 

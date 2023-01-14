@@ -130,9 +130,9 @@ var defaultConfig = Config{
 }
 
 func NewConfig() *Config {
-	config := new(Config)
+	config := defaultConfig
 	config.liveRoomIndexCache = map[string]int{}
-	return config
+	return &config
 }
 
 // Verify will return an error when this config has problem.
@@ -216,6 +216,9 @@ func NewConfigWithFile(file string) (*Config, error) {
 }
 
 func (c *Config) Marshal() error {
+	if c.File == "" {
+		return errors.New("config path not set")
+	}
 	b, err := yaml.Marshal(c)
 	if err != nil {
 		return err
