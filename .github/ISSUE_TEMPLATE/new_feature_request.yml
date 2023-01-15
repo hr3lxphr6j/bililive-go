@@ -1,0 +1,10 @@
+name: 提议增加新功能
+description: 提出增加新功能的提案。
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: subject
+    validations:
+      required: true
+    attributes:
+      label: 新功能

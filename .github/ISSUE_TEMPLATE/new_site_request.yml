@@ -1,0 +1,27 @@
+name: 请求增加支持新网站
+description: 希望录制其他的直播网站。
+labels: ["new site request"]
+body:
+  - type: input
+    id: url
+    validations:
+      required: true
+    attributes:
+      label: 目标网站任意直播间的示例 url，精确到具体直播间
+      description: 例如 https://www.huya.com/991111
+
+  - type: input
+    id: alternative
+    validations:
+      required: false
+    attributes:
+      label: 列举其他已支持上述网站的开源工具
+      description: 例如 https://github.com/ytdl-org/youtube-dl
+
+  - type: textarea
+    id: extra
+    validations:
+      required: false
+    attributes:
+      label: 自由描述
+      description: 为什么想增加这个网站，是否尝试过其他工具等等。
