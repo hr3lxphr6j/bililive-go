@@ -53,6 +53,15 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		return nil, live.ErrRoomNotExist
 	}
 
+	if strings.Contains(body, "该主播涉嫌违规，正在整改中") {
+		return &live.Info{
+			Live:     l,
+			HostName: "该主播涉嫌违规，正在整改中",
+			RoomName: "该主播涉嫌违规，正在整改中",
+			Status:   false,
+		}, nil
+	}
+
 	var (
 		strFilter = utils.NewStringFilterChain(utils.ParseUnicode, utils.UnescapeHTMLEntity)
 		hostName  = strFilter.Do(utils.Match1(`"nick":"([^"]*)"`, body))
