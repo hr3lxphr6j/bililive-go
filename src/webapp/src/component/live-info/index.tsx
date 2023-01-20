@@ -1,7 +1,10 @@
 import React from "react";
 import API from '../../utils/api';
-import { PageHeader } from 'antd';
-import { Descriptions } from 'antd';
+import {
+    PageHeader,
+    Descriptions,
+    Button
+} from 'antd';
 
 const api = new API();
 
@@ -52,6 +55,18 @@ class LiveInfo extends React.Component<Props, IState> {
             })
     }
 
+    getTextForCopy(): string {
+        return `
+App Name: ${this.state.appVersion}
+App Version: ${this.state.appVersion}
+Build Time: ${this.state.buildTime}
+Pid: ${this.state.pid}
+Platform: ${this.state.platform}
+Go Version: ${this.state.goVersion}
+Git Hash: ${this.state.gitHash}
+`;
+    }
+
     render() {
         return (
             <div>
@@ -71,6 +86,27 @@ class LiveInfo extends React.Component<Props, IState> {
                     <Descriptions.Item label="Go Version">{this.state.goVersion}</Descriptions.Item>
                     <Descriptions.Item label="Git Hash">{this.state.gitHash}</Descriptions.Item>
                 </Descriptions>
+                <Button
+                    type="default"
+                    style={{
+                        marginTop: 16,
+                    }}
+                    onClick={() => {
+                        const text = this.getTextForCopy();
+                        const result = navigator.clipboard?.writeText(text)
+                            .then(() => {
+                                alert("复制成功:" + text);
+                            })
+                            .catch((e) => {
+                                alert(`复制失败: ${e?.toString()}。`);
+                            });
+                        if (!result) {
+                            alert("浏览器不支持复制函数 navigator.clipboard.writeText().");
+                        }
+                    }}
+                >
+                    复制到剪贴板
+                </Button>
             </div>
         )
     }
