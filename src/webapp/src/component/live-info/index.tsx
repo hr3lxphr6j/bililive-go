@@ -5,6 +5,7 @@ import {
     Descriptions,
     Button
 } from 'antd';
+import copy from 'copy-to-clipboard';
 
 const api = new API();
 
@@ -93,21 +94,17 @@ Git Hash: ${this.state.gitHash}
                     }}
                     onClick={() => {
                         const text = this.getTextForCopy();
-                        const result = navigator.clipboard?.writeText(text)
-                            .then(() => {
-                                alert("复制成功:" + text);
-                            })
-                            .catch((e) => {
-                                alert(`复制失败: ${e?.toString()}。`);
-                            });
-                        if (!result) {
-                            alert("浏览器不支持复制函数 navigator.clipboard.writeText().");
+                        const result = copy(text);
+                        if (result) {
+                            alert("复制成功:" + text);
+                        } else {
+                            alert(`复制失败`);
                         }
                     }}
                 >
                     复制到剪贴板
                 </Button>
-            </div>
+            </div >
         )
     }
 }
