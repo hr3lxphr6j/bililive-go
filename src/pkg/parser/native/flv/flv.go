@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser"
@@ -38,15 +37,13 @@ func init() {
 type builder struct{}
 
 func (b *builder) Build(cfg map[string]string) (parser.Parser, error) {
-	timeout, err := time.ParseDuration(cfg["timeout_in_us"] + "us")
-	if err != nil {
-		timeout = time.Minute
-	}
+	// timeout, err := time.ParseDuration(cfg["timeout_in_us"] + "us")
+	// if err != nil {
+	// 	timeout = time.Minute
+	// }
 	return &Parser{
-		Metadata: Metadata{},
-		hc: &http.Client{
-			Timeout: timeout,
-		},
+		Metadata:  Metadata{},
+		hc:        &http.Client{},
 		stopCh:    make(chan struct{}),
 		closeOnce: new(sync.Once),
 	}, nil
