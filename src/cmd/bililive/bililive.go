@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -44,7 +45,27 @@ func getConfig() (*configs.Config, error) {
 	} else {
 		config = flag.GenConfigFromFlags()
 	}
+	if !config.RPC.Enable && len(config.LiveRooms) == 0 {
+		// if config is invalid, try using the config.yml file besides the executable file.
+		config, err := getConfigBesidesExecutable()
+		if err == nil {
+			return config, config.Verify()
+		}
+	}
 	return config, config.Verify()
+}
+
+func getConfigBesidesExecutable() (*configs.Config, error) {
+	exePath, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+	configPath := filepath.Join(filepath.Dir(exePath), "config.yml")
+	config, err := configs.NewConfigWithFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
 }
 
 func main() {
@@ -63,6 +84,13 @@ func main() {
 
 	logger := log.New(ctx)
 	logger.Infof("%s Version: %s Link Start", consts.AppName, consts.AppVersion)
+	if config.File != "" {
+		logger.Debugf("config path: %s.", config.File)
+		logger.Debugf("other flags have been ignored.")
+	} else {
+		logger.Debugf("config file is not used.")
+		logger.Debugf("flag: %s used.", os.Args)
+	}
 	logger.Debugf("%+v", consts.AppInfo)
 	logger.Debugf("%+v", inst.Config)
 
