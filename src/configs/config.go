@@ -152,6 +152,9 @@ func (c *Config) Verify() error {
 	if maxDur := c.VideoSplitStrategies.MaxDuration; maxDur > 0 && maxDur < time.Minute {
 		return fmt.Errorf("the minimum value of max_duration is one minute")
 	}
+	if !c.RPC.Enable && len(c.LiveRooms) == 0 {
+		return fmt.Errorf("the RPC is not enabled, and no live room is set. the program has nothing to do using this setting")
+	}
 	return nil
 }
 
