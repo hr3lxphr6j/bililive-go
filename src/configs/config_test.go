@@ -28,6 +28,7 @@ func TestConfig_Verify(t *testing.T) {
 	var cfg *Config
 	assert.Error(t, cfg.Verify())
 	cfg = &Config{
+		RPC:        defaultRPC,
 		Interval:   30,
 		OutPutPath: os.TempDir(),
 	}
@@ -36,5 +37,8 @@ func TestConfig_Verify(t *testing.T) {
 	assert.Error(t, cfg.Verify())
 	cfg.Interval = 30
 	cfg.OutPutPath = "foobar"
+	assert.Error(t, cfg.Verify())
+	cfg.OutPutPath = os.TempDir()
+	cfg.RPC.Enable = false
 	assert.Error(t, cfg.Verify())
 }
