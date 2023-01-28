@@ -138,13 +138,16 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	inst := instance.GetInstance(r.Context())
 	info := liveSlice(make([]*live.Info, 0))
 	errorMessages := make([]string, 0, 4)
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
 		urlStr := strings.Trim(value.Get("url").String(), " ")
 		if retInfo, err := addLiveImpl(r.Context(), urlStr, isListen); err != nil {
-			errorMessages = append(errorMessages, err.Error())
+			msg := urlStr + ": " + err.Error()
+			inst.Logger.Error(msg)
+			errorMessages = append(errorMessages, msg)
 			return true
 		} else {
 			info = append(info, retInfo)
