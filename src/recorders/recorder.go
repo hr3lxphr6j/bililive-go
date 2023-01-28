@@ -142,7 +142,9 @@ func (r *recorder) tryRecord() {
 	}
 	r.setAndCloseParser(p)
 	r.startTime = time.Now()
-	r.getLogger().Debugln(r.parser.ParseLiveStream(url, r.Live, fileName))
+	r.getLogger().Debugln("ParseLiveStream(" + url.String() + ", " + fileName + ") Start")
+	r.getLogger().Println(r.parser.ParseLiveStream(url, r.Live, fileName))
+	r.getLogger().Debugln("ParseLiveStream(" + url.String() + ", " + fileName + ") End")
 	removeEmptyFile(fileName)
 	if r.config.OnRecordFinished.ConvertToMp4 {
 		ffmpegPath, err := utils.GetFFmpegPath()
