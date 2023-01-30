@@ -12,6 +12,7 @@ import (
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/huya"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/lang"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/longzhu"
+	_ "github.com/hr3lxphr6j/bililive-go/src/live/missevan"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/openrec"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/qq"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/twitch"
