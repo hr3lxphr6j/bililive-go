@@ -85,7 +85,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	if err !=nil{
 		return nil,live.ErrRoomNotExist
 	}
-	return utils.GenUrls(gjson.GetBytes(body,"info.room.channel.flv_pull_url").String()),nil
+	return utils.GenUrls(gjson.GetBytes(body,"info.room.channel.flv_pull_url").String())
 }
 
 func (l *Live) GetPlatformCNName() string {
