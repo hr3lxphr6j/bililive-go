@@ -7,6 +7,7 @@ import (
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/cc"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/douyin"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/douyu"
+	_ "github.com/hr3lxphr6j/bililive-go/src/live/hongdoufm"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/huajiao"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/huomao"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/huya"
