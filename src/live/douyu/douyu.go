@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -22,9 +23,9 @@ import (
 )
 
 /*
-	From https://github.com/zhangn1985/ykdl
+From https://github.com/zhangn1985/ykdl
 
-	Thanks
+Thanks
 */
 const (
 	domain = "www.douyu.com"
@@ -151,14 +152,14 @@ func (l *Live) fetchRoomID() error {
 	var body []byte
 	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
 	if err != nil {
-		goto ERROR
+		return errors.New("request failed. error: " + err.Error())
 	}
 	if resp.StatusCode != http.StatusOK {
-		goto ERROR
+		return errors.New("response code is " + strconv.Itoa(resp.StatusCode))
 	}
 	body, err = resp.Bytes()
 	if err != nil {
-		goto ERROR
+		return errors.New("failed to read response body. error: " + err.Error())
 	}
 	for _, reg := range douyuRoomIDRegs {
 		if str := utils.Match1(reg, string(body)); str != "" {
@@ -166,9 +167,16 @@ func (l *Live) fetchRoomID() error {
 			return nil
 		}
 	}
-	goto ERROR
-ERROR:
-	return errors.New("failed to fetch room id")
+	showedBodyMaxLength := 20
+	bodyLen := len(body)
+	if bodyLen < 20 {
+		showedBodyMaxLength = bodyLen
+	}
+	errorMessage := "failed to fetch room id. body: " + string(body[:showedBodyMaxLength])
+	if bodyLen > showedBodyMaxLength {
+		errorMessage += "... "
+	}
+	return errors.New(errorMessage)
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
