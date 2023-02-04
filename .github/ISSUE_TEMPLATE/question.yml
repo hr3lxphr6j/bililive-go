@@ -1,0 +1,38 @@
+name: 咨询程序用法，使用中遇到的困难等问题
+description: 不确定是不是 bug 的话，建议选这边。
+title: "[提问]: "
+labels: ["question"]
+body:
+  - type: input
+    id: subject
+    validations:
+      required: true
+    attributes:
+      label: 程序版本
+      description: 例如 0.6.4、0.7.1 等等。
+
+  - type: textarea
+    id: config
+    validations:
+      required: false
+    attributes:
+      label: 所使用的 config 文件的内容
+      placeholder: 如果启动时没有使用 config，则此项留空
+      description: |
+        启动项的 -c 后指定的 yaml 格式的文件的内容。
+
+  - type: textarea
+    id: log
+    validations:
+      required: false
+    attributes:
+      label: 程序 log
+      description: 修改配置文件中的 debug 值为 true 之后启动程序，这时错误发生前后程序输出的错误信息。
+  
+  - type: textarea
+    id: content
+    validations:
+      required: false
+    attributes:
+      label: 自由描述
+      description: 详细介绍您所遇到的问题。
