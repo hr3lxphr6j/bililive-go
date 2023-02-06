@@ -168,7 +168,11 @@ func addLiveImpl(ctx context.Context, urlStr string, isListen bool) (info *live.
 		return nil, errors.New("can't parse url: " + urlStr)
 	}
 	inst := instance.GetInstance(ctx)
-	newLive, err := live.New(u, inst.Cache)
+	opts := make([]live.Option, 0)
+	if v, ok := inst.Config.Cookies[u.Host]; ok {
+		opts = append(opts, live.WithKVStringCookies(u, v))
+	}
+	newLive, err := live.New(u, inst.Cache, opts...)
 	if err != nil {
 		return nil, err
 	}
