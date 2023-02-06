@@ -17,7 +17,8 @@ const (
 	domain = "live.douyin.com"
 	cnName = "抖音"
 
-	regRenderData = `<script id="RENDER_DATA" type="application/json">(.*?)</script>`
+	regRenderData     = `<script id="RENDER_DATA" type="application/json">(.*?)</script>`
+	randomCookieChars = "1234567890abcdef"
 )
 
 func init() {
@@ -32,6 +33,10 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 	}, nil
 }
 
+func createRandomCookie() string {
+	return utils.GenRandomString(21, randomCookieChars)
+}
+
 type Live struct {
 	internal.BaseLive
 }
@@ -39,7 +44,7 @@ type Live struct {
 func (l *Live) getData() (*gjson.Result, error) {
 	cookies := l.Options.Cookies.Cookies(l.Url)
 	cookieKVs := make(map[string]string)
-	cookieKVs["__ac_nonce"] = "123456789012345678901"
+	cookieKVs["__ac_nonce"] = createRandomCookie()
 	for _, item := range cookies {
 		cookieKVs[item.Name] = item.Value
 	}
