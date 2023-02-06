@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os/exec"
 	"regexp"
+	"strings"
 )
 
 func GetFFmpegPath() (string, error) {
@@ -45,6 +46,15 @@ func GenRandomName(n int) string {
 		b[i] = allRunes[rand.Intn(len(allRunes))]
 	}
 	return string(b)
+}
+
+func GenRandomString(length int, validChars string) string {
+	b := make([]string, length)
+	chars := strings.Split(validChars, "")
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return strings.Join(b, "")
 }
 
 func Match1(re, str string) string {
