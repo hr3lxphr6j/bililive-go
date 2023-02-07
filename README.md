@@ -169,10 +169,10 @@ cookies:
     6) yum repolist
     7) yum install -y ffmpeg
 二、克隆代码并编译(linux环境)    
-   1. git clone https://github.com/kcxg/bililive-go.git
+   1. git clone https://github.com/hr3lxphr6j/bililive-go.git
    2. cd bililive-go
    3. make build-web
-   4. make build
+   4. make 
 三、linux编译其他环境(以windows 为例)
    1. GOOS=windows GOARCH=amd64 CGO_ENABLED=0 UPX_ENABLE=0 TAGS=dev ./src/hack/build.sh bililive
    2.如果不需要调试，可以改成
