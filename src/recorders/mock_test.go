@@ -64,17 +64,17 @@ func (mr *MockRecorderMockRecorder) GetStatus() *gomock.Call {
 }
 
 // Start mocks base method.
-func (m *MockRecorder) Start() error {
+func (m *MockRecorder) Start(arg0 context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Start")
+	ret := m.ctrl.Call(m, "Start", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Start indicates an expected call of Start.
-func (mr *MockRecorderMockRecorder) Start() *gomock.Call {
+func (mr *MockRecorderMockRecorder) Start(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockRecorder)(nil).Start))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockRecorder)(nil).Start), arg0)
 }
 
 // StartTime mocks base method.

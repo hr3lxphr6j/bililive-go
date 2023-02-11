@@ -2,9 +2,23 @@ rpc:
   enable: true
   bind: 127.0.0.1:8080
 debug: false
-interval: 15
+interval: 20
 out_put_path: ./
+log:
+  out_put_folder: ./
+  save_last_log: true
+  save_every_log: false
 feature:
   use_native_flv_parser: false
 live_rooms:
-  - https://www.lang.live/room/5664344
+- url: https://www.lang.live/room/5664344
+  is_listening: false
+out_put_tmpl: ""
+video_split_strategies:
+  on_room_name_changed: false
+  max_duration: 0s
+cookies: {}
+on_record_finished:
+  convert_to_mp4: false
+  delete_flv_after_convert: false
+timeout_in_us: 60000000

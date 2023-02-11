@@ -3,6 +3,7 @@ package ffmpeg
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"io"
 	"net/url"
 	"os"
@@ -121,7 +122,7 @@ func (p *Parser) Status() (map[string]string, error) {
 	return <-p.statusResp, nil
 }
 
-func (p *Parser) ParseLiveStream(url *url.URL, live live.Live, file string) (err error) {
+func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Live, file string) (err error) {
 	ffmpegPath, err := utils.GetFFmpegPath()
 	if err != nil {
 		return err

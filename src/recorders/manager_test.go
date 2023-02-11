@@ -24,7 +24,7 @@ func TestManagerAddAndRemoveRecorder(t *testing.T) {
 	backup := newRecorder
 	newRecorder = func(ctx context.Context, live live.Live) (Recorder, error) {
 		r := NewMockRecorder(ctrl)
-		r.EXPECT().Start().Return(nil)
+		r.EXPECT().Start(ctx).Return(nil)
 		r.EXPECT().Close()
 		return r, nil
 	}

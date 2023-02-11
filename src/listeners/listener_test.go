@@ -22,9 +22,10 @@ func TestRefresh(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ed := evtmock.NewMockDispatcher(ctrl)
-	cfg := &configs.Config{VideoSplitStrategies: configs.VideoSplitStrategies{
+	cfg := configs.NewConfig()
+	cfg.VideoSplitStrategies = configs.VideoSplitStrategies{
 		OnRoomNameChanged: false,
-	}}
+	}
 	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
 		EventDispatcher: ed,
 		Config:          cfg,
@@ -70,7 +71,7 @@ func TestRefreshWithError(t *testing.T) {
 	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
 		EventDispatcher: ed,
 		Cache:           cache,
-		Config:          new(configs.Config),
+		Config:          configs.NewConfig(),
 	})
 	log.New(ctx)
 	live := livemock.NewMockLive(ctrl)
@@ -87,10 +88,12 @@ func TestListenerStartAndClose(t *testing.T) {
 	defer ctrl.Finish()
 	ed := evtmock.NewMockDispatcher(ctrl)
 	cache := gcache.New(4).LRU().Build()
+	config := configs.NewConfig()
+	config.Interval = 5
 	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
 		EventDispatcher: ed,
 		Cache:           cache,
-		Config:          &configs.Config{Interval: 5},
+		Config:          config,
 	})
 	log.New(ctx)
 	live := livemock.NewMockLive(ctrl)

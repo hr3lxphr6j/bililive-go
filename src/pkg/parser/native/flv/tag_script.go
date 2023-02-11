@@ -1,5 +1,7 @@
 package flv
 
+import "context"
+
 type DataType uint8
 
 const (
@@ -17,15 +19,15 @@ const (
 	LongString      DataType = 12
 )
 
-func (p *Parser) parseScriptTag(length uint32) error {
+func (p *Parser) parseScriptTag(ctx context.Context, length uint32) error {
 	// TODO: parse script tag content
 	// write tag header
-	if err := p.doWrite(p.i.AllBytes()); err != nil {
+	if err := p.doWrite(ctx, p.i.AllBytes()); err != nil {
 		return err
 	}
 	p.i.Reset()
 	// write body
-	if err := p.doCopy(length); err != nil {
+	if err := p.doCopy(ctx, length); err != nil {
 		return err
 	}
 	return nil

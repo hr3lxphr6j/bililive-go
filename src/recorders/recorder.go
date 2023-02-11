@@ -62,7 +62,7 @@ var defaultFileNameTmpl = template.Must(template.New("filename").Funcs(utils.Get
 	Parse(`{{ .Live.GetPlatformCNName }}/{{ .HostName | filenameFilter }}/[{{ now | date "2006-01-02 15-04-05"}}][{{ .HostName | filenameFilter }}][{{ .RoomName | filenameFilter }}].flv`))
 
 type Recorder interface {
-	Start() error
+	Start(ctx context.Context) error
 	StartTime() time.Time
 	GetStatus() (map[string]string, error)
 	Close()
@@ -100,7 +100,7 @@ func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 	}, nil
 }
 
-func (r *recorder) tryRecord() {
+func (r *recorder) tryRecord(ctx context.Context) {
 	urls, err := r.Live.GetStreamUrls()
 	if err != nil || len(urls) == 0 {
 		r.getLogger().WithError(err).Warn("failed to get stream url, will retry after 5s...")
@@ -142,9 +142,9 @@ func (r *recorder) tryRecord() {
 	}
 	r.setAndCloseParser(p)
 	r.startTime = time.Now()
-	r.getLogger().Debugln("ParseLiveStream(" + url.String() + ", " + fileName + ") Start")
-	r.getLogger().Println(r.parser.ParseLiveStream(url, r.Live, fileName))
-	r.getLogger().Debugln("ParseLiveStream(" + url.String() + ", " + fileName + ") End")
+	r.getLogger().Debugln("Start ParseLiveStream(" + url.String() + ", " + fileName + ")")
+	r.getLogger().Println(r.parser.ParseLiveStream(ctx, url, r.Live, fileName))
+	r.getLogger().Debugln("End ParseLiveStream(" + url.String() + ", " + fileName + ")")
 	removeEmptyFile(fileName)
 	if r.config.OnRecordFinished.ConvertToMp4 {
 		ffmpegPath, err := utils.GetFFmpegPath()
@@ -170,13 +170,13 @@ func (r *recorder) tryRecord() {
 	}
 }
 
-func (r *recorder) run() {
+func (r *recorder) run(ctx context.Context) {
 	for {
 		select {
 		case <-r.stop:
 			return
 		default:
-			r.tryRecord()
+			r.tryRecord(ctx)
 		}
 	}
 }
@@ -196,11 +196,11 @@ func (r *recorder) setAndCloseParser(p parser.Parser) {
 	r.parser = p
 }
 
-func (r *recorder) Start() error {
+func (r *recorder) Start(ctx context.Context) error {
 	if !atomic.CompareAndSwapUint32(&r.state, begin, pending) {
 		return nil
 	}
-	go r.run()
+	go r.run(ctx)
 	r.getLogger().Info("Record Start")
 	r.ed.DispatchEvent(events.NewEvent(RecorderStart, r.Live))
 	atomic.CompareAndSwapUint32(&r.state, pending, running)

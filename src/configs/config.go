@@ -53,6 +53,12 @@ type OnRecordFinished struct {
 	DeleteFlvAfterConvert bool `yaml:"delete_flv_after_convert"`
 }
 
+type Log struct {
+	OutPutFolder string `yaml:"out_put_folder"`
+	SaveLastLog  bool   `yaml:"save_last_log"`
+	SaveEveryLog bool   `yaml:"save_every_log"`
+}
+
 // Config content all config info.
 type Config struct {
 	File                 string               `yaml:"-"`
@@ -60,6 +66,7 @@ type Config struct {
 	Debug                bool                 `yaml:"debug"`
 	Interval             int                  `yaml:"interval"`
 	OutPutPath           string               `yaml:"out_put_path"`
+	Log                  Log                  `yaml:"log"`
 	Feature              Feature              `yaml:"feature"`
 	LiveRooms            []LiveRoom           `yaml:"live_rooms"`
 	OutputTmpl           string               `yaml:"out_put_tmpl"`
@@ -113,6 +120,11 @@ var defaultConfig = Config{
 	Debug:      false,
 	Interval:   30,
 	OutPutPath: "./",
+	Log: Log{
+		OutPutFolder: "./",
+		SaveLastLog:  true,
+		SaveEveryLog: false,
+	},
 	Feature: Feature{
 		UseNativeFlvParser: false,
 	},

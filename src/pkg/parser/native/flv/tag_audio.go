@@ -1,5 +1,7 @@
 package flv
 
+import "context"
+
 type (
 	SoundFormat   uint8
 	SoundRate     uint8
@@ -45,7 +47,7 @@ const (
 	AACRaw       AACPacketType = 1
 )
 
-func (p *Parser) parseAudioTag(length, timestamp uint32) (*AudioTagHeader, error) {
+func (p *Parser) parseAudioTag(ctx context.Context, length, timestamp uint32) (*AudioTagHeader, error) {
 	b, err := p.i.ReadByte()
 	l := length - 1
 	if err != nil {
@@ -68,12 +70,12 @@ func (p *Parser) parseAudioTag(length, timestamp uint32) (*AudioTagHeader, error
 	}
 
 	// write tag header && audio tag header & AACPacketType
-	if err := p.doWrite(p.i.AllBytes()); err != nil {
+	if err := p.doWrite(ctx, p.i.AllBytes()); err != nil {
 		return nil, err
 	}
 	p.i.Reset()
 	// write body
-	if err := p.doCopy(l); err != nil {
+	if err := p.doCopy(ctx, l); err != nil {
 		return nil, err
 	}
 
