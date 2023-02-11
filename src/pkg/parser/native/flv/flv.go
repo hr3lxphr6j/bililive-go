@@ -157,7 +157,7 @@ func (p *Parser) doWrite(ctx context.Context, b []byte) error {
 	leftInputSize := len(b)
 	var logger *interfaces.Logger = nil
 	for retryLeft := ioRetryCount; retryLeft > 0 && leftInputSize > 0; retryLeft-- {
-		writtenCount, err := p.o.Write(b)
+		writtenCount, err := p.o.Write(b[len(b)-leftInputSize:])
 		leftInputSize -= writtenCount
 		if err != nil {
 			return err
