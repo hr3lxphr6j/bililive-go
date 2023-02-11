@@ -24,7 +24,7 @@ func New(ctx context.Context) *interfaces.Logger {
 	writers := []io.Writer{os.Stderr}
 	outputFolder := config.Log.OutPutFolder
 	if _, err := os.Stat(outputFolder); os.IsNotExist(err) {
-		log.Fatalf("err: %s, Failed to determine log output folder: %s", err, outputFolder)
+		log.Fatalf("err: \"%s\", Failed to determine log output folder: %s", err, outputFolder)
 	} else {
 		if config.Log.SaveEveryLog {
 			runID := time.Now().Format("run-2006-01-02-15-04-05")
