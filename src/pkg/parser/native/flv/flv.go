@@ -2,14 +2,18 @@ package flv
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"sync"
 
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/reader"
@@ -21,6 +25,8 @@ const (
 	audioTag  uint8 = 8
 	videoTag  uint8 = 9
 	scriptTag uint8 = 18
+
+	ioRetryCount int = 3
 )
 
 var (
@@ -66,7 +72,7 @@ type Parser struct {
 	closeOnce *sync.Once
 }
 
-func (p *Parser) ParseLiveStream(url *url.URL, live live.Live, file string) error {
+func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Live, file string) error {
 	// init input
 	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
@@ -90,7 +96,7 @@ func (p *Parser) ParseLiveStream(url *url.URL, live live.Live, file string) erro
 	defer f.Close()
 
 	// start parse
-	return p.doParse()
+	return p.doParse(ctx)
 }
 
 func (p *Parser) Stop() error {
@@ -100,7 +106,7 @@ func (p *Parser) Stop() error {
 	return nil
 }
 
-func (p *Parser) doParse() error {
+func (p *Parser) doParse(ctx context.Context) error {
 	// header of flv
 	b, err := p.i.ReadN(9)
 	if err != nil {
@@ -120,7 +126,7 @@ func (p *Parser) doParse() error {
 	}
 
 	// write flv header
-	if err := p.doWrite(p.i.AllBytes()); err != nil {
+	if err := p.doWrite(ctx, p.i.AllBytes()); err != nil {
 		return err
 	}
 	p.i.Reset()
@@ -130,29 +136,42 @@ func (p *Parser) doParse() error {
 		case <-p.stopCh:
 			return nil
 		default:
-			if err := p.parseTag(); err != nil {
+			if err := p.parseTag(ctx); err != nil {
 				return err
 			}
 		}
 	}
 }
 
-func (p *Parser) doCopy(n uint32) error {
-	if n, err := io.CopyN(p.o, p.i, int64(n)); err != nil || n != int64(n) {
+func (p *Parser) doCopy(ctx context.Context, n uint32) error {
+	if writtenCount, err := io.CopyN(p.o, p.i, int64(n)); err != nil || writtenCount != int64(writtenCount) {
 		if err == nil {
-			err = io.EOF
+			err = fmt.Errorf("doCopy(%d), %d bytes written", n, writtenCount)
 		}
 		return err
 	}
 	return nil
 }
 
-func (p *Parser) doWrite(b []byte) error {
-	if n, err := p.o.Write(b); err != nil || n != len(b) {
-		if err == nil {
-			err = io.EOF
+func (p *Parser) doWrite(ctx context.Context, b []byte) error {
+	leftInputSize := len(b)
+	var logger *interfaces.Logger = nil
+	for retryLeft := ioRetryCount; retryLeft > 0 && leftInputSize > 0; retryLeft-- {
+		writtenCount, err := p.o.Write(b)
+		leftInputSize -= writtenCount
+		if err != nil {
+			return err
 		}
-		return err
+		if leftInputSize != 0 {
+			if logger == nil {
+				inst := instance.GetInstance(ctx)
+				logger = inst.Logger
+			}
+			logger.Debugf("doWrite() left %d bytes to write", leftInputSize)
+		}
+	}
+	if leftInputSize != 0 {
+		return fmt.Errorf("doWrite([%d]byte) tried %d times, but still has %d bytes to write", len(b), ioRetryCount, leftInputSize)
 	}
 	return nil
 }

@@ -1,6 +1,7 @@
 package flv
 
 import (
+	"context"
 	"io"
 )
 
@@ -39,7 +40,7 @@ const (
 	AVCEndSeq    AVCPacketType = 2 // AVC end of sequence (lower level NALU sequence ender is not required or supported)
 )
 
-func (p *Parser) parseVideoTag(length, timestamp uint32) (*VideoTagHeader, error) {
+func (p *Parser) parseVideoTag(ctx context.Context, length, timestamp uint32) (*VideoTagHeader, error) {
 	// header
 	b, err := p.i.ReadByte()
 	l := length - 1
@@ -77,12 +78,12 @@ func (p *Parser) parseVideoTag(length, timestamp uint32) (*VideoTagHeader, error
 	}
 
 	// write tag header && video tag header & AVCPacketType & CompositionTime
-	if err := p.doWrite(p.i.AllBytes()); err != nil {
+	if err := p.doWrite(ctx, p.i.AllBytes()); err != nil {
 		return nil, err
 	}
 	p.i.Reset()
 	// write body
-	if err := p.doCopy(l); err != nil {
+	if err := p.doCopy(ctx, l); err != nil {
 		return nil, err
 	}
 

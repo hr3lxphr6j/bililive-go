@@ -1,6 +1,8 @@
 package flv
 
-func (p *Parser) parseTag() error {
+import "context"
+
+func (p *Parser) parseTag(ctx context.Context) error {
 	p.tagCount += 1
 
 	b, err := p.i.ReadN(15)
@@ -14,15 +16,15 @@ func (p *Parser) parseTag() error {
 
 	switch tagType {
 	case audioTag:
-		if _, err := p.parseAudioTag(length, timeStamp); err != nil {
+		if _, err := p.parseAudioTag(ctx, length, timeStamp); err != nil {
 			return err
 		}
 	case videoTag:
-		if _, err := p.parseVideoTag(length, timeStamp); err != nil {
+		if _, err := p.parseVideoTag(ctx, length, timeStamp); err != nil {
 			return err
 		}
 	case scriptTag:
-		return p.parseScriptTag(length)
+		return p.parseScriptTag(ctx, length)
 	default:
 		return ErrUnknownTag
 	}

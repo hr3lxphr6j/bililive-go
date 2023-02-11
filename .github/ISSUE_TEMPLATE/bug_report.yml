@@ -1,6 +1,5 @@
 name: 报告程序错误
 description: 报告程序使用过程中遇到的问题。
-title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: input

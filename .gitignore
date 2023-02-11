@@ -158,3 +158,12 @@ bin/
 
 # webapp ignore
 node_modules
+
+#bililive-go logs
+*.log
+
+#nodenv
+.node-version
+
+#vscode
+.vscode

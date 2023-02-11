@@ -109,7 +109,7 @@ func (m *manager) AddRecorder(ctx context.Context, live live.Live) error {
 	if maxDur := m.cfg.VideoSplitStrategies.MaxDuration; maxDur != 0 {
 		go m.cronRestart(ctx, live)
 	}
-	return recorder.Start()
+	return recorder.Start(ctx)
 }
 
 func (m *manager) cronRestart(ctx context.Context, live live.Live) {

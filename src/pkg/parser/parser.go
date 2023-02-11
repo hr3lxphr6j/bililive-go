@@ -2,6 +2,7 @@
 package parser
 
 import (
+	"context"
 	"errors"
 	"net/url"
 
@@ -13,7 +14,7 @@ type Builder interface {
 }
 
 type Parser interface {
-	ParseLiveStream(url *url.URL, live live.Live, file string) error
+	ParseLiveStream(ctx context.Context, url *url.URL, live live.Live, file string) error
 	Stop() error
 }
 
