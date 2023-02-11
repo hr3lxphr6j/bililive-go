@@ -47,7 +47,7 @@ class ConfigInfo extends React.Component<Props, IState> {
         if (rsp.err_no === 0) {
           alert("设置保存成功");
         } else {
-          alert("Server Error!");
+          alert(`Server Error!\n${rsp.err_msg}`);
         }
       })
       .catch(err => {
