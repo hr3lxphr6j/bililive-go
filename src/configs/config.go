@@ -38,7 +38,8 @@ func (r *RPC) verify() error {
 
 // Feature info.
 type Feature struct {
-	UseNativeFlvParser bool `yaml:"use_native_flv_parser"`
+	UseNativeFlvParser         bool `yaml:"use_native_flv_parser"`
+	RemoveSymbolOtherCharacter bool `yaml:"remove_symbol_other_character"`
 }
 
 // VideoSplitStrategies info.
@@ -126,7 +127,8 @@ var defaultConfig = Config{
 		SaveEveryLog: false,
 	},
 	Feature: Feature{
-		UseNativeFlvParser: false,
+		UseNativeFlvParser:         false,
+		RemoveSymbolOtherCharacter: false,
 	},
 	LiveRooms:          []LiveRoom{},
 	File:               "",

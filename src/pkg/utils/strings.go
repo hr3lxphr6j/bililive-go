@@ -56,8 +56,19 @@ var ParseUnicode = StringFilterFunc(func(str string) string {
 })
 
 var ReplaceIllegalChar = StringFilterFunc(func(str string) string {
-	reg := regexp.MustCompile(`[\/\\\:\*\?\"\<\>\|]`)
-	return reg.ReplaceAllString(str, "_")
+	reg := regexp.MustCompile(`[\/\\\:\*\?\"\<\>\|]|[\.\s]+$`)
+	for reg.MatchString(str) {
+		str = reg.ReplaceAllString(str, "_")
+	}
+	return str
 })
 
 var UnescapeHTMLEntity = StringFilterFunc(html.UnescapeString)
+
+var RemoveSymbolOtherChar = StringFilterFunc(func(str string) string {
+	reg := regexp.MustCompile(`\p{So}`)
+	for reg.MatchString(str) {
+		str = reg.ReplaceAllString(str, "_")
+	}
+	return str
+})

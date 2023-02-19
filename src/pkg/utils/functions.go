@@ -4,18 +4,28 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 )
 
-var functionList = map[string]interface{}{
-	"decodeUnicode":      ParseUnicode,
-	"replaceIllegalChar": ReplaceIllegalChar,
-	"unescapeHTMLEntity": UnescapeHTMLEntity,
-	"filenameFilter":     NewStringFilterChain(ReplaceIllegalChar, UnescapeHTMLEntity).Do,
+func getFunctionList(config *configs.Config) map[string]interface{} {
+	filenameFilters := []StringFilter{
+		ReplaceIllegalChar,
+		UnescapeHTMLEntity,
+	}
+	if config.Feature.RemoveSymbolOtherCharacter {
+		filenameFilters = append(filenameFilters, RemoveSymbolOtherChar)
+	}
+	return map[string]interface{}{
+		"decodeUnicode":      ParseUnicode,
+		"replaceIllegalChar": ReplaceIllegalChar,
+		"unescapeHTMLEntity": UnescapeHTMLEntity,
+		"filenameFilter":     NewStringFilterChain(filenameFilters...).Do,
+	}
 }
 
-func GetFuncMap() template.FuncMap {
+func GetFuncMap(config *configs.Config) template.FuncMap {
 	funcs := sprig.TxtFuncMap()
-	for key, fn := range functionList {
+	for key, fn := range getFunctionList(config) {
 		funcs[key] = fn
 	}
 	return funcs

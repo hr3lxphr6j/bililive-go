@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
@@ -8,7 +9,10 @@ import (
 	"net/url"
 	"os/exec"
 	"regexp"
+	"runtime/debug"
 	"strings"
+
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
 )
 
 func GetFFmpegPath() (string, error) {
@@ -79,4 +83,10 @@ func GenUrls(strs ...string) ([]*url.URL, error) {
 		urls = append(urls, u)
 	}
 	return urls, nil
+}
+
+func PrintStack(ctx context.Context) {
+	inst := instance.GetInstance(ctx)
+	logger := inst.Logger
+	logger.Debugf(string(debug.Stack()))
 }
