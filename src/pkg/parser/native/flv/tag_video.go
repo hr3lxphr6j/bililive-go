@@ -2,7 +2,7 @@ package flv
 
 import (
 	"context"
-	"io"
+	"errors"
 )
 
 type (
@@ -72,7 +72,7 @@ func (p *Parser) parseVideoTag(ctx context.Context, length, timestamp uint32) (*
 			p.avcHeaderCount++
 			if p.avcHeaderCount > 1 {
 				// new sps pps
-				return nil, io.EOF
+				return nil, errors.New("EOF new sps pps")
 			}
 		}
 	}
