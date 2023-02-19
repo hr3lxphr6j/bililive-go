@@ -10,13 +10,14 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime/debug"
 	"sync"
 
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/reader"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
 const (
@@ -145,6 +146,7 @@ func (p *Parser) doParse(ctx context.Context) error {
 
 func (p *Parser) doCopy(ctx context.Context, n uint32) error {
 	if writtenCount, err := io.CopyN(p.o, p.i, int64(n)); err != nil || writtenCount != int64(writtenCount) {
+		utils.PrintStack(ctx)
 		if err == nil {
 			err = fmt.Errorf("doCopy(%d), %d bytes written", n, writtenCount)
 		}
@@ -154,19 +156,17 @@ func (p *Parser) doCopy(ctx context.Context, n uint32) error {
 }
 
 func (p *Parser) doWrite(ctx context.Context, b []byte) error {
+	inst := instance.GetInstance(ctx)
+	logger := inst.Logger
 	leftInputSize := len(b)
-	var logger *interfaces.Logger = nil
 	for retryLeft := ioRetryCount; retryLeft > 0 && leftInputSize > 0; retryLeft-- {
 		writtenCount, err := p.o.Write(b[len(b)-leftInputSize:])
 		leftInputSize -= writtenCount
 		if err != nil {
+			logger.Debugf(string(debug.Stack()))
 			return err
 		}
 		if leftInputSize != 0 {
-			if logger == nil {
-				inst := instance.GetInstance(ctx)
-				logger = inst.Logger
-			}
 			logger.Debugf("doWrite() left %d bytes to write", leftInputSize)
 		}
 	}
