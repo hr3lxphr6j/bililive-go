@@ -158,11 +158,13 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 	return p.cmd.Wait()
 }
 
+var Locker sync.Mutex
+
 func (p *Parser) Stop() error {
-	p.closeOnce.Do(func() {
-		if p.cmd.ProcessState == nil {
-			p.cmdStdIn.Write([]byte("q"))
-		}
-	})
+	Locker.Lock()
+	defer Locker.Unlock()
+	if p.cmd.ProcessState == nil {
+		p.cmdStdIn.Write([]byte("q"))
+	}
 	return nil
 }
