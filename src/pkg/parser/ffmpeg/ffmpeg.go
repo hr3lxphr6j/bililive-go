@@ -134,7 +134,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 		"-y", "-re",
 		"-user_agent", userAgent,
 		"-referer", live.GetRawUrl(),
-		"-timeout", p.timeoutInUs,
+		"-rw_timeout", p.timeoutInUs,
 		"-i", url.String(),
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
