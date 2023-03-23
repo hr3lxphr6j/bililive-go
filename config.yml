@@ -1,5 +1,5 @@
 rpc:
-  enable: false
+  enable: true
   bind: 127.0.0.1:8080
 debug: false
 interval: 20
@@ -11,16 +11,15 @@ log:
 feature:
   use_native_flv_parser: false
 live_rooms:
-# qulity默认为1
-# B站1代表原画PRO(HEVC)优先, 其他为原画(AVC)
+# qulity默认为0
+# (B站)0代表原画PRO(HEVC)优先, 其他为原画(AVC)
 # 原画PRO会保存为.ts文件, 原画为.flv
 # HEVC相比AVC体积更小, 减少35%体积, 画质相当, 但是B站转码有时候会崩
+- url: https://www.lang.live/room/5664344
+  is_listening: false
+  quality: 0 
 - url: https://live.bilibili.com/22603245
   is_listening: true
-  quality: 1 
-- url: https://live.bilibili.com/21452505
-  is_listening: true
-  quality: 2
 out_put_tmpl: ""
 video_split_strategies:
   on_room_name_changed: false

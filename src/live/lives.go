@@ -39,7 +39,7 @@ func NewOptions(opts ...Option) (*Options, error) {
 	if err != nil {
 		return nil, err
 	}
-	options := &Options{Cookies: cookieJar, Quality: 1}
+	options := &Options{Cookies: cookieJar, Quality: 0}
 	for _, opt := range opts {
 		opt(options)
 	}

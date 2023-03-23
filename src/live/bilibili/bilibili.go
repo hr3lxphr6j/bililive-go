@@ -127,7 +127,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 
-	if l.Options.Quality != 1 {
+	if l.Options.Quality != 0 {
 		return l.GetStreamUrlsV1()
 	}
 
