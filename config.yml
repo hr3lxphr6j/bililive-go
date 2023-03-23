@@ -1,6 +1,6 @@
 rpc:
-  enable: true
-  bind: 127.0.0.1:8080
+  enable: false
+  bind: 127.0.0.1:8081
 debug: false
 interval: 20
 out_put_path: ./
@@ -11,8 +11,8 @@ log:
 feature:
   use_native_flv_parser: false
 live_rooms:
-- url: https://www.lang.live/room/5664344
-  is_listening: false
+- url: https://live.bilibili.com/21452505
+  is_listening: true
 out_put_tmpl: ""
 video_split_strategies:
   on_room_name_changed: false

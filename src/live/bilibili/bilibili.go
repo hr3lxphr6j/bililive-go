@@ -1,6 +1,8 @@
 package bilibili
 
 import (
+	"os"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -21,6 +23,7 @@ const (
 	roomApiUrl  = "https://api.live.bilibili.com/room/v1/Room/get_info"
 	userApiUrl  = "https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room"
 	liveApiUrl  = "https://api.live.bilibili.com/room/v1/Room/playUrl"
+	liveApiUrlv2    = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo"
 )
 
 func init() {
@@ -134,11 +137,11 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	for _, item := range cookies {
 		cookieKVs[item.Name] = item.Value
 	}
-	resp, err := requests.Get(liveApiUrl, live.CommonUserAgent, requests.Queries(map[string]string{
-		"cid":      l.realID,
-		"quality":  "4",
-		"platform": "web",
-	}), requests.Cookies(cookieKVs))
+	// format: 0 for http_stream(flv), 1 for http_tls(m3u8), 2 for unknown, default 0,1,2
+	// codec: 0 for avc(原画), 1 for hevc(原画Pro)
+	query := fmt.Sprintf("?room_id=%s&protocol=0,1&format=0,1,2&codec=0,1&qn=10000&platform=web&ptype=8&dolby=5&panorama=1", l.realID)
+	resp, err := requests.Get(liveApiUrlv2+query, live.CommonUserAgent, requests.Cookies(cookieKVs))
+
 	if err != nil {
 		return nil, err
 	}
@@ -150,10 +153,31 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, err
 	}
 	urls := make([]string, 0, 4)
-	gjson.GetBytes(body, "data.durl.#.url").ForEach(func(_, value gjson.Result) bool {
-		urls = append(urls, value.String())
+
+	addr := ""
+	if gjson.GetBytes(body, "data.playurl_info.playurl.stream.0.format.0.codec.#").Int() > 1 {
+		addr = "data.playurl_info.playurl.stream.0.format.0.codec.1"
+	} else {
+		addr = "data.playurl_info.playurl.stream.0.format.0.codec.0"
+	}
+
+	fileName := "/home/sqhl/go/src/bililive-go/src/live/bilibili/1.json"
+    dstFile,err := os.Create(fileName)
+    if err!=nil{
+        fmt.Println(err.Error())  
+        return
+    } 
+    defer dstFile.Close()
+	dstFile.Write(body)
+
+	baseURL := gjson.GetBytes(body, addr+".base_url").String()
+	gjson.GetBytes(body, addr+".url_info").ForEach(func(_, value gjson.Result) bool {
+		hosts := gjson.Get(value.String(), "host").String()
+		queries := gjson.Get(value.String(), "extra").String()
+		urls = append(urls, hosts+baseURL+queries)
 		return true
 	})
+
 	return utils.GenUrls(urls...)
 }
 
