@@ -108,6 +108,7 @@ func main() {
 		if v, ok := inst.Config.Cookies[u.Host]; ok {
 			opts = append(opts, live.WithKVStringCookies(u, v))
 		}
+		opts = append(opts, live.WithQuality(room.Quality))
 		l, err := live.New(u, inst.Cache, opts...)
 		if err != nil {
 			logger.WithField("url", room).Error(err.Error())

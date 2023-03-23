@@ -31,6 +31,7 @@ type Builder interface {
 
 type Options struct {
 	Cookies *cookiejar.Jar
+	Quality int
 }
 
 func NewOptions(opts ...Option) (*Options, error) {
@@ -38,7 +39,7 @@ func NewOptions(opts ...Option) (*Options, error) {
 	if err != nil {
 		return nil, err
 	}
-	options := &Options{Cookies: cookieJar}
+	options := &Options{Cookies: cookieJar, Quality: 1}
 	for _, opt := range opts {
 		opt(options)
 	}
@@ -71,6 +72,12 @@ func WithKVStringCookies(u *url.URL, cookies string) Option {
 		opts.Cookies.SetCookies(u, cookiesList)
 	}
 }
+
+func WithQuality(quality int) Option {
+	return func(opts *Options) {
+		opts.Quality = quality
+	}
+} 
 
 type ID string
 
