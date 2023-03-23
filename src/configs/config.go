@@ -113,7 +113,7 @@ func NewLiveRoomsWithStrings(strings []string) []LiveRoom {
 	for index, url := range strings {
 		liveRooms[index].Url = url
 		liveRooms[index].IsListening = true
-		liveRooms[index].Quality = 1
+		liveRooms[index].Quality = 0
 	}
 	return liveRooms
 }
