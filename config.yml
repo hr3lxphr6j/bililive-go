@@ -21,9 +21,6 @@ live_rooms:
 - url: https://live.bilibili.com/21452505
   is_listening: true
   quality: 2
-- url: https://live.bilibili.com/6563752
-  is_listening: true
-  quality: 1
 out_put_tmpl: ""
 video_split_strategies:
   on_room_name_changed: false
