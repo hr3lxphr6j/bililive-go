@@ -126,11 +126,6 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-
-	if l.Options.Quality != 0 {
-		return l.GetStreamUrlsV1()
-	}
-
 	if l.realID == "" {
 		if err := l.parseRealId(); err != nil {
 			return nil, err
@@ -160,7 +155,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 
 	addr := ""
 
-	if gjson.GetBytes(body, "data.playurl_info.playurl.stream.1.format.1.codec.#").Int() > 1 {
+	if l.Options.Quality == 0 && gjson.GetBytes(body, "data.playurl_info.playurl.stream.1.format.1.codec.#").Int() > 1 {
 		addr = "data.playurl_info.playurl.stream.1.format.1.codec.1" // hevc m3u8
 	} else {
 		addr = "data.playurl_info.playurl.stream.0.format.0.codec.0" // avc flv
@@ -174,40 +169,6 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return true
 	})
 
-	return utils.GenUrls(urls...)
-}
-
-func (l *Live) GetStreamUrlsV1() (us []*url.URL, err error) {
-	if l.realID == "" {
-		if err := l.parseRealId(); err != nil {
-			return nil, err
-		}
-	}
-	cookies := l.Options.Cookies.Cookies(l.Url)
-	cookieKVs := make(map[string]string)
-	for _, item := range cookies {
-		cookieKVs[item.Name] = item.Value
-	}
-	resp, err := requests.Get(liveApiUrl, live.CommonUserAgent, requests.Queries(map[string]string{
-		"cid":      l.realID,
-		"quality":  "4",
-		"platform": "web",
-	}), requests.Cookies(cookieKVs))
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, live.ErrRoomNotExist
-	}
-	body, err := resp.Bytes()
-	if err != nil {
-		return nil, err
-	}
-	urls := make([]string, 0, 4)
-	gjson.GetBytes(body, "data.durl.#.url").ForEach(func(_, value gjson.Result) bool {
-		urls = append(urls, value.String())
-		return true
-	})
 	return utils.GenUrls(urls...)
 }
 
