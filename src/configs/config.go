@@ -83,6 +83,7 @@ type LiveRoom struct {
 	Url         string  `yaml:"url"`
 	IsListening bool    `yaml:"is_listening"`
 	LiveId      live.ID `yaml:"-"`
+	Quality     int     `yaml:"quality"`
 }
 
 type liveRoomAlias LiveRoom
@@ -112,6 +113,7 @@ func NewLiveRoomsWithStrings(strings []string) []LiveRoom {
 	for index, url := range strings {
 		liveRooms[index].Url = url
 		liveRooms[index].IsListening = true
+		liveRooms[index].Quality = 0
 	}
 	return liveRooms
 }

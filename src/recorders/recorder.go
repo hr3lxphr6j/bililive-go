@@ -120,6 +120,7 @@ func (r *recorder) tryRecord(ctx context.Context) {
 			tmpl = _tmpl
 		}
 	}
+
 	buf := new(bytes.Buffer)
 	if err = tmpl.Execute(buf, info); err != nil {
 		panic(fmt.Sprintf("failed to render filename, err: %v", err))
@@ -127,6 +128,11 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	fileName := filepath.Join(r.OutPutPath, buf.String())
 	outputPath, _ := filepath.Split(fileName)
 	url := urls[0]
+
+	if strings.Contains(url.Path, "m3u8") {
+		fileName = fileName[:len(fileName)-4]+".ts"
+	}
+
 	if err = mkdir(outputPath); err != nil {
 		r.getLogger().WithError(err).Errorf("failed to create output path[%s]", outputPath)
 		return
