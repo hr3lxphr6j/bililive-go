@@ -26,6 +26,6 @@ video_split_strategies:
   max_duration: 0s
 cookies: {}
 on_record_finished:
-  convert_to_mp4: true
-  delete_flv_after_convert: true
+  convert_to_mp4: false
+  delete_flv_after_convert: false
 timeout_in_us: 60000000
