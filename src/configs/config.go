@@ -83,7 +83,7 @@ type LiveRoom struct {
 	Url         string  `yaml:"url"`
 	IsListening bool    `yaml:"is_listening"`
 	LiveId      live.ID `yaml:"-"`
-	Quality 	int 	`yaml:"quality"`
+	Quality     int     `yaml:"quality"`
 }
 
 type liveRoomAlias LiveRoom

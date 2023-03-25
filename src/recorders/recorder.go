@@ -104,7 +104,6 @@ func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 
 func (r *recorder) tryRecord(ctx context.Context) {
 	urls, err := r.Live.GetStreamUrls()
-	// if r.config.HevcPriority && r.Live
 	if err != nil || len(urls) == 0 {
 		r.getLogger().WithError(err).Warn("failed to get stream url, will retry after 5s...")
 		time.Sleep(5 * time.Second)

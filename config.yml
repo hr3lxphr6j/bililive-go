@@ -11,21 +11,21 @@ log:
 feature:
   use_native_flv_parser: false
 live_rooms:
-# qulity默认为0
-# (B站)0代表原画PRO(HEVC)优先, 其他为原画(AVC)
+# qulity参数目前仅B站启用，默认为0
+# (B站)0代表原画PRO(HEVC)优先, 其他数值为原画(AVC)
 # 原画PRO会保存为.ts文件, 原画为.flv
 # HEVC相比AVC体积更小, 减少35%体积, 画质相当, 但是B站转码有时候会崩
 - url: https://www.lang.live/room/5664344
   is_listening: false
-  quality: 0 
 - url: https://live.bilibili.com/22603245
   is_listening: true
+  quality: 0 
 out_put_tmpl: ""
 video_split_strategies:
   on_room_name_changed: false
   max_duration: 0s
 cookies: {}
 on_record_finished:
-  convert_to_mp4: false
-  delete_flv_after_convert: false
+  convert_to_mp4: true
+  delete_flv_after_convert: true
 timeout_in_us: 60000000
