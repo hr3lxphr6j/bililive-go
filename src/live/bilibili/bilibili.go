@@ -18,11 +18,10 @@ const (
 	domain = "live.bilibili.com"
 	cnName = "哔哩哔哩"
 
-	roomInitUrl = "https://api.live.bilibili.com/room/v1/Room/room_init"
-	roomApiUrl  = "https://api.live.bilibili.com/room/v1/Room/get_info"
-	userApiUrl  = "https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room"
-	liveApiUrl  = "https://api.live.bilibili.com/room/v1/Room/playUrl"
-	liveApiUrlv2    = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo"
+	roomInitUrl  = "https://api.live.bilibili.com/room/v1/Room/room_init"
+	roomApiUrl   = "https://api.live.bilibili.com/room/v1/Room/get_info"
+	userApiUrl   = "https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room"
+	liveApiUrlv2 = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo"
 )
 
 func init() {
@@ -136,8 +135,6 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	for _, item := range cookies {
 		cookieKVs[item.Name] = item.Value
 	}
-	// format: 0 for http_stream(flv), 1 for http_tls(m3u8), 2 for unknown, default 0,1,2
-	// codec: 0 for avc(原画), 1 for hevc(原画Pro)
 	query := fmt.Sprintf("?room_id=%s&protocol=0,1&format=0,1,2&codec=0,1&qn=10000&platform=web&ptype=8&dolby=5&panorama=1", l.realID)
 	resp, err := requests.Get(liveApiUrlv2+query, live.CommonUserAgent, requests.Cookies(cookieKVs))
 
