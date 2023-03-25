@@ -138,7 +138,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 		"-i", url.String(),
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
-		// "-f", "flv",
 		file,
 	)
 	if p.cmdStdIn, err = p.cmd.StdinPipe(); err != nil {
