@@ -18,7 +18,9 @@ class AddRoomDialog extends React.Component<Props> {
 
     showModal = () => {
         this.setState({
+            ModalText: '请输入直播间的URL地址',
             visible: true,
+            confirmLoading: false,
         });
     };
 
