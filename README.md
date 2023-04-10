@@ -120,6 +120,12 @@ Bililive-go是一个支持多种直播平台的直播录制工具
         <td>滋瓷</td>
         <td></td>
     </tr>
+    <tr align="center">
+        <td>快手</td>
+        <td>live.kuaishou.com</td>
+        <td>滋瓷</td>
+        <td>滋瓷</td>
+    </tr>
 </table>
 
 ### cookie 在 config.yml 中的设置方法
