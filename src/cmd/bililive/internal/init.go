@@ -11,6 +11,7 @@ import (
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/huajiao"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/huomao"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/huya"
+	_ "github.com/hr3lxphr6j/bililive-go/src/live/kuaishou"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/lang"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/longzhu"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/missevan"
