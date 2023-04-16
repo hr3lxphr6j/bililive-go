@@ -14,10 +14,12 @@ $(notdir $(abspath $(wildcard src/cmd/*/))):
 		CGO_ENABLED=0 \
 		UPX_ENABLE=$(UPX_ENABLE) \
 		TAGS=$(tags) \
+		GCFLAGS=$(gcflags) \
 		./src/hack/build.sh $@
 
 .PHONY: dev
 dev: tags := "dev"
+dev: gcflags := "all=-N -l"
 dev: build
 
 .PHONY: release

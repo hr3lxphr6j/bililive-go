@@ -1,0 +1,9 @@
+.ant-list-item:hover {
+    background-color: rgba(232, 232, 232);
+}
+
+#art-container {
+    background-color: rgba(0, 0, 0, 0.5);
+    height: 100%;
+    padding: 8px;
+}

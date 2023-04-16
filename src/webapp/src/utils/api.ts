@@ -102,6 +102,13 @@ class API {
         return utils.requestPut(`${BASE_URL}/raw-config`, json);
     }
 
+    /**
+     *
+     * @param path 获取文件目录
+     */
+    getFileList(path: string = "") {
+        return utils.requestGet(`${BASE_URL}/file/${path}`);
+    }
 }
 
 export default API;
