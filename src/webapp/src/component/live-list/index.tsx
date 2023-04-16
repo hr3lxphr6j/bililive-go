@@ -4,12 +4,13 @@ import PopDialog from '../pop-dialog/index';
 import AddRoomDialog from '../add-room-dialog/index';
 import API from '../../utils/api';
 import './live-list.css';
+import { RouteComponentProps } from "react-router-dom";
 
 const api = new API();
 
 const REFRESH_TIME = 3 * 60 * 1000;
 
-interface Props {
+interface Props extends RouteComponentProps {
     refresh?: () => void
 }
 
@@ -115,6 +116,10 @@ class LiveList extends React.Component<Props, IState> {
                     }}>
                     <Button type="link" size="small">删除</Button>
                 </PopDialog>
+                <Divider type="vertical" />
+                <Button type="link" size="small" onClick={(e) => {
+                    this.props.history.push(`/fileList/${data.address}/${data.name}`);
+                }}>文件</Button>
             </span>
         ),
     };

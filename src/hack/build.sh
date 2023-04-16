@@ -12,7 +12,7 @@ _build() {
   ld_flags=$3
   go build \
     -tags ${TAGS:-"release"} \
-    -gcflags=${GOFLAGS:-""} \
+    -gcflags="${GCFLAGS:-""}" \
     -o ${OUTPUT_PATH}/${bin_name} \
     -ldflags="${ld_flags}" \
     ./src/cmd/${target}/

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -357,4 +358,65 @@ func applyLiveRoomsByConfig(ctx context.Context, newLiveRooms []configs.LiveRoom
 
 func getInfo(writer http.ResponseWriter, r *http.Request) {
 	writeJSON(writer, consts.AppInfo)
+}
+
+func getFileInfo(writer http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	path := vars["path"]
+
+	inst := instance.GetInstance(r.Context())
+	base, err := filepath.Abs(inst.Config.OutPutPath)
+	if err != nil {
+		writeJSON(writer, commonResp{
+			ErrMsg: "无效输出目录",
+		})
+		return
+	}
+
+	absPath, err := filepath.Abs(filepath.Join(base, path))
+	if err != nil {
+		writeJSON(writer, commonResp{
+			ErrMsg: "无效路径",
+		})
+		return
+	}
+	if !strings.HasPrefix(absPath, base) {
+		writeJSON(writer, commonResp{
+			ErrMsg: "异常路径",
+		})
+		return
+	}
+
+	files, err := ioutil.ReadDir(absPath)
+	if err != nil {
+		writeJSON(writer, commonResp{
+			ErrMsg: "获取目录失败",
+		})
+		return
+	}
+
+	type jsonFile struct {
+		IsFolder     bool   `json:"is_folder"`
+		Name         string `json:"name"`
+		LastModified int64  `json:"last_modified"`
+		Size         int64  `json:"size"`
+	}
+	jsonFiles := make([]jsonFile, len(files))
+	json := struct {
+		Files []jsonFile `json:"files"`
+		Path  string     `json:"path`
+	}{
+		Path: path,
+	}
+	for i, file := range files {
+		jsonFiles[i].IsFolder = file.IsDir()
+		jsonFiles[i].Name = file.Name()
+		jsonFiles[i].LastModified = file.ModTime().Unix()
+		if !file.IsDir() {
+			jsonFiles[i].Size = file.Size()
+		}
+	}
+	json.Files = jsonFiles
+
+	writeJSON(writer, json)
 }
