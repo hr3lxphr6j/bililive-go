@@ -133,6 +133,10 @@ func (r *recorder) tryRecord(ctx context.Context) {
 		fileName = fileName[:len(fileName)-4]+".ts"
 	}
 
+	if info.AudioOnly {
+		fileName = fileName[:strings.LastIndex(fileName, ".")] + ".aac"
+	}
+
 	if err = mkdir(outputPath); err != nil {
 		r.getLogger().WithError(err).Errorf("failed to create output path[%s]", outputPath)
 		return
