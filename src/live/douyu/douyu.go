@@ -180,6 +180,29 @@ func (l *Live) fetchRoomID() error {
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
+	resCheckStatus, err := requests.Get(l.Url.String(), live.CommonUserAgent)
+	if err != nil {
+		return nil, err
+	}
+	if resCheckStatus.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	bodyCheckStatus, err := resCheckStatus.Text()
+	if err != nil {
+		return nil, err
+	}
+	if res := utils.Match1("该房间目前没有开放", bodyCheckStatus); res != "" {
+		return nil, live.ErrRoomNotExist
+	}
+	if strings.Contains(bodyCheckStatus, "您观看的房间已被关闭，请选择其他直播进行观看哦！") {
+		return &live.Info{
+			Live:     l,
+			HostName: "您观看的房间已被关闭",
+			RoomName: "您观看的房间已被关闭",
+			Status:   false,
+		}, nil
+	}
+
 	if err := l.fetchRoomID(); err != nil {
 		return nil, err
 	}
