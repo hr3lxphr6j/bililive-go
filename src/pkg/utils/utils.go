@@ -7,6 +7,7 @@ import (
 	"errors"
 	"math/rand"
 	"net/url"
+	"os"
 	"os/exec"
 	"regexp"
 	"runtime/debug"
@@ -15,7 +16,17 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 )
 
-func GetFFmpegPath() (string, error) {
+func GetFFmpegPath(ctx context.Context) (string, error) {
+	inst := instance.GetInstance(ctx)
+	path := inst.Config.FfmpegPath
+	if inst.Config.FfmpegPath != "" {
+		_, err := os.Stat(path)
+		if err == nil {
+			return path, nil
+		} else {
+			return "", err
+		}
+	}
 	path, err := exec.LookPath("ffmpeg")
 	if errors.Is(err, exec.ErrDot) {
 		// put ffmpeg.exe and binary like bililive-windows-amd64.exe to the same folder is allowed
@@ -24,8 +35,8 @@ func GetFFmpegPath() (string, error) {
 	return path, err
 }
 
-func IsFFmpegExist() bool {
-	_, err := GetFFmpegPath()
+func IsFFmpegExist(ctx context.Context) bool {
+	_, err := GetFFmpegPath(ctx)
 	return err == nil
 }
 

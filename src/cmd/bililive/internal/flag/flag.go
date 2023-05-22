@@ -17,6 +17,7 @@ var (
 	Debug           = app.Flag("debug", "Enable debug mode.").Default("false").Bool()
 	Interval        = app.Flag("interval", "Interval of query live status").Default("20").Short('t').Int()
 	Output          = app.Flag("output", "Output file path.").Short('o').Default("./").String()
+	FfmpegPath      = app.Flag("ffmpeg-path", "Path for FFMPEG (default: find FFMPEG from your environment variable)").Default("").String()
 	Input           = app.Flag("input", "Live room urls").Short('i').Strings()
 	Conf            = app.Flag("config", "Config file.").Short('c').String()
 	RPC             = app.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
@@ -40,6 +41,7 @@ func GenConfigFromFlags() *configs.Config {
 	cfg.Debug = *Debug
 	cfg.Interval = *Interval
 	cfg.OutPutPath = *Output
+	cfg.FfmpegPath = *FfmpegPath
 	cfg.OutputTmpl = *OutputFileTmpl
 	cfg.LiveRooms = configs.NewLiveRoomsWithStrings(*Input)
 	cfg.Feature = configs.Feature{

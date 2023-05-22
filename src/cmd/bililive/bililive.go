@@ -27,13 +27,6 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/servers"
 )
 
-func init() {
-	if !utils.IsFFmpegExist() {
-		fmt.Fprintf(os.Stderr, "FFmpeg binary not found, Please Check.\n")
-		os.Exit(1)
-	}
-}
-
 func getConfig() (*configs.Config, error) {
 	var config *configs.Config
 	if *flag.Conf != "" {
@@ -93,6 +86,11 @@ func main() {
 	}
 	logger.Debugf("%+v", consts.AppInfo)
 	logger.Debugf("%+v", inst.Config)
+
+	if !utils.IsFFmpegExist(ctx) {
+		logger.Fatalln("FFmpeg binary not found, Please Check.")
+		os.Exit(1)
+	}
 
 	events.NewDispatcher(ctx)
 
