@@ -17,8 +17,7 @@ import (
 )
 
 func GetFFmpegPath(ctx context.Context) (string, error) {
-	inst := instance.GetInstance(ctx)
-	path := inst.Config.FfmpegPath
+	path := instance.GetInstance(ctx).Config.FfmpegPath
 	if path != "" {
 		_, err := os.Stat(path)
 		if err == nil {
