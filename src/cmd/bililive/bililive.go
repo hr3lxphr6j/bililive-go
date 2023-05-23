@@ -89,7 +89,6 @@ func main() {
 
 	if !utils.IsFFmpegExist(ctx) {
 		logger.Fatalln("FFmpeg binary not found, Please Check.")
-		os.Exit(1)
 	}
 
 	events.NewDispatcher(ctx)
