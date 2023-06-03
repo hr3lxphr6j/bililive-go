@@ -58,6 +58,9 @@ class LiveList extends React.Component<Props, IState> {
                     if (tag === '录制中') {
                         color = 'red';
                     }
+                    if (tag === '初始化') {
+                        color = 'orange';
+                    }
 
                     return (
                         <Tag color={color} key={tag}>
@@ -232,6 +235,10 @@ class LiveList extends React.Component<Props, IState> {
 
                     if (item.recording === true) {
                         tags = ['录制中'];
+                    }
+
+                    if (item.initializing === true) {
+                        tags.push('初始化')
                     }
 
                     return {

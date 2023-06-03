@@ -12,6 +12,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/live/system"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
 )
 
@@ -92,9 +93,10 @@ func (l *listener) refresh() {
 		}
 	)
 	defer func() { l.status = latestStatus }()
+	isStatusChanged := true
 	switch l.status.Diff(latestStatus) {
 	case 0:
-		return
+		isStatusChanged = false
 	case statusToTrueEvt:
 		l.Live.SetLastStartTime(time.Now())
 		evtTyp = LiveStart
@@ -109,9 +111,22 @@ func (l *listener) refresh() {
 		evtTyp = RoomNameChanged
 		logInfo = "Room name was changed"
 	}
+	if isStatusChanged {
+		l.ed.DispatchEvent(events.NewEvent(evtTyp, l.Live))
+		l.logger.WithFields(fields).Info(logInfo)
+	}
 
-	l.ed.DispatchEvent(events.NewEvent(evtTyp, l.Live))
-	l.logger.WithFields(fields).Info(logInfo)
+	if info.Initializing {
+		initializingLive := l.Live.(*live.WrappedLive).Live.(*system.InitializingLive)
+		info, err = initializingLive.OriginalLive.GetInfo()
+		if err == nil {
+			l.ed.DispatchEvent(events.NewEvent(RoomInitializingFinished, live.InitializingFinishedParam{
+				InitializingLive: l.Live,
+				Live:             initializingLive.OriginalLive,
+				Info:             info,
+			}))
+		}
+	}
 }
 
 func (l *listener) run() {

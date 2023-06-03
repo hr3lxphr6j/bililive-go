@@ -12,6 +12,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	livemock "github.com/hr3lxphr6j/bililive-go/src/live/mock"
+	evtmock "github.com/hr3lxphr6j/bililive-go/src/pkg/events/mock"
 )
 
 func TestManagerAddAndRemoveListener(t *testing.T) {
@@ -46,7 +47,10 @@ func TestManagerAddAndRemoveListener(t *testing.T) {
 func TestManagerStartAndClose(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	ed := evtmock.NewMockDispatcher(ctrl)
+	ed.EXPECT().AddEventListener(RoomInitializingFinished, gomock.Any())
 	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
+		EventDispatcher: ed,
 		Config: &configs.Config{
 			RPC: configs.RPC{Enable: true},
 		},
