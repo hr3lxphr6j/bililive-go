@@ -48,6 +48,7 @@ func TestManagerStartAndClose(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ed := evtmock.NewMockDispatcher(ctrl)
+	ed.EXPECT().AddEventListener(RoomInitializingFinished, gomock.Any())
 	ctx := context.WithValue(context.Background(), instance.Key, &instance.Instance{
 		EventDispatcher: ed,
 		Config: &configs.Config{
