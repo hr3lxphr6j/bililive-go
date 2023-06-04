@@ -167,12 +167,20 @@ func (l *Live) fetchRoomID() error {
 			return nil
 		}
 	}
+	if strings.Contains(string(body), "该房间目前没有开放") {
+		errorMessage := "房间未开放"
+		return errors.New(errorMessage)
+	}
+	if strings.Contains(string(body), "您观看的房间已被关闭，请选择其他直播进行观看哦！") {
+		errorMessage := "房间被关闭"
+		return errors.New(errorMessage)
+	}
 	showedBodyMaxLength := 20
 	bodyLen := len(body)
 	if bodyLen < 20 {
 		showedBodyMaxLength = bodyLen
 	}
-	errorMessage := "failed to fetch room id. body: " + string(body[:showedBodyMaxLength])
+	errorMessage := "unexcepted error. body: " + string(body[:showedBodyMaxLength])
 	if bodyLen > showedBodyMaxLength {
 		errorMessage += "... "
 	}
@@ -181,7 +189,19 @@ func (l *Live) fetchRoomID() error {
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
 	if err := l.fetchRoomID(); err != nil {
-		return nil, err
+		if err.Error() == "房间未开放" {
+			return nil, live.ErrRoomNotExist
+		} else if err.Error() == "房间被关闭" {
+			return &live.Info{
+				Live:     l,
+				HostName: "您观看的房间已被关闭",
+				RoomName: "您观看的房间已被关闭",
+				Status:   false,
+			}, nil
+		} else {
+			return nil, err
+		}
+
 	}
 	resp, err := requests.Get(fmt.Sprintf("%s/%s", liveInfoUrl, l.roomID), live.CommonUserAgent)
 	if err != nil {

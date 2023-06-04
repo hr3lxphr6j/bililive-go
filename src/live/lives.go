@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	m = make(map[string]Builder)
+	m                               = make(map[string]Builder)
+	InitializingLiveBuilderInstance InitializingLiveBuilder
 )
 
 func Register(domain string, b Builder) {
@@ -27,6 +28,16 @@ func getBuilder(domain string) (Builder, bool) {
 
 type Builder interface {
 	Build(*url.URL, ...Option) (Live, error)
+}
+
+type InitializingLiveBuilder interface {
+	Build(Live, *url.URL, ...Option) (Live, error)
+}
+
+type InitializingFinishedParam struct {
+	InitializingLive Live
+	Live             Live
+	Info             *Info
 }
 
 type Options struct {
@@ -77,7 +88,7 @@ func WithQuality(quality int) Option {
 	return func(opts *Options) {
 		opts.Quality = quality
 	}
-} 
+}
 
 type ID string
 
@@ -92,19 +103,19 @@ type Live interface {
 	SetLastStartTime(time.Time)
 }
 
-type wrappedLive struct {
+type WrappedLive struct {
 	Live
 	cache gcache.Cache
 }
 
 func newWrappedLive(live Live, cache gcache.Cache) Live {
-	return &wrappedLive{
+	return &WrappedLive{
 		Live:  live,
 		cache: cache,
 	}
 }
 
-func (w *wrappedLive) GetInfo() (*Info, error) {
+func (w *WrappedLive) GetInfo() (*Info, error) {
 	i, err := w.Live.GetInfo()
 	if err != nil {
 		return nil, err
@@ -135,5 +146,10 @@ func New(url *url.URL, cache gcache.Cache, opts ...Option) (live Live, err error
 		}
 		time.Sleep(1 * time.Second)
 	}
-	return nil, err
+
+	// when room initializaion is failed
+	live, err = InitializingLiveBuilderInstance.Build(live, url, opts...)
+	live = newWrappedLive(live, cache)
+	live.GetInfo() // dummy call to initialize cache inside wrappedLive
+	return
 }

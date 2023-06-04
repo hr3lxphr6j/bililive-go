@@ -7,6 +7,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
 )
 
 // for test
@@ -33,11 +34,43 @@ type manager struct {
 	savers map[live.ID]Listener
 }
 
+func (m *manager) registryListener(ctx context.Context, ed events.Dispatcher) {
+	ed.AddEventListener(RoomInitializingFinished, events.NewEventListener(func(event *events.Event) {
+		param := event.Object.(live.InitializingFinishedParam)
+		initializingLive := param.InitializingLive
+		live := param.Live
+		info := param.Info
+		if info.CustomLiveId != "" {
+			live.SetLiveIdByString(info.CustomLiveId)
+		}
+		inst := instance.GetInstance(ctx)
+		logger := inst.Logger
+		inst.Lives[live.GetLiveId()] = live
+
+		room, err := inst.Config.GetLiveRoomByUrl(live.GetRawUrl())
+		if err != nil {
+			logger.WithFields(map[string]interface{}{
+				"room": live.GetRawUrl(),
+			}).Error(err)
+			panic(err)
+		}
+		room.LiveId = live.GetLiveId()
+		if room.IsListening {
+			if err := m.replaceListener(ctx, initializingLive, live); err != nil {
+				logger.WithFields(map[string]interface{}{
+					"url": live.GetRawUrl(),
+				}).Error(err)
+			}
+		}
+	}))
+}
+
 func (m *manager) Start(ctx context.Context) error {
 	inst := instance.GetInstance(ctx)
 	if inst.Config.RPC.Enable || len(inst.Lives) > 0 {
 		inst.WaitGroup.Add(1)
 	}
+	m.registryListener(ctx, inst.EventDispatcher.(events.Dispatcher))
 	return nil
 }
 
@@ -74,6 +107,25 @@ func (m *manager) RemoveListener(ctx context.Context, liveId live.ID) error {
 	listener.Close()
 	delete(m.savers, liveId)
 	return nil
+}
+
+func (m *manager) replaceListener(ctx context.Context, oldLive live.Live, newLive live.Live) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	oldLiveId := oldLive.GetLiveId()
+	oldListener, ok := m.savers[oldLiveId]
+	if !ok {
+		return ErrListenerNotExist
+	}
+	oldListener.Close()
+	newListener := newListener(ctx, newLive)
+	if oldLiveId == newLive.GetLiveId() {
+		m.savers[oldLiveId] = newListener
+	} else {
+		delete(m.savers, oldLiveId)
+		m.savers[newLive.GetLiveId()] = newListener
+	}
+	return newListener.Start()
 }
 
 func (m *manager) GetListener(ctx context.Context, liveId live.ID) (Listener, error) {
