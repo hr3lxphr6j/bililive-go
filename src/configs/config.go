@@ -67,6 +67,7 @@ type Config struct {
 	Debug                bool                 `yaml:"debug"`
 	Interval             int                  `yaml:"interval"`
 	OutPutPath           string               `yaml:"out_put_path"`
+	FfmpegPath           string               `yaml:"ffmpeg_path"`
 	Log                  Log                  `yaml:"log"`
 	Feature              Feature              `yaml:"feature"`
 	LiveRooms            []LiveRoom           `yaml:"live_rooms"`
@@ -123,6 +124,7 @@ var defaultConfig = Config{
 	Debug:      false,
 	Interval:   30,
 	OutPutPath: "./",
+	FfmpegPath: "",
 	Log: Log{
 		OutPutFolder: "./",
 		SaveLastLog:  true,

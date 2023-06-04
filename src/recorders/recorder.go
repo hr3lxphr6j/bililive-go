@@ -130,7 +130,7 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	url := urls[0]
 
 	if strings.Contains(url.Path, "m3u8") {
-		fileName = fileName[:len(fileName)-4]+".ts"
+		fileName = fileName[:len(fileName)-4] + ".ts"
 	}
 
 	if info.AudioOnly {
@@ -159,7 +159,7 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	r.getLogger().Debugln("End ParseLiveStream(" + url.String() + ", " + fileName + ")")
 	removeEmptyFile(fileName)
 	if r.config.OnRecordFinished.ConvertToMp4 {
-		ffmpegPath, err := utils.GetFFmpegPath()
+		ffmpegPath, err := utils.GetFFmpegPath(ctx)
 		if err != nil {
 			r.getLogger().WithError(err).Error("failed to find ffmpeg")
 			return
