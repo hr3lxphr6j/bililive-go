@@ -48,7 +48,13 @@ func (l *Live) getData() (*gjson.Result, error) {
 	for _, item := range cookies {
 		cookieKVs[item.Name] = item.Value
 	}
-	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent, requests.Cookies(cookieKVs))
+	resp, err := requests.Get(
+		l.Url.String(),
+		live.CommonUserAgent,
+		requests.Cookies(cookieKVs),
+		requests.Headers(map[string]interface{}{
+			"Cache-Control": "no-cache",
+		}))
 	if err != nil {
 		return nil, err
 	}
