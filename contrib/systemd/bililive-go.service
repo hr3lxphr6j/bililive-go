@@ -1,0 +1,13 @@
+[Unit]
+Description=Bililive-go
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/log/
+ExecStart=/usr/bin/bililive-go -c /etc/bililive-go/config.yml
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
