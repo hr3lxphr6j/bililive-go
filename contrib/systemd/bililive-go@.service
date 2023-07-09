@@ -1,12 +1,14 @@
 [Unit]
-Description=Bililive-go是一个支持多种直播平台的直播录制工具
+Description=Bililive-go record for user %i
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 Type=simple
+User=%i
+WorkingDirectory=/var/log/
 ExecStart=/usr/bin/bililive-go -c /etc/bililive-go/config.yml
 Restart=on-failure
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
