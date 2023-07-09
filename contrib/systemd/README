@@ -1,0 +1,15 @@
+systemd 自启动说明
+
+1. 复制service文件到对应的目录。
+systemd 会在手册里的目录里寻找unit
+https://www.freedesktop.org/software/systemd/man/systemd.unit.html#
+
+2. 录制的视频可以在不提权时更改
+$ systemctl —-user enable bililive-go.service
+只在用户登录后启动录制，注销用户后会停止。记得enable-linger
+https://wiki.archlinux.org/title/Systemd/User#Automatic_start-up_of_systemd_user_instances
+
+或者可以
+# systemctl enable bililive-go@用户名.service 
+
+3. 注意修改config.yml 里的路径，WorkingDirectory 是因为默认程序会写日志。
