@@ -1,0 +1,34 @@
+# IDE ignore
+.idea/
+*.ipr
+*.iml
+*.iws
+.vscode/
+
+# Emacs save files
+*~
+\#*\#
+.\#*
+
+# Vim-related files
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+
+# make-related metadata
+/.make/
+
+# temp ignore
+*.log
+*.cache
+*.diff
+*.exe
+*.exe~
+*.patch
+*.tmp
+*.swp
+
+# OSX trash
+.DS_Store
