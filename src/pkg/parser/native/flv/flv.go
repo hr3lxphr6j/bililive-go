@@ -13,11 +13,11 @@ import (
 	"runtime/debug"
 	"sync"
 
-	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	"github.com/hr3lxphr6j/bililive-go/src/live"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/reader"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
+	"github.com/matyle/bililive-go/src/instance"
+	"github.com/matyle/bililive-go/src/live"
+	"github.com/matyle/bililive-go/src/pkg/parser"
+	"github.com/matyle/bililive-go/src/pkg/reader"
+	"github.com/matyle/bililive-go/src/pkg/utils"
 )
 
 const (

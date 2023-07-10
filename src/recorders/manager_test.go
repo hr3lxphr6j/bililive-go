@@ -7,10 +7,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
-	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	"github.com/hr3lxphr6j/bililive-go/src/live"
-	livemock "github.com/hr3lxphr6j/bililive-go/src/live/mock"
+	"github.com/matyle/bililive-go/src/configs"
+	"github.com/matyle/bililive-go/src/instance"
+	"github.com/matyle/bililive-go/src/live"
+	livemock "github.com/matyle/bililive-go/src/live/mock"
 )
 
 func TestManagerAddAndRemoveRecorder(t *testing.T) {

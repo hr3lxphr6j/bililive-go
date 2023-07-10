@@ -12,6 +12,21 @@ type LFUCache struct {
 	freqList *list.List // list for freqEntry
 }
 
+var _ Cache = (*LFUCache)(nil)
+
+type lfuItem struct {
+	clock       Clock
+	key         interface{}
+	value       interface{}
+	freqElement *list.Element
+	expiration  *time.Time
+}
+
+type freqEntry struct {
+	freq  uint
+	items map[*lfuItem]struct{}
+}
+
 func newLFUCache(cb *CacheBuilder) *LFUCache {
 	c := &LFUCache{}
 	buildCache(&c.baseCache, cb)
@@ -23,7 +38,7 @@ func newLFUCache(cb *CacheBuilder) *LFUCache {
 
 func (c *LFUCache) init() {
 	c.freqList = list.New()
-	c.items = make(map[interface{}]*lfuItem, c.size+1)
+	c.items = make(map[interface{}]*lfuItem, c.size)
 	c.freqList.PushFront(&freqEntry{
 		freq:  0,
 		items: make(map[*lfuItem]struct{}),
@@ -183,12 +198,28 @@ func (c *LFUCache) increment(item *lfuItem) {
 	nextFreq := currentFreqEntry.freq + 1
 	delete(currentFreqEntry.items, item)
 
+	// a boolean whether reuse the empty current entry
+	removable := isRemovableFreqEntry(currentFreqEntry)
+
+	// insert item into a valid entry
 	nextFreqElement := currentFreqElement.Next()
-	if nextFreqElement == nil {
-		nextFreqElement = c.freqList.InsertAfter(&freqEntry{
-			freq:  nextFreq,
-			items: make(map[*lfuItem]struct{}),
-		}, currentFreqElement)
+	switch {
+	case nextFreqElement == nil || nextFreqElement.Value.(*freqEntry).freq > nextFreq:
+		if removable {
+			currentFreqEntry.freq = nextFreq
+			nextFreqElement = currentFreqElement
+		} else {
+			nextFreqElement = c.freqList.InsertAfter(&freqEntry{
+				freq:  nextFreq,
+				items: make(map[*lfuItem]struct{}),
+			}, currentFreqElement)
+		}
+	case nextFreqElement.Value.(*freqEntry).freq == nextFreq:
+		if removable {
+			c.freqList.Remove(currentFreqElement)
+		}
+	default:
+		panic("unreachable")
 	}
 	nextFreqElement.Value.(*freqEntry).items[item] = struct{}{}
 	item.freqElement = nextFreqElement
@@ -201,7 +232,7 @@ func (c *LFUCache) evict(count int) {
 		if entry == nil {
 			return
 		} else {
-			for item, _ := range entry.Value.(*freqEntry).items {
+			for item := range entry.Value.(*freqEntry).items {
 				if i >= count {
 					return
 				}
@@ -247,8 +278,12 @@ func (c *LFUCache) remove(key interface{}) bool {
 
 // removeElement is used to remove a given list element from the cache
 func (c *LFUCache) removeItem(item *lfuItem) {
+	entry := item.freqElement.Value.(*freqEntry)
 	delete(c.items, item.key)
-	delete(item.freqElement.Value.(*freqEntry).items, item)
+	delete(entry.items, item)
+	if isRemovableFreqEntry(entry) {
+		c.freqList.Remove(item.freqElement)
+	}
 	if c.evictedFunc != nil {
 		c.evictedFunc(item.key, item.value)
 	}
@@ -325,19 +360,6 @@ func (c *LFUCache) Purge() {
 	c.init()
 }
 
-type freqEntry struct {
-	freq  uint
-	items map[*lfuItem]struct{}
-}
-
-type lfuItem struct {
-	clock       Clock
-	key         interface{}
-	value       interface{}
-	freqElement *list.Element
-	expiration  *time.Time
-}
-
 // IsExpired returns boolean value whether this item is expired or not.
 func (it *lfuItem) IsExpired(now *time.Time) bool {
 	if it.expiration == nil {
@@ -348,4 +370,8 @@ func (it *lfuItem) IsExpired(now *time.Time) bool {
 		now = &t
 	}
 	return it.expiration.Before(*now)
+}
+
+func isRemovableFreqEntry(entry *freqEntry) bool {
+	return entry.freq != 0 && len(entry.items) == 0
 }

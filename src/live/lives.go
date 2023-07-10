@@ -1,4 +1,4 @@
-//go:generate mockgen -package mock -destination mock/mock.go github.com/hr3lxphr6j/bililive-go/src/live Live
+//go:generate mockgen -package mock -destination mock/mock.go github.com/matyle/bililive-go/src/live Live
 package live
 
 import (

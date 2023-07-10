@@ -1,0 +1,73 @@
+run:
+  deadline: 6m
+  skip-dirs:
+    - terst
+  skip-files:
+    - dbg/dbg.go
+
+linters-settings:
+  govet:
+    check-shadowing: false
+  goconst:
+    min-len: 2
+    min-occurrences: 4
+
+linters:
+  enable-all: true
+  disable:
+    - dupl
+    - gas
+    - errcheck
+    - gofmt
+    - gosimple
+    - interfacer
+    - megacheck
+    - maligned
+    - structcheck
+    - staticcheck
+    - unconvert
+    - unparam
+    - varcheck
+    - lll
+    - prealloc
+    - gochecknoglobals
+    - gochecknoinits
+    - scopelint
+    - funlen
+    - godox
+    - exhaustivestruct
+    - goerr113
+    - wsl
+    - nlreturn
+    - tagliatelle
+    - gomnd
+    - paralleltest
+    - wrapcheck
+    - testpackage
+    - golint
+    - gofumpt
+    - forbidigo
+    - gocognit
+    - gocritic
+    - godot
+    - nakedret
+    - nestif
+    - revive
+    - errorlint
+    - exhaustive
+    - forcetypeassert
+    - ifshort
+    - stylecheck
+    - gocyclo
+    - misspell
+    - cyclop
+    - varnamelen
+    - nonamedreturns
+    - maintidx
+    - ireturn
+    - exhaustruct
+    - nosnakecase
+    - deadcode
+    - dupword
+    - gci
+

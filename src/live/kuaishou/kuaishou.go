@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hr3lxphr6j/bililive-go/src/live"
-	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
+	"github.com/matyle/bililive-go/src/live"
+	"github.com/matyle/bililive-go/src/live/internal"
+	"github.com/matyle/bililive-go/src/pkg/utils"
 )
 
 const (

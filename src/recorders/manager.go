@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
-	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
-	"github.com/hr3lxphr6j/bililive-go/src/listeners"
-	"github.com/hr3lxphr6j/bililive-go/src/live"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
+	"github.com/matyle/bililive-go/src/configs"
+	"github.com/matyle/bililive-go/src/instance"
+	"github.com/matyle/bililive-go/src/interfaces"
+	"github.com/matyle/bililive-go/src/listeners"
+	"github.com/matyle/bililive-go/src/live"
+	"github.com/matyle/bililive-go/src/pkg/events"
 )
 
 func NewManager(ctx context.Context) Manager {

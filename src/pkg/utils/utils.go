@@ -13,7 +13,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"github.com/matyle/bililive-go/src/instance"
 )
 
 func GetFFmpegPath(ctx context.Context) (string, error) {

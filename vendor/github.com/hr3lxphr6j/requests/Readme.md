@@ -15,26 +15,58 @@ go get -u github.com/hr3lxphr6j/requests
 ## Example
 
 ```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/hr3lxphr6j/requests"
+var (
+	timeout     = time.Second * 3
+	url         = "http://example.com"
+	queryParams = map[string]string{"foo": "bar"}
+	body        = map[string]interface{}{"a": "b", "nums": []int{1, 2, 3}}
 )
 
-func main() {
-	resp, err := requests.Post("http://example.com",
-		requests.JSON(map[string]string{"foo": "bar"}),
-		requests.Query("foo", "bar"),
+// Do `curl --connect-timeout 3 -d '{"a": "b", "num": [1, 2, 3]}' -H 'Content-Type: application/json' http://example.com?foo=bar`
+
+// With net/http
+func UseNetHttp() map[string]interface{} {
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(body); err != nil {
+		log.Panic(err)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, buf)
+	if err != nil {
+		log.Panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	value := urlPkg.Values{}
+	for k, v := range queryParams {
+		value.Set(k, v)
+	}
+	req.URL.RawQuery = value.Encode()
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer resp.Body.Close()
+	data := map[string]interface{}{}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		log.Panic(err)
+	}
+	return data
+}
+
+// With Requests
+func UseRequests() map[string]interface{} {
+	resp, err := requests.Post(url,
+		requests.Timeout(timeout),
+		requests.Queries(queryParams),
+		requests.JSON(body),
 	)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
-	m := make(map[string]interface{})
-	if err := resp.JSON(m); err != nil {
-		panic(err)
+	data := map[string]interface{}{}
+	if err := resp.JSON(&data); err != nil {
+		log.Panic(err)
 	}
-	fmt.Println(m)
+	return data
 }
 ```

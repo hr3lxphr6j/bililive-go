@@ -5,9 +5,9 @@ import (
 
 	"github.com/bluele/gcache"
 
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
-	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
-	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/matyle/bililive-go/src/configs"
+	"github.com/matyle/bililive-go/src/interfaces"
+	"github.com/matyle/bililive-go/src/live"
 )
 
 type Instance struct {

@@ -1,0 +1,70 @@
+{
+  "code": 0,
+  "message": "0",
+  "ttl": 1,
+  "data": {
+    "is_new": false,
+    "mid": 518051284,
+    "access_token": "9f2ec7ce5f94b75ae0e3a34d42bd3e72",
+    "refresh_token": "57f7ca4f5ddc7c644387b58552114e72",
+    "expires_in": 15552000,
+    "token_info": {
+      "mid": 518051284,
+      "access_token": "9f2ec7ce5f94b75ae0e3a34d42bd3e72",
+      "refresh_token": "57f7ca4f5ddc7c644387b58552114e72",
+      "expires_in": 15552000
+    },
+    "cookie_info": {
+      "cookies": [
+        {
+          "name": "SESSDATA",
+          "value": "dc037f07%2C1704597806%2Cfd0f2b72",
+          "http_only": 1,
+          "expires": 1704597806,
+          "secure": 0
+        },
+        {
+          "name": "bili_jct",
+          "value": "7f72a0545d701f0727e4ee2378726faf",
+          "http_only": 0,
+          "expires": 1704597806,
+          "secure": 0
+        },
+        {
+          "name": "DedeUserID",
+          "value": "518051284",
+          "http_only": 0,
+          "expires": 1704597806,
+          "secure": 0
+        },
+        {
+          "name": "DedeUserID__ckMd5",
+          "value": "ca82e23f18e73843",
+          "http_only": 0,
+          "expires": 1704597806,
+          "secure": 0
+        },
+        {
+          "name": "sid",
+          "value": "q7i7t73e",
+          "http_only": 0,
+          "expires": 1704597806,
+          "secure": 0
+        }
+      ],
+      "domains": [
+        ".bilibili.com",
+        ".biligame.com",
+        ".bigfun.cn",
+        ".bigfunapp.cn",
+        ".dreamcast.hk"
+      ]
+    },
+    "sso": [
+      "https://passport.bilibili.com/api/v2/sso",
+      "https://passport.biligame.com/api/v2/sso",
+      "https://passport.bigfunapp.cn/api/v2/sso"
+    ],
+    "hint": "信息同步中，请耐心等待"
+  }
+}

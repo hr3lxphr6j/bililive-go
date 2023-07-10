@@ -1,6 +1,7 @@
 # GCache
 
-[![wercker status](https://app.wercker.com/status/1471b6c9cbc9ebbd15f8f9fe8f71ac67/m/master "wercker status")](https://app.wercker.com/project/bykey/1471b6c9cbc9ebbd15f8f9fe8f71ac67)[![GoDoc](https://godoc.org/github.com/bluele/gcache?status.png)](https://godoc.org/github.com/bluele/gcache)
+![Test](https://github.com/bluele/gcache/workflows/Test/badge.svg)
+[![GoDoc](https://godoc.org/github.com/bluele/gcache?status.svg)](https://pkg.go.dev/github.com/bluele/gcache?tab=doc)
 
 Cache library for golang. It supports expirable Cache, LFU, LRU and ARC.
 

@@ -9,6 +9,11 @@ import (
 
 // NewRequest return a new *http.Request
 func NewRequest(method, url string, opts ...RequestOption) (*http.Request, error) {
+	return NewRequestWithContext(context.Background(), method, url, opts...)
+}
+
+// NewRequestWithContext return a new *http.Request
+func NewRequestWithContext(ctx context.Context, method, url string, opts ...RequestOption) (*http.Request, error) {
 	options := NewOptions()
 	for _, opt := range opts {
 		opt(options)
@@ -22,7 +27,6 @@ func NewRequest(method, url string, opts ...RequestOption) (*http.Request, error
 		}
 	}
 
-	ctx := context.Background()
 	if !options.Deadline.IsZero() {
 		ctx, _ = context.WithDeadline(ctx, options.Deadline)
 	}
