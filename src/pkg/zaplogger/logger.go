@@ -56,7 +56,7 @@ func GetLogger() *zap.Logger {
 	return gLogger
 }
 
-func GetFileLogger(outputPath string) *zap.Logger {
+func GetFileLogger(outputFile string) *zap.Logger {
 	gLoggerOnce.Do(func() {
 		encoderCfg := zapcore.EncoderConfig{
 			MessageKey:     "message",
@@ -70,7 +70,7 @@ func GetFileLogger(outputPath string) *zap.Logger {
 			EncodeDuration: MillisecondDurationEncoder,
 			EncodeCaller:   zapcore.ShortCallerEncoder,
 		}
-		logFile, _ := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 06666)
+		logFile, _ := os.OpenFile(outputFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 06666)
 		writer := zapcore.AddSync(logFile)
 		encoder := NewTextEncoder(encoderCfg)
 		cores := []zapcore.Core{
