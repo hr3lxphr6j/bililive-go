@@ -36,14 +36,15 @@ type Log struct {
 
 // upload
 type BiliupConfig struct {
-	CookiePath string `yaml:"cookie_path"` // cookie路径
-	VideoTitle string `yaml:"video_title"` // 视频标题
-	VideoDesc  string `yaml:"video_desc"`  // 视频简介
-	UpType     int    `yaml:"up_type"`     // 1:原创 2:转载
-	CoverPath  string `yaml:"cover_path"`  // 封面路径
-	Tid        int    `yaml:"tid"`         // 分区id 默认
-	Tag        string `yaml:"tag"`         // 标签 , 分割
-	Source     string `yaml:"source"`      // 来源
+	UserName         string `yaml:"user_name"`          // 用户名
+	CookiePath       string `yaml:"cookie_path"`        // cookie路径
+	VideoTitlePrefix string `yaml:"video_title_prefix"` // 视频标题
+	VideoDesc        string `yaml:"video_desc"`         // 视频简介
+	UpType           int64  `yaml:"up_type"`            // 1:原创 2:转载
+	CoverPath        string `yaml:"cover_path"`         // 封面路径
+	Tid              int64  `yaml:"tid"`                // 分区id 默认
+	Tag              string `yaml:"tag"`                // 标签 , 分割
+	Source           string `yaml:"source"`             // 来源
 }
 
 // Config content all config info.

@@ -32,20 +32,21 @@ on_record_finished:
 timeout_in_us: 60000000
 videos_path: /path/video
 biliup_configs:
-  - cookie_path: ./cookie_1.json
+  - user_name: "matyle1"
+    cookie_path: ./cookie_1.json #必填
     video_title_prefix: "直播录制" #上传文件名：prefix-时间-文件名
     video_desc: "如需自动录制请私信，或关注"
     up_type: 2 #1.原创，2.转载
     cover_path:
     tid: 2 #分区
-    tag: Tag4,Tag5,Tag6 #tag
-    source: Source2
-
-  - cookie_path: ./cookie_2.json
-    video_title: Video 2
-    video_desc: This is my second video
-    up_type: 2
-    cover_path: /path/to/cover2.jpg
-    tid: 2
-    tag: Tag4,Tag5,Tag6
-    source: Source2
+    tag: Tag4,Tag5,Tag6 #上传标签 必填 不能超过12个
+    source: #来源
+  - user_name: "matyle2"
+    cookie_path: ./cookie_2.json
+    video_title_prefix: "直播录制" #上传文件名：prefix-时间-文件名
+    video_desc: "如需自动录制请私信，或关注"
+    up_type: 2 #1.原创，2.转载
+    cover_path:
+    tid: 2 #分区
+    tag: Tag4,Tag5,Tag6 #上传标签 必填 不能超过12个
+    source: #来源

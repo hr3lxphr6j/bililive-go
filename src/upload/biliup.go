@@ -34,7 +34,7 @@ type Part struct {
 	ETag       string `json:"eTag"`
 }
 
-type AddReqJson struct {
+type BiliReq struct {
 	Copyright        int64    `json:"copyright"` // 1:原创 2:转载
 	Cover            string   `json:"cover"`     // 封面url
 	Title            string   `json:"title"`     // 视频标题

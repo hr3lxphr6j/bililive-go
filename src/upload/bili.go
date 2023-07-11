@@ -15,6 +15,7 @@ import (
 	"sync"
 
 	"github.com/imroc/req/v3"
+	"github.com/matyle/bililive-go/src/configs"
 	"github.com/panjf2000/ants/v2"
 	"github.com/schollz/progressbar/v3"
 	"github.com/tidwall/gjson"
@@ -26,34 +27,34 @@ type BiliUpload struct {
 	csrf   string
 	client *req.Client
 
-	upVideo *UpVideo
+	title string
 
 	threadNum int
 	partChan  chan Part
 	chunks    int64
+
+	config *configs.BiliupConfig
 }
 
 type BiliUploads struct {
 	BiliUploads []*BiliUpload
-	cookiePath  []string
-	userNames   []string
+	Configs     []*configs.BiliupConfig
 }
 
 var wg sync.WaitGroup
 
 // 支持上传到多个 bilibili 账号
-func NewBiliUPLoads(cookiePath, userNames []string, threadNum int) *BiliUploads {
-	if len(cookiePath) == 0 {
+func NewBiliUPLoads(configs []*configs.BiliupConfig, threadNum int) *BiliUploads {
+	if len(configs) == 0 {
 		panic("cookie文件不存在,请先登录")
 	}
 	var biliUploads []*BiliUpload
-	for _, v := range cookiePath {
+	for _, v := range configs {
 		biliUploads = append(biliUploads, newBiliUPLoad(v, threadNum))
 	}
 	return &BiliUploads{
 		BiliUploads: biliUploads,
-		cookiePath:  cookiePath,
-		userNames:   userNames,
+		Configs:     configs,
 	}
 }
 
@@ -65,8 +66,8 @@ func (u *BiliUploads) Upload(postUploadHandler func()) {
 			defer wg.Done()
 			log.Info("开始上传",
 				zap.Int("第一个用户", i),
-				zap.String("用户名", u.userNames[i]))
-			v.upload()
+				zap.String("用户名", u.Configs[i].UserName))
+			v.Upload()
 		}(i, v)
 	}
 	wg.Wait()
@@ -76,9 +77,12 @@ func (u *BiliUploads) Upload(postUploadHandler func()) {
 	}
 }
 
-func newBiliUPLoad(cookiePath string, threadNum int) *BiliUpload {
+func newBiliUPLoad(config *configs.BiliupConfig, threadNum int) *BiliUpload {
+	if config.CookiePath == "" {
+		panic("cookie文件不存在,请先登录")
+	}
 	var cookieinfo BiliCookie
-	loginInfo, err := os.ReadFile(cookiePath)
+	loginInfo, err := os.ReadFile(config.CookiePath)
 	if err != nil || len(loginInfo) == 0 {
 		panic("cookie文件不存在,请先登录")
 	}
@@ -104,31 +108,24 @@ func newBiliUPLoad(cookiePath string, threadNum int) *BiliUpload {
 	// log.Printf("%s 登录成功", uname)
 	log.Info("登录成功", zap.String("uname", uname))
 	return &BiliUpload{
-		cookiePath: cookiePath,
-		cookie:     cookie,
-		csrf:       csrf,
-		client:     client,
-		upVideo:    &UpVideo{},
-		threadNum:  threadNum,
+		cookie:    cookie,
+		csrf:      csrf,
+		client:    client,
+		upVideo:   &UpVideo{},
+		threadNum: threadNum,
+		config:    config,
 	}
 }
 
-func (u *BiliUpload) SetVideos(tid, upType int64, videoPath, coverPath, title, desc, tag, source string) *BiliUpload {
-	u.videosPath = videoPath
-	u.videoTitle = title
-	u.videoDesc = desc
-	u.upType = upType
-	u.tid = tid
-	u.tag = tag
-	u.source = source
+func (u *BiliUpload) SetVideos(videoPath string) *BiliUpload {
 	u.upVideo.videoName = path.Base(videoPath)
-	u.upVideo.videoSize = u.getVideoSize()
-	u.upVideo.coverUrl = u.uploadCover(coverPath)
+	u.upVideo.videoSize = u.getVideoSize(videoPath)
+	u.upVideo.coverUrl = u.uploadCover(u.config.CoverPath)
 	return u
 }
 
-func (u *BiliUpload) getVideoSize() int64 {
-	file, err := os.Open(u.videosPath)
+func (u *BiliUpload) getVideoSize(videoPath string) int64 {
+	file, err := os.Open(videoPath)
 	if err != nil {
 		panic(err)
 	}
@@ -169,7 +166,7 @@ func (u *BiliUpload) uploadCover(path string) string {
 	return coverinfo.Data.Url
 }
 
-func (u *BiliUpload) Upload() error {
+func (u *BiliUpload) Upload(upVideo *UpVideo) error {
 	var preupinfo PreUpInfo
 	u.client.R().SetQueryParams(map[string]string{
 		"probe_version": "20211012",
@@ -189,16 +186,17 @@ func (u *BiliUpload) Upload() error {
 	u.upVideo.chunkSize = preupinfo.ChunkSize
 	u.upVideo.auth = preupinfo.Auth
 	u.upVideo.bizId = preupinfo.BizId
-	u.upload()
-	var addreq = AddReqJson{
-		Copyright:    u.upType,
+	u.upload(upVideo)
+
+	var addreq = BiliReq{
+		Copyright:    u.config.UpType,
 		Cover:        u.upVideo.coverUrl,
-		Title:        u.videoTitle,
-		Tid:          u.tid,
-		Tag:          u.tag,
+		Title:        u.title,
+		Tid:          u.config.Tid,
+		Tag:          u.config.Tag,
 		DescFormatId: 16,
-		Desc:         u.videoDesc,
-		Source:       u.source,
+		Desc:         u.config.VideoDesc,
+		Source:       u.config.Source,
 		Dynamic:      "",
 		Interactive:  0,
 		Videos: []Video{
@@ -228,7 +226,7 @@ func (u *BiliUpload) Upload() error {
 	return err
 }
 
-func (u *BiliUpload) upload() {
+func (u *BiliUpload) upload(upVideo *UpVideo) {
 	defer ants.Release()
 	var upinfo UpInfo
 	u.client.SetCommonHeader(

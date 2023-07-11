@@ -55,3 +55,31 @@ func GetLogger() *zap.Logger {
 
 	return gLogger
 }
+
+func GetFileLogger(outputPath string) *zap.Logger {
+	gLoggerOnce.Do(func() {
+		encoderCfg := zapcore.EncoderConfig{
+			MessageKey:     "message",
+			LevelKey:       "level",
+			TimeKey:        "time",
+			NameKey:        "logger",
+			CallerKey:      "", // "caller",
+			StacktraceKey:  "stacktrace",
+			EncodeLevel:    zapcore.CapitalLevelEncoder,
+			EncodeTime:     zapcore.TimeEncoderOfLayout("2006-01-02T15:04:05.000"),
+			EncodeDuration: MillisecondDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		}
+		logFile, _ := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 06666)
+		writer := zapcore.AddSync(logFile)
+		encoder := NewTextEncoder(encoderCfg)
+		cores := []zapcore.Core{
+			zapcore.NewCore(encoder, writer, zapcore.DebugLevel),
+		}
+		core := zapcore.NewTee(cores...)
+		gLogger = zap.New(core)
+
+	})
+
+	return gLogger
+}
