@@ -12,6 +12,10 @@ func TestNewConfig(t *testing.T) {
 	c, err := NewConfigWithFile("../../config.yml")
 	assert.NoError(t, err)
 	assert.Equal(t, file, c.File)
+	t.Log(c)
+	for _, v := range c.BiliupConfigs {
+		t.Log(v)
+	}
 }
 
 func TestRPC_Verify(t *testing.T) {

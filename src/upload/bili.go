@@ -21,18 +21,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type BiliUPload struct {
-	cookiePath string
-	videosPath string
-
-	videoTitle string // 视频标题
-	videoDesc  string // 视频简介
-	upType     int64  // 1:原创 2:转载
-	coverPath  string // 封面路径
-	tid        int64  // 分区id
-	tag        string // 标签 , 分割
-	source     string // 来源
-
+type BiliUpload struct {
 	cookie string
 	csrf   string
 	client *req.Client
@@ -44,21 +33,50 @@ type BiliUPload struct {
 	chunks    int64
 }
 
+type BiliUploads struct {
+	BiliUploads []*BiliUpload
+	cookiePath  []string
+	userNames   []string
+}
+
 var wg sync.WaitGroup
 
 // 支持上传到多个 bilibili 账号
-func NewBiliUPLoad(cookiePath []string, threadNum int) []*BiliUPload {
+func NewBiliUPLoads(cookiePath, userNames []string, threadNum int) *BiliUploads {
 	if len(cookiePath) == 0 {
 		panic("cookie文件不存在,请先登录")
 	}
-	var biliUploads []*BiliUPload
+	var biliUploads []*BiliUpload
 	for _, v := range cookiePath {
 		biliUploads = append(biliUploads, newBiliUPLoad(v, threadNum))
 	}
-	return biliUploads
+	return &BiliUploads{
+		BiliUploads: biliUploads,
+		cookiePath:  cookiePath,
+		userNames:   userNames,
+	}
 }
 
-func newBiliUPLoad(cookiePath string, threadNum int) *BiliUPload {
+// 上传视频成功之后，可以删除本地视频
+func (u *BiliUploads) Upload(postUploadHandler func()) {
+	for i, v := range u.BiliUploads {
+		wg.Add(1)
+		go func(i int, v *BiliUpload) {
+			defer wg.Done()
+			log.Info("开始上传",
+				zap.Int("第一个用户", i),
+				zap.String("用户名", u.userNames[i]))
+			v.upload()
+		}(i, v)
+	}
+	wg.Wait()
+	log.Info("全部上传完成，开始执行后续操作")
+	if postUploadHandler != nil {
+		postUploadHandler()
+	}
+}
+
+func newBiliUPLoad(cookiePath string, threadNum int) *BiliUpload {
 	var cookieinfo BiliCookie
 	loginInfo, err := os.ReadFile(cookiePath)
 	if err != nil || len(loginInfo) == 0 {
@@ -85,7 +103,7 @@ func newBiliUPLoad(cookiePath string, threadNum int) *BiliUPload {
 	}
 	// log.Printf("%s 登录成功", uname)
 	log.Info("登录成功", zap.String("uname", uname))
-	return &BiliUPload{
+	return &BiliUpload{
 		cookiePath: cookiePath,
 		cookie:     cookie,
 		csrf:       csrf,
@@ -95,7 +113,7 @@ func newBiliUPLoad(cookiePath string, threadNum int) *BiliUPload {
 	}
 }
 
-func (u *BiliUPload) SetVideos(tid, upType int64, videoPath, coverPath, title, desc, tag, source string) *BiliUPload {
+func (u *BiliUpload) SetVideos(tid, upType int64, videoPath, coverPath, title, desc, tag, source string) *BiliUpload {
 	u.videosPath = videoPath
 	u.videoTitle = title
 	u.videoDesc = desc
@@ -109,7 +127,7 @@ func (u *BiliUPload) SetVideos(tid, upType int64, videoPath, coverPath, title, d
 	return u
 }
 
-func (u *BiliUPload) getVideoSize() int64 {
+func (u *BiliUpload) getVideoSize() int64 {
 	file, err := os.Open(u.videosPath)
 	if err != nil {
 		panic(err)
@@ -122,7 +140,7 @@ func (u *BiliUPload) getVideoSize() int64 {
 	return fileInfo.Size()
 }
 
-func (u *BiliUPload) uploadCover(path string) string {
+func (u *BiliUpload) uploadCover(path string) string {
 	if path == "" {
 		return ""
 	}
@@ -151,7 +169,7 @@ func (u *BiliUPload) uploadCover(path string) string {
 	return coverinfo.Data.Url
 }
 
-func (u *BiliUPload) Upload() error {
+func (u *BiliUpload) Upload() error {
 	var preupinfo PreUpInfo
 	u.client.R().SetQueryParams(map[string]string{
 		"probe_version": "20211012",
@@ -210,7 +228,7 @@ func (u *BiliUPload) Upload() error {
 	return err
 }
 
-func (u *BiliUPload) upload() {
+func (u *BiliUpload) upload() {
 	defer ants.Release()
 	var upinfo UpInfo
 	u.client.SetCommonHeader(
@@ -290,7 +308,7 @@ func (u *BiliUPload) upload() {
 
 type taskFunc func()
 
-func (u *BiliUPload) uploadPartWrapper(chunk int, start, end, size int, buf []byte, bar *progressbar.ProgressBar) taskFunc {
+func (u *BiliUpload) uploadPartWrapper(chunk int, start, end, size int, buf []byte, bar *progressbar.ProgressBar) taskFunc {
 	return func() {
 		defer wg.Done()
 		resp, _ := u.client.R().SetHeaders(map[string]string{
@@ -331,7 +349,7 @@ func (u *BiliUPload) uploadPartWrapper(chunk int, start, end, size int, buf []by
 	}
 }
 
-func (u *BiliUPload) getMetaUposUri() string {
+func (u *BiliUpload) getMetaUposUri() string {
 	var metaUposUri PreUpInfo
 	u.client.R().SetQueryParams(map[string]string{
 		"name":       "file_meta.txt",

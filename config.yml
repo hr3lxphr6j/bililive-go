@@ -12,15 +12,15 @@ log:
 feature:
   use_native_flv_parser: false
 live_rooms:
-# qulity参数目前仅B站启用，默认为0
-# (B站)0代表原画PRO(HEVC)优先, 其他数值为原画(AVC)
-# 原画PRO会保存为.ts文件, 原画为.flv
-# HEVC相比AVC体积更小, 减少35%体积, 画质相当, 但是B站转码有时候会崩
-- url: https://www.lang.live/room/5664344
-  is_listening: false
-- url: https://live.bilibili.com/22603245
-  is_listening: true
-  quality: 0 
+  # qulity参数目前仅B站启用，默认为0
+  # (B站)0代表原画PRO(HEVC)优先, 其他数值为原画(AVC)
+  # 原画PRO会保存为.ts文件, 原画为.flv
+  # HEVC相比AVC体积更小, 减少35%体积, 画质相当, 但是B站转码有时候会崩
+  - url: https://www.lang.live/room/5664344
+    is_listening: false
+  - url: https://live.bilibili.com/22603245
+    is_listening: true
+    quality: 0
 out_put_tmpl: ""
 video_split_strategies:
   on_room_name_changed: false
@@ -30,3 +30,22 @@ on_record_finished:
   convert_to_mp4: false
   delete_flv_after_convert: false
 timeout_in_us: 60000000
+videos_path: /path/video
+biliup_configs:
+  - cookie_path: ./cookie_1.json
+    video_title_prefix: "直播录制" #上传文件名：prefix-时间-文件名
+    video_desc: "如需自动录制请私信，或关注"
+    up_type: 2 #1.原创，2.转载
+    cover_path:
+    tid: 2 #分区
+    tag: Tag4,Tag5,Tag6 #tag
+    source: Source2
+
+  - cookie_path: ./cookie_2.json
+    video_title: Video 2
+    video_desc: This is my second video
+    up_type: 2
+    cover_path: /path/to/cover2.jpg
+    tid: 2
+    tag: Tag4,Tag5,Tag6
+    source: Source2

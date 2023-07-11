@@ -4,37 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 	"time"
 
-	"github.com/matyle/bililive-go/src/live"
 	"gopkg.in/yaml.v2"
 )
-
-// RPC info.
-type RPC struct {
-	Enable bool   `yaml:"enable"`
-	Bind   string `yaml:"bind"`
-}
-
-var defaultRPC = RPC{
-	Enable: true,
-	Bind:   "127.0.0.1:8080",
-}
-
-func (r *RPC) verify() error {
-	if r == nil {
-		return nil
-	}
-	if !r.Enable {
-		return nil
-	}
-	if _, err := net.ResolveTCPAddr("tcp", r.Bind); err != nil {
-		return err
-	}
-	return nil
-}
 
 // Feature info.
 type Feature struct {
@@ -60,6 +34,18 @@ type Log struct {
 	SaveEveryLog bool   `yaml:"save_every_log"`
 }
 
+// upload
+type BiliupConfig struct {
+	CookiePath string `yaml:"cookie_path"` // cookie路径
+	VideoTitle string `yaml:"video_title"` // 视频标题
+	VideoDesc  string `yaml:"video_desc"`  // 视频简介
+	UpType     int    `yaml:"up_type"`     // 1:原创 2:转载
+	CoverPath  string `yaml:"cover_path"`  // 封面路径
+	Tid        int    `yaml:"tid"`         // 分区id 默认
+	Tag        string `yaml:"tag"`         // 标签 , 分割
+	Source     string `yaml:"source"`      // 来源
+}
+
 // Config content all config info.
 type Config struct {
 	File                 string               `yaml:"-"`
@@ -71,6 +57,7 @@ type Config struct {
 	Log                  Log                  `yaml:"log"`
 	Feature              Feature              `yaml:"feature"`
 	LiveRooms            []LiveRoom           `yaml:"live_rooms"`
+	BiliupConfigs        []BiliupConfig       `yaml:"biliup_configs"`
 	OutputTmpl           string               `yaml:"out_put_tmpl"`
 	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 	Cookies              map[string]string    `yaml:"cookies"`
@@ -78,45 +65,9 @@ type Config struct {
 	TimeoutInUs          int                  `yaml:"timeout_in_us"`
 
 	liveRoomIndexCache map[string]int
-}
 
-type LiveRoom struct {
-	Url         string  `yaml:"url"`
-	IsListening bool    `yaml:"is_listening"`
-	LiveId      live.ID `yaml:"-"`
-	Quality     int     `yaml:"quality"`
-}
-
-type liveRoomAlias LiveRoom
-
-// allow both string and LiveRoom format in config
-func (l *LiveRoom) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	liveRoomAlias := liveRoomAlias{
-		IsListening: true,
-	}
-	if err := unmarshal(&liveRoomAlias); err != nil {
-		var url string
-		if err = unmarshal(&url); err != nil {
-			return err
-		}
-		liveRoomAlias.Url = url
-	}
-	*l = LiveRoom(liveRoomAlias)
-
-	return nil
-}
-
-func NewLiveRoomsWithStrings(strings []string) []LiveRoom {
-	if len(strings) == 0 {
-		return make([]LiveRoom, 0, 4)
-	}
-	liveRooms := make([]LiveRoom, len(strings))
-	for index, url := range strings {
-		liveRooms[index].Url = url
-		liveRooms[index].IsListening = true
-		liveRooms[index].Quality = 0
-	}
-	return liveRooms
+	//for upload config
+	VideosPath string `yaml:"videos_path"` // upload vedio path
 }
 
 var defaultConfig = Config{
@@ -145,6 +96,11 @@ var defaultConfig = Config{
 		DeleteFlvAfterConvert: false,
 	},
 	TimeoutInUs: 60000000,
+
+	//for upload config
+	VideosPath: "./",
+
+	BiliupConfigs: []BiliupConfig{},
 }
 
 func NewConfig() *Config {
