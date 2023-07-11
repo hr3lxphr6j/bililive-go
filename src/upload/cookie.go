@@ -1,6 +1,6 @@
 package upload
 
-type CookieInfo struct {
+type BiliCookie struct {
 	Code    int64  `json:"code"`
 	Message string `json:"message"`
 	Ttl     int64  `json:"ttl"`
