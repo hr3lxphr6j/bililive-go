@@ -13,6 +13,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var videoPool = newLocalVideoPool()
+
 type localVideoPool struct {
 	pool *sync.Pool
 }
@@ -36,7 +38,7 @@ func (l *localVideoPool) Put(video *localVideo) {
 }
 
 type localVideo struct {
-	videoPath     string
+	videoFilePath string
 	videoSize     int64
 	videoName     string
 	coverUrl      string
@@ -46,6 +48,14 @@ type localVideo struct {
 	uploadId      string
 	chunkSize     int64
 	bizId         int64
+}
+
+func newLocalVideo(videoFilePath string) *localVideo {
+	video := videoPool.Get()
+	video.videoFilePath = videoFilePath
+	video.videoSize = getFileSize(videoFilePath)
+	video.videoName = filepath.Base(videoFilePath)
+	return video
 }
 
 func getFileSize(path string) int64 {
@@ -62,14 +72,15 @@ func getFileSize(path string) int64 {
 }
 
 type MediaFiles struct {
-	folderPath     string              // 文件夹路径
-	uploadingVideo map[string]struct{} // 上传中的文件集合
+	folderPath     string                 // 文件夹路径
+	uploadingVideo map[string]*localVideo // 上传中的文件集合
 	log            *zap.Logger
 }
 
 // 添加上传中的视频
 func (v *MediaFiles) AddVideo(videoName string) {
-	// v.uploadingVideo[videoName] = struct{}{}
+	video := newLocalVideo(videoName)
+	v.uploadingVideo[videoName] = video
 }
 
 func (v *MediaFiles) RemoveVideo(videoName string) {
@@ -87,6 +98,7 @@ func (v *MediaFiles) IsEmpty() bool {
 
 func (v *MediaFiles) Clear() {
 	for k := range v.uploadingVideo {
+		videoPool.Put(v.uploadingVideo[k])
 		delete(v.uploadingVideo, k)
 	}
 }
@@ -106,18 +118,22 @@ func (v *MediaFiles) ScanBiludVideo() {
 		// 检查文件扩展名是否为 .mp4 或 .flv
 		extension := strings.ToLower(filepath.Ext(file.Name()))
 		if extension == ".mp4" || extension == ".flv" {
-			v.log.Info("Find video", zap.String("video", file.Name()))
-			v.AddVideo(file.Name())
+			fileName := v.folderPath + file.Name()
+			v.log.Info("Find video", zap.String("video", fileName))
+			fmt.Println("Find video", fileName)
+			v.AddVideo(fileName)
 		}
 	}
+	v.log.Info("Scan video finished")
 }
 
 func NewMediaFiles(path string) *MediaFiles {
-	logFile := configs.NewConfig().OutPutPath + "/vediofile.log"
+	logFile := configs.NewConfig().OutPutPath + "vediofile.log"
+	fmt.Println("logFile:", logFile)
 	log := zaplogger.GetFileLogger(logFile).With(zap.String("pkg", "upload")).With(zap.String("file", "video.go"))
 	return &MediaFiles{
 		folderPath:     path,
-		uploadingVideo: make(map[string]struct{}, 64),
+		uploadingVideo: make(map[string]*localVideo, 64),
 		log:            log,
 	}
 }

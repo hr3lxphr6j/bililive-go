@@ -78,7 +78,6 @@ func GetFileLogger(outputFile string) *zap.Logger {
 		}
 		core := zapcore.NewTee(cores...)
 		gLogger = zap.New(core)
-
 	})
 
 	return gLogger

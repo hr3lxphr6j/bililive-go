@@ -3,7 +3,6 @@ package upload
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -43,8 +42,7 @@ type BiliUploads struct {
 	BiliUploads []*BiliUpload
 	Configs     []*configs.BiliupConfig
 	log         *zap.Logger
-	videoPool   *localVideoPool
-	MediaFiles  *MediaFiles
+	files       *MediaFiles
 }
 
 // 支持上传到多个 bilibili 账号
@@ -58,27 +56,20 @@ func NewBiliUPLoads(confs []*configs.BiliupConfig, threadNum int) *BiliUploads {
 	for _, v := range confs {
 		biliUploads = append(biliUploads, newBiliUPLoad(v, threadNum))
 	}
+
 	return &BiliUploads{
 		BiliUploads: biliUploads,
 		Configs:     confs,
+		files:       NewMediaFiles(configs.NewConfig().VideosPath),
 		log:         log,
-		videoPool:   newLocalVideoPool(),
 	}
 }
 
 // 上传视频成功之后，可以删除本地视频
-func (u *BiliUploads) Upload(postUploadHandler func(), filePath string) error {
-	if filePath == "" {
-		return errors.New("文件路径不能为空")
-	}
-
-	file, err := os.Open(filePath)
-	defer file.Close()
-
-	if err != nil {
-		u.log.Error("打开文件失败", zap.Error(err))
-		return err
-	}
+func (u *BiliUploads) Upload(postUploadHandler func()) error {
+	//扫描文件
+	u.files.ScanBiludVideo()
+	defer u.files.Clear()
 
 	wg := &sync.WaitGroup{}
 	for i, v := range u.BiliUploads {
@@ -88,7 +79,7 @@ func (u *BiliUploads) Upload(postUploadHandler func(), filePath string) error {
 			v.log.Info("开始上传",
 				zap.Int("第一个用户", i),
 				zap.String("用户名", u.Configs[i].UserName))
-			v.Upload(u.videoPool.Get(), file)
+			v.uploadFiles(u.files)
 		}(i, v)
 	}
 	wg.Wait()
@@ -173,7 +164,14 @@ func (u *BiliUpload) uploadCover(path string) string {
 	return coverinfo.Data.Url
 }
 
-func (u *BiliUpload) Upload(upVideo *localVideo, file *os.File) error {
+func (u *BiliUpload) uploadFiles(files *MediaFiles) {
+	for filePath, video := range files.uploadingVideo {
+		u.log.Info("开始上传视频", zap.String("视频名称", video.videoName))
+		u.uploadFile(filePath, video)
+	}
+}
+
+func (u *BiliUpload) uploadFile(filePath string, upVideo *localVideo) error {
 	var preupinfo PreUpInfo
 	u.client.R().SetQueryParams(map[string]string{
 		"probe_version": "20211012",
@@ -188,6 +186,13 @@ func (u *BiliUpload) Upload(upVideo *localVideo, file *os.File) error {
 		"size":          strconv.FormatInt(upVideo.videoSize, 10),
 		"webVersion":    "2.0.0",
 	}).SetResult(&preupinfo).Get("https://member.bilibili.com/preupload")
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		u.log.Error("打开文件失败", zap.Error(err))
+		return err
+	}
+	defer file.Close()
 	upVideo.uploadBaseUrl = fmt.Sprintf("https:%s/%s", preupinfo.Endpoint, strings.Split(preupinfo.UposUri, "//")[1])
 	upVideo.biliFileName = strings.Split(strings.Split(strings.Split(preupinfo.UposUri, "//")[1], "/")[1], ".")[0]
 	upVideo.chunkSize = preupinfo.ChunkSize
