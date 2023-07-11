@@ -44,9 +44,8 @@ type BiliUploads struct {
 	Configs     []*configs.BiliupConfig
 	log         *zap.Logger
 	videoPool   *localVideoPool
+	MediaFiles  *MediaFiles
 }
-
-var wg sync.WaitGroup
 
 // 支持上传到多个 bilibili 账号
 func NewBiliUPLoads(confs []*configs.BiliupConfig, threadNum int) *BiliUploads {
@@ -81,6 +80,7 @@ func (u *BiliUploads) Upload(postUploadHandler func(), filePath string) error {
 		return err
 	}
 
+	wg := &sync.WaitGroup{}
 	for i, v := range u.BiliUploads {
 		wg.Add(1)
 		go func(i int, v *BiliUpload) {
@@ -270,6 +270,7 @@ func (u *BiliUpload) upload(upVideo *localVideo, file *os.File) {
 	}()
 	p, _ := ants.NewPool(u.threadNum)
 	defer p.Release()
+	wg := &sync.WaitGroup{}
 	for {
 		buf := make([]byte, upVideo.chunkSize)
 		size, err := file.Read(buf)
@@ -280,7 +281,7 @@ func (u *BiliUpload) upload(upVideo *localVideo, file *os.File) {
 		if size > 0 {
 			wg.Add(1)
 			end += size
-			_ = p.Submit(u.uploadPartWrapper(chunk, start, end, size, buf, upVideo, bar))
+			_ = p.Submit(u.uploadPartWrapper(wg, chunk, start, end, size, buf, upVideo, bar))
 			buf = nil
 			start += size
 			chunk++
@@ -313,7 +314,7 @@ func (u *BiliUpload) upload(upVideo *localVideo, file *os.File) {
 
 type taskFunc func()
 
-func (u *BiliUpload) uploadPartWrapper(chunk int, start, end, size int, buf []byte, upVideo *localVideo, bar *progressbar.ProgressBar) taskFunc {
+func (u *BiliUpload) uploadPartWrapper(wg *sync.WaitGroup, chunk int, start, end, size int, buf []byte, upVideo *localVideo, bar *progressbar.ProgressBar) taskFunc {
 	return func() {
 		defer wg.Done()
 		resp, _ := u.client.R().SetHeaders(map[string]string{
