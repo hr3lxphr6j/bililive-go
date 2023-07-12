@@ -40,7 +40,7 @@ func (l *localVideoPool) Put(video *localVideo) {
 type localVideo struct {
 	videoFilePath string
 	videoSize     int64
-	videoName     string
+	fileName      string
 	coverUrl      string
 	auth          string
 	uploadBaseUrl string
@@ -54,7 +54,8 @@ func newLocalVideo(videoFilePath string) *localVideo {
 	video := videoPool.Get()
 	video.videoFilePath = videoFilePath
 	video.videoSize = getFileSize(videoFilePath)
-	video.videoName = filepath.Base(videoFilePath)
+	fileName := filepath.Base(videoFilePath)
+	video.fileName = fileName[:strings.LastIndex(fileName, ".")]
 	return video
 }
 

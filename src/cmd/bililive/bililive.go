@@ -25,6 +25,7 @@ import (
 	"github.com/matyle/bililive-go/src/pkg/utils"
 	"github.com/matyle/bililive-go/src/recorders"
 	"github.com/matyle/bililive-go/src/servers"
+	"github.com/matyle/bililive-go/src/upload"
 )
 
 func getConfig() (*configs.Config, error) {
@@ -133,6 +134,9 @@ func main() {
 		logger.Fatalf("failed to init recorder manager, error: %s", err)
 	}
 
+	//TODO:use manager interface
+	biliUps := upload.NewBiliUPLoads(configs.NewConfig().BiliupConfigs, 2)
+	biliUps.Server(upload.RemoveFilesHandler)
 	if err = metrics.NewCollector(ctx).Start(ctx); err != nil {
 		logger.Fatalf("failed to init metrics collector, error: %s", err)
 	}

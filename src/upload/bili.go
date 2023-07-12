@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/imroc/req/v3"
 	"github.com/matyle/bililive-go/src/configs"
@@ -26,8 +27,6 @@ type BiliUpload struct {
 	cookie string
 	csrf   string
 	client *req.Client
-
-	title string
 
 	threadNum int
 	partChan  chan Part
@@ -69,13 +68,14 @@ func NewBiliUPLoads(confs []*configs.BiliupConfig, threadNum int) *BiliUploads {
 func (u *BiliUploads) Server(postUploadHandler func(*BiliUploads)) {
 	u.Upload(postUploadHandler)
 	// 定时执行
-	// cron := configs.NewConfig().Cron
-	// if cron.Enable {
-	// 	cron.Run(func() {
-	// 		u.Upload(postUploadHandler)
-	// 	})
-	// }
-
+	ticker := time.NewTimer(time.Hour * 24)
+	for {
+		select {
+		case <-ticker.C:
+			u.Upload(postUploadHandler)
+			ticker.Reset(time.Hour * 24)
+		}
+	}
 }
 
 // 上传视频成功之后，可以删除本地视频
@@ -179,13 +179,13 @@ func (u *BiliUpload) uploadCover(path string) string {
 
 func (u *BiliUpload) uploadFiles(files *MediaFiles) {
 	for filePath, video := range files.uploadingVideo {
-		u.log.Info("开始上传视频", zap.String("视频名称", video.videoName))
+		u.log.Info("开始上传视频", zap.String("视频名称", video.fileName))
 		err := u.uploadReleseFile(filePath, video)
 		if err != nil {
-			u.log.Error("上传或者发布失败", zap.Error(err), zap.String("视频名称", video.videoName))
+			u.log.Error("上传或者发布失败", zap.Error(err), zap.String("视频名称", video.fileName))
 			continue
 		}
-		u.log.Info("上传成功", zap.String("视频名称", video.videoName))
+		u.log.Info("上传成功", zap.String("视频名称", video.fileName))
 		files.successVideo[filePath] = struct{}{}
 	}
 }
@@ -196,7 +196,7 @@ func (u *BiliUpload) uploadReleseFile(filePath string, upVideo *localVideo) erro
 		"probe_version": "20211012",
 		"upcdn":         "bda2",
 		"zone":          "cs",
-		"name":          upVideo.videoName,
+		"name":          upVideo.fileName,
 		"r":             "upos",
 		"profile":       "ugcfx/bup",
 		"ssl":           "0",
@@ -223,10 +223,11 @@ func (u *BiliUpload) uploadReleseFile(filePath string, upVideo *localVideo) erro
 		return err
 	}
 
+	title := time.Now().Format("2006-01-02") + "_" + u.config.VideoTitlePrefix + "_" + upVideo.fileName
 	var addreq = BiliReq{
 		Copyright:    u.config.UpType,
 		Cover:        upVideo.coverUrl,
-		Title:        u.title,
+		Title:        title,
 		Tid:          u.config.Tid,
 		Tag:          u.config.Tag,
 		DescFormatId: 16,
@@ -237,7 +238,7 @@ func (u *BiliUpload) uploadReleseFile(filePath string, upVideo *localVideo) erro
 		Videos: []Video{
 			{
 				Filename: upVideo.biliFileName,
-				Title:    upVideo.videoName,
+				Title:    upVideo.fileName,
 				Desc:     "",
 				Cid:      preupinfo.BizId,
 			},
@@ -331,7 +332,7 @@ func (u *BiliUpload) upload(upVideo *localVideo, file *os.File) error {
 	}).SetQueryParams(map[string]string{
 		"output":   "json",
 		"profile":  "ugcfx/bup",
-		"name":     upVideo.videoName,
+		"name":     upVideo.fileName,
 		"uploadId": upVideo.uploadId,
 		"biz_id":   strconv.FormatInt(upVideo.bizId, 10),
 	}).SetBodyString(string(jsonString)).SetResult(&upinfo).SetRetryCount(5).AddRetryHook(func(resp *req.Response, err error) {
