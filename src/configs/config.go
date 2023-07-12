@@ -58,7 +58,7 @@ type Config struct {
 	Log                  Log                  `yaml:"log"`
 	Feature              Feature              `yaml:"feature"`
 	LiveRooms            []LiveRoom           `yaml:"live_rooms"`
-	BiliupConfigs        []BiliupConfig       `yaml:"biliup_configs"`
+	BiliupConfigs        []*BiliupConfig      `yaml:"biliup_configs"`
 	OutputTmpl           string               `yaml:"out_put_tmpl"`
 	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 	Cookies              map[string]string    `yaml:"cookies"`
@@ -101,7 +101,7 @@ var defaultConfig = Config{
 	//for upload config
 	VideosPath: "./",
 
-	BiliupConfigs: []BiliupConfig{},
+	BiliupConfigs: []*BiliupConfig{},
 }
 
 func NewConfig() *Config {

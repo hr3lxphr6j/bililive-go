@@ -65,8 +65,21 @@ func NewBiliUPLoads(confs []*configs.BiliupConfig, threadNum int) *BiliUploads {
 	}
 }
 
+// 启动立即执行一次定时执行，每天凌晨 1 点执行
+func (u *BiliUploads) Server(postUploadHandler func(*BiliUploads)) {
+	u.Upload(postUploadHandler)
+	// 定时执行
+	// cron := configs.NewConfig().Cron
+	// if cron.Enable {
+	// 	cron.Run(func() {
+	// 		u.Upload(postUploadHandler)
+	// 	})
+	// }
+
+}
+
 // 上传视频成功之后，可以删除本地视频
-func (u *BiliUploads) Upload(postUploadHandler func()) error {
+func (u *BiliUploads) Upload(postUploadHandler func(*BiliUploads)) error {
 	//扫描文件
 	u.files.ScanBiludVideo()
 	defer u.files.Clear()
@@ -85,7 +98,7 @@ func (u *BiliUploads) Upload(postUploadHandler func()) error {
 	wg.Wait()
 	u.log.Info("全部上传完成，开始执行后续操作")
 	if postUploadHandler != nil {
-		postUploadHandler()
+		postUploadHandler(u)
 	}
 	return nil
 }
@@ -167,11 +180,17 @@ func (u *BiliUpload) uploadCover(path string) string {
 func (u *BiliUpload) uploadFiles(files *MediaFiles) {
 	for filePath, video := range files.uploadingVideo {
 		u.log.Info("开始上传视频", zap.String("视频名称", video.videoName))
-		u.uploadFile(filePath, video)
+		err := u.uploadReleseFile(filePath, video)
+		if err != nil {
+			u.log.Error("上传或者发布失败", zap.Error(err), zap.String("视频名称", video.videoName))
+			continue
+		}
+		u.log.Info("上传成功", zap.String("视频名称", video.videoName))
+		files.successVideo[filePath] = struct{}{}
 	}
 }
 
-func (u *BiliUpload) uploadFile(filePath string, upVideo *localVideo) error {
+func (u *BiliUpload) uploadReleseFile(filePath string, upVideo *localVideo) error {
 	var preupinfo PreUpInfo
 	u.client.R().SetQueryParams(map[string]string{
 		"probe_version": "20211012",
@@ -198,7 +217,11 @@ func (u *BiliUpload) uploadFile(filePath string, upVideo *localVideo) error {
 	upVideo.chunkSize = preupinfo.ChunkSize
 	upVideo.auth = preupinfo.Auth
 	upVideo.bizId = preupinfo.BizId
-	u.upload(upVideo, file)
+	err = u.upload(upVideo, file)
+	if err != nil {
+		u.log.Error("上传失败", zap.Error(err))
+		return err
+	}
 
 	var addreq = BiliReq{
 		Copyright:    u.config.UpType,
@@ -231,14 +254,19 @@ func (u *BiliUpload) uploadFile(filePath string, upVideo *localVideo) error {
 		Csrf:          u.csrf,
 	}
 	_ = addreq
+	//TODO add retry logic
 	resp, err := u.client.R().SetQueryParams(map[string]string{
 		"csrf": u.csrf,
 	}).SetBodyJsonMarshal(addreq).Post("https://member.bilibili.com/x/vu/web/add/v3")
+	if err != nil {
+		u.log.Error("发布失败", zap.Error(err))
+		return err
+	}
 	u.log.Debug("resp", zap.String("resp", resp.String()))
-	return err
+	return nil
 }
 
-func (u *BiliUpload) upload(upVideo *localVideo, file *os.File) {
+func (u *BiliUpload) upload(upVideo *localVideo, file *os.File) error {
 	defer ants.Release()
 	var upinfo UpInfo
 	u.client.SetCommonHeader(
@@ -255,8 +283,6 @@ func (u *BiliUpload) upload(upVideo *localVideo, file *os.File) {
 	upVideo.uploadId = upinfo.UploadId
 	u.chunks = int64(math.Ceil(float64(upVideo.videoSize) / float64(upVideo.chunkSize)))
 	var reqjson = new(ReqJson)
-	// file, _ := os.Open(upVideo.videosPath)
-	// defer file.Close()
 	chunk := 0
 	start := 0
 	end := 0
@@ -315,6 +341,7 @@ func (u *BiliUpload) upload(upVideo *localVideo, file *os.File) {
 		AddRetryCondition(func(resp *req.Response, err error) bool {
 			return err != nil || resp.StatusCode != 200
 		}).Post(upVideo.uploadBaseUrl)
+	return nil
 }
 
 type taskFunc func()

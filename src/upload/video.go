@@ -74,6 +74,7 @@ func getFileSize(path string) int64 {
 type MediaFiles struct {
 	folderPath     string                 // 文件夹路径
 	uploadingVideo map[string]*localVideo // 上传中的文件集合
+	successVideo   map[string]struct{}    // 上传成功的文件集合
 	log            *zap.Logger
 }
 
@@ -100,6 +101,7 @@ func (v *MediaFiles) Clear() {
 	for k := range v.uploadingVideo {
 		videoPool.Put(v.uploadingVideo[k])
 		delete(v.uploadingVideo, k)
+		delete(v.successVideo, k)
 	}
 }
 
