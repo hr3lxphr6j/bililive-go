@@ -45,6 +45,7 @@ type Feature struct {
 // VideoSplitStrategies info.
 type VideoSplitStrategies struct {
 	OnRoomNameChanged bool          `yaml:"on_room_name_changed"`
+	OnSharpTime       bool          `yaml:"on_sharp_time"`
 	MaxDuration       time.Duration `yaml:"max_duration"`
 }
 

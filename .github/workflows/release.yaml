@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - run: if ! echo $GIT_TAG | grep "rc" >/dev/null; then DOCKER_TAGS=chigusa/bililive-go:$GIT_TAG,chigusa/bililive-go:latest; else DOCKER_TAGS=chigusa/bililive-go:$GIT_TAG; fi; echo "DOCKER_TAGS=$DOCKER_TAGS" >> $GITHUB_ENV
+      - run: if ! echo $GIT_TAG | grep "rc" >/dev/null; then DOCKER_TAGS=fatkun/bililive-go:$GIT_TAG,fatkun/bililive-go:latest; else DOCKER_TAGS=fatkun/bililive-go:$GIT_TAG; fi; echo "DOCKER_TAGS=$DOCKER_TAGS" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Docker Setup Buildx

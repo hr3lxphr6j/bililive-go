@@ -117,6 +117,23 @@ func (m *manager) cronRestart(ctx context.Context, live live.Live) {
 	if err != nil {
 		return
 	}
+
+	if m.cfg.VideoSplitStrategies.OnSharpTime {
+		thisTime := time.Now().Truncate(m.cfg.VideoSplitStrategies.MaxDuration)
+		nextTime := thisTime.Add(m.cfg.VideoSplitStrategies.MaxDuration)
+		if time.Now().Sub(recorder.StartTime()) > 20*time.Second && time.Now().Sub(thisTime) < 10*time.Second {
+			if err := m.RestartRecorder(ctx, live); err != nil {
+				return
+			}
+		} else {
+			instance.GetInstance(ctx).Logger.Info("restart after " + nextTime.Sub(time.Now()).String())
+			time.AfterFunc(nextTime.Sub(time.Now()), func() {
+				m.cronRestart(ctx, live)
+			})
+		}
+		return
+	}
+
 	if time.Now().Sub(recorder.StartTime()) < m.cfg.VideoSplitStrategies.MaxDuration {
 		time.AfterFunc(time.Minute/4, func() {
 			m.cronRestart(ctx, live)

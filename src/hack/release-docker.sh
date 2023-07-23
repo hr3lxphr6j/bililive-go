@@ -3,7 +3,7 @@
 set -o errexit
 set -o nounset
 
-IMAGE_NAME=chigusa/bililive-go
+IMAGE_NAME=fatkun/bililive-go
 VERSION=$(git describe --tags --always)
 
 IMAGE_TAG=$IMAGE_NAME:$VERSION
