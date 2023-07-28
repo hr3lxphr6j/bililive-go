@@ -101,8 +101,8 @@ func (l *Live) getRoomInfo() ([]byte, error) {
 	roomid := paths[1]
 	l.roomID = roomid
 
-	uid := 1125e4*rand.Int() + 4283717296
-	tmp := &data{Id: roomid, Uid: strconv.Itoa(uid)}
+	uid := int64(1125e4*rand.Int()) + int64(4283717296)
+	tmp := &data{Id: roomid, Uid: strconv.FormatInt(int64(uid), 10)}
 
 	tmpl, err := template.New("roomurlteml").Parse(roomInitUrl)
 	if err != nil {
