@@ -190,7 +190,7 @@ func (l *Live) fetchRoomID() error {
 func (l *Live) GetInfo() (info *live.Info, err error) {
 	if err := l.fetchRoomID(); err != nil {
 		if err.Error() == "房间未开放" {
-			return nil, live.ErrRoomNotExist
+			return nil, errors.New("room not exists, fetchRoomID failed.")
 		} else if err.Error() == "房间被关闭" {
 			return &live.Info{
 				Live:     l,
@@ -208,7 +208,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, live.ErrRoomNotExist
+		return nil, errors.New(fmt.Sprintf("GetInfo() failed, response code: %d", resp.StatusCode))
 	}
 	body, err := resp.Bytes()
 	if err != nil {
@@ -230,7 +230,7 @@ func (l *Live) getSignParams() (map[string]string, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, live.ErrRoomNotExist
+		return nil, errors.New(fmt.Sprintf("getSignParams() failed, response code: %d", resp.StatusCode))
 	}
 	body, err := resp.Bytes()
 	if err != nil {
@@ -332,8 +332,8 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	if err != nil {
 		return nil, err
 	}
-	if gjson.GetBytes(body, "error").Int() != 0 {
-		return nil, live.ErrRoomNotExist
+	if errorInt := gjson.GetBytes(body, "error").Int(); errorInt != 0 {
+		return nil, errors.New(fmt.Sprintf("GetStreamUrls() failed, error: %d", errorInt))
 	}
 	return utils.GenUrls(
 		fmt.Sprintf("%s/%s",
