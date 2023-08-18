@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -158,12 +159,50 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	r.getLogger().Println(r.parser.ParseLiveStream(ctx, url, r.Live, fileName))
 	r.getLogger().Debugln("End ParseLiveStream(" + url.String() + ", " + fileName + ")")
 	removeEmptyFile(fileName)
-	if r.config.OnRecordFinished.ConvertToMp4 {
-		ffmpegPath, err := utils.GetFFmpegPath(ctx)
+	ffmpegPath, err := utils.GetFFmpegPath(ctx)
+	if err != nil {
+		r.getLogger().WithError(err).Error("failed to find ffmpeg")
+		return
+	}
+	cmdStr := strings.Trim(r.config.OnRecordFinished.CustomCommandline, "")
+	if len(cmdStr) > 0 {
+		funcMap := utils.GetFuncMap(r.config)
+		funcMap["ffmpeg"] = ffmpegPath
+		funcMap["FileName"] = fileName
+		tmpl, err := template.New("custom_commandline").Funcs(utils.GetFuncMap(r.config)).Funcs(funcMap).Parse(cmdStr)
 		if err != nil {
-			r.getLogger().WithError(err).Error("failed to find ffmpeg")
+			r.getLogger().WithError(err).Error("custom commandline parse failure")
 			return
 		}
+
+		obj, _ := r.cache.Get(r.Live)
+		info := obj.(*live.Info)
+
+		buf := new(bytes.Buffer)
+		if err := tmpl.Execute(buf, info); err != nil {
+			r.getLogger().WithError(err).Errorln("failed to render custom commandline")
+			return
+		}
+		bash := ""
+		args := []string{}
+		switch runtime.GOOS {
+		case "linux":
+			bash = "sh"
+			args = []string{"-c"}
+		case "windows":
+			bash = "cmd"
+			args = []string{"/C"}
+		default:
+			r.getLogger().Warnln("Unsupport system ", runtime.GOOS)
+		}
+		args = append(args, buf.String())
+		cmd := exec.Command(bash, args...)
+		if err = cmd.Run(); err != nil {
+			r.getLogger().WithError(err).Debugf("custom commandline execute failure (%s %s)\n", bash, strings.Join(args, " "))
+		} else if r.config.OnRecordFinished.DeleteFlvAfterConvert {
+			os.Remove(fileName)
+		}
+	} else if r.config.OnRecordFinished.ConvertToMp4 {
 		convertCmd := exec.Command(
 			ffmpegPath,
 			"-hide_banner",
