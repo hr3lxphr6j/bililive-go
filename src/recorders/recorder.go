@@ -166,10 +166,7 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	}
 	cmdStr := strings.Trim(r.config.OnRecordFinished.CustomCommandline, "")
 	if len(cmdStr) > 0 {
-		funcMap := utils.GetFuncMap(r.config)
-		funcMap["ffmpeg"] = ffmpegPath
-		funcMap["FileName"] = fileName
-		tmpl, err := template.New("custom_commandline").Funcs(utils.GetFuncMap(r.config)).Funcs(funcMap).Parse(cmdStr)
+		tmpl, err := template.New("custom_commandline").Funcs(utils.GetFuncMap(r.config)).Parse(cmdStr)
 		if err != nil {
 			r.getLogger().WithError(err).Error("custom commandline parse failure")
 			return
@@ -179,7 +176,15 @@ func (r *recorder) tryRecord(ctx context.Context) {
 		info := obj.(*live.Info)
 
 		buf := new(bytes.Buffer)
-		if err := tmpl.Execute(buf, info); err != nil {
+		if err := tmpl.Execute(buf, struct {
+			*live.Info
+			FileName string
+			Ffmpeg   string
+		}{
+			Info:     info,
+			FileName: fileName,
+			Ffmpeg:   ffmpegPath,
+		}); err != nil {
 			r.getLogger().WithError(err).Errorln("failed to render custom commandline")
 			return
 		}
@@ -196,12 +201,18 @@ func (r *recorder) tryRecord(ctx context.Context) {
 			r.getLogger().Warnln("Unsupport system ", runtime.GOOS)
 		}
 		args = append(args, buf.String())
+		r.getLogger().Debugf("start executing custom_commandline: %s", args[1])
 		cmd := exec.Command(bash, args...)
+		if r.config.Debug {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		}
 		if err = cmd.Run(); err != nil {
 			r.getLogger().WithError(err).Debugf("custom commandline execute failure (%s %s)\n", bash, strings.Join(args, " "))
 		} else if r.config.OnRecordFinished.DeleteFlvAfterConvert {
 			os.Remove(fileName)
 		}
+		r.getLogger().Debugf("end executing custom_commandline: %s", args[1])
 	} else if r.config.OnRecordFinished.ConvertToMp4 {
 		convertCmd := exec.Command(
 			ffmpegPath,
