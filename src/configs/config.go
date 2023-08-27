@@ -50,8 +50,9 @@ type VideoSplitStrategies struct {
 
 // On record finished actions.
 type OnRecordFinished struct {
-	ConvertToMp4          bool `yaml:"convert_to_mp4"`
-	DeleteFlvAfterConvert bool `yaml:"delete_flv_after_convert"`
+	ConvertToMp4          bool   `yaml:"convert_to_mp4"`
+	DeleteFlvAfterConvert bool   `yaml:"delete_flv_after_convert"`
+	CustomCommandline     string `yaml:"custom_commandline"`
 }
 
 type Log struct {
