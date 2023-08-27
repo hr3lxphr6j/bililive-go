@@ -29,4 +29,11 @@ cookies: {}
 on_record_finished:
   convert_to_mp4: false
   delete_flv_after_convert: false
+#  当 custom_commandline 的值 不为空时，convert_to_mp4 的值会被无视，
+#  而是在录制结束后直接执行 custom_commandline 中的命令。
+#  在 custom_commandline 执行结束后，程序还会继续查看 delete_flv_after_convert 的值，
+#  来判断是否需要删除原始 flv 文件。
+#  以下是一个在录制结束后将 flv 视频转换为同名 mp4 视频的示例：
+#  custom_commandline: '{{ .Ffmpeg }} -hide_banner -i "{{ .FileName }}" -c copy "{{ .FileName | trimSuffix (.FileName | ext)}}.mp4"'
+  custom_commandline: ""
 timeout_in_us: 60000000
