@@ -39,5 +39,6 @@ services:
       - GF_SECURITY_ADMIN_USER=${ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/bilipanel.json
     ports:
       - 3000:3000
