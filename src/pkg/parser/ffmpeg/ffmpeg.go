@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
@@ -124,6 +125,7 @@ func (p *Parser) Status() (map[string]string, error) {
 
 func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Live, file string) (err error) {
 	ffmpegPath, err := utils.GetFFmpegPath(ctx)
+	MaxFileSize := instance.GetInstance(ctx).Config.VideoSplitStrategies.MaxFileSize
 	if err != nil {
 		return err
 	}
@@ -136,6 +138,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 		"-referer", live.GetRawUrl(),
 		"-rw_timeout", p.timeoutInUs,
 		"-i", url.String(),
+		"-fs", MaxFileSize,
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
 		file,
