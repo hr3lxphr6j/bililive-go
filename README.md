@@ -164,7 +164,7 @@ cookies:
     ```
 - docker
     ```
-    docker run --restart=always -v ~/Videos:/srv/bililive -p 8080:8080 -d chigusa/bililive-go
+    docker run --restart=always -v ~/config.yml:/etc/bililive-go/config.yml -v ~/Videos:/srv/bililive -p 8080:8080 -d chigusa/bililive-go
     ```
 
 ## 开发环境搭建（linux系统）
