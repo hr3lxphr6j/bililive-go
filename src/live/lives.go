@@ -92,6 +92,13 @@ func WithQuality(quality int) Option {
 
 type ID string
 
+type StreamUrlInfo struct {
+	Url         *url.URL
+	Name        string
+	Description string
+	Priority    int
+}
+
 type Live interface {
 	SetLiveIdByString(string)
 	GetLiveId() ID
@@ -118,6 +125,9 @@ func newWrappedLive(live Live, cache gcache.Cache) Live {
 func (w *WrappedLive) GetInfo() (*Info, error) {
 	i, err := w.Live.GetInfo()
 	if err != nil {
+		if info, err2 := w.cache.Get(w); err2 == nil {
+			info.(*Info).RoomName = err.Error()
+		}
 		return nil, err
 	}
 	if w.cache != nil {
