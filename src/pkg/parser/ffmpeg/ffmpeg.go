@@ -8,9 +8,11 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
@@ -127,8 +129,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 	if err != nil {
 		return err
 	}
-	p.cmd = exec.Command(
-		ffmpegPath,
+	args := []string{
 		"-nostats",
 		"-progress", "-",
 		"-y", "-re",
@@ -138,8 +139,18 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 		"-i", url.String(),
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
-		file,
-	)
+	}
+
+	inst := instance.GetInstance(ctx)
+	MaxFileSize := inst.Config.VideoSplitStrategies.MaxFileSize
+	if MaxFileSize < 0 {
+		inst.Logger.Infof("Invalid MaxFileSize: %d", MaxFileSize)
+	} else if MaxFileSize > 0 {
+		args = append(args, "-fs", strconv.Itoa(MaxFileSize))
+	}
+
+	args = append(args, file)
+	p.cmd = exec.Command(ffmpegPath, args...)
 	if p.cmdStdIn, err = p.cmd.StdinPipe(); err != nil {
 		return err
 	}

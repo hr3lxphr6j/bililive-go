@@ -25,6 +25,11 @@ out_put_tmpl: ""
 video_split_strategies:
   on_room_name_changed: false
   max_duration: 0s
+  # 仅在 use_native_flv_parser=false 时生效
+  # 单位为字节 (byte)
+  # 有效值为正数，默认值 0 为无效
+  # 负数为非法值，程序会输出 log 提醒，并无视所设定的数值
+  max_file_size: 0
 cookies: {}
 on_record_finished:
   convert_to_mp4: false
