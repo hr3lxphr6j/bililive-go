@@ -46,7 +46,7 @@ type Feature struct {
 type VideoSplitStrategies struct {
 	OnRoomNameChanged bool          `yaml:"on_room_name_changed"`
 	MaxDuration       time.Duration `yaml:"max_duration"`
-	MaxFileSize       string        `yaml:"max_file_size"`
+	MaxFileSize       int           `yaml:"max_file_size"`
 }
 
 // On record finished actions.
