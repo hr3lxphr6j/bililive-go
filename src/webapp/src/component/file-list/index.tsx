@@ -93,7 +93,7 @@ class FileList extends React.Component<Props, IState> {
     };
 
     onRowClick = (record: CurrentFolderFile) => {
-        let path = record.name;
+        let path = encodeURIComponent(record.name);
         if (this.props.match.params.path) {
             path = this.props.match.params.path + "/" + path;
         }
