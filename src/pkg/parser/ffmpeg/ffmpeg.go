@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"strconv"
 	"sync"
 	"time"
 
@@ -125,12 +126,10 @@ func (p *Parser) Status() (map[string]string, error) {
 
 func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Live, file string) (err error) {
 	ffmpegPath, err := utils.GetFFmpegPath(ctx)
-	MaxFileSize := instance.GetInstance(ctx).Config.VideoSplitStrategies.MaxFileSize
 	if err != nil {
 		return err
 	}
-	p.cmd = exec.Command(
-		ffmpegPath,
+	args := []string{
 		"-nostats",
 		"-progress", "-",
 		"-y", "-re",
@@ -138,11 +137,20 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 		"-referer", live.GetRawUrl(),
 		"-rw_timeout", p.timeoutInUs,
 		"-i", url.String(),
-		"-fs", MaxFileSize,
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
-		file,
-	)
+	}
+
+	inst := instance.GetInstance(ctx)
+	MaxFileSize := inst.Config.VideoSplitStrategies.MaxFileSize
+	if MaxFileSize < 0 {
+		inst.Logger.Infof("Invalid MaxFileSize: %d", MaxFileSize)
+	} else if MaxFileSize > 0 {
+		args = append(args, "-fs", strconv.Itoa(MaxFileSize))
+	}
+
+	args = append(args, file)
+	p.cmd = exec.Command(ffmpegPath, args...)
 	if p.cmdStdIn, err = p.cmd.StdinPipe(); err != nil {
 		return err
 	}
