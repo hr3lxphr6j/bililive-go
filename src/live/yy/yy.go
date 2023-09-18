@@ -22,9 +22,10 @@ const (
 	domain = "www.yy.com"
 	cnName = "YY直播"
 
-	roomInitUrl = "https://www.yy.com/api/liveInfoDetail/{{.Id}}/{{.Id}}/{{.Uid}}"
-	livereqUrl  = "https://stream-manager.yy.com/v3/channel/streams?uid=0&cid={{.Id}}&sid={{.Id}}&appid=0&sequence={{.Seq}}&encode=json"
-	rawdata     = `
+	roomInitUrl    = "https://www.yy.com/api/liveInfoDetail/{{.Id}}/{{.Id}}/{{.Uid}}"
+	roomInitBakUrl = "https://www.yy.com/yyweb/live/not/living/recommend/"
+	livereqUrl     = "https://stream-manager.yy.com/v3/channel/streams?uid=0&cid={{.Id}}&sid={{.Id}}&appid=0&sequence={{.Seq}}&encode=json"
+	rawdata        = `
 	{
 		"head": {
 			"seq": {{.Seq}},
@@ -93,10 +94,10 @@ type Live struct {
 	roomID string
 }
 
-func (l *Live) getRoomInfo() ([]byte, error) {
+func (l *Live) getRoomInfo() ([]byte, bool, error) {
 	paths := strings.Split(l.Url.Path, "/")
 	if len(paths) < 1 {
-		return nil, live.ErrRoomUrlIncorrect
+		return nil, false, live.ErrRoomUrlIncorrect
 	}
 	roomid := paths[1]
 	l.roomID = roomid
@@ -106,38 +107,67 @@ func (l *Live) getRoomInfo() ([]byte, error) {
 
 	tmpl, err := template.New("roomurlteml").Parse(roomInitUrl)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	buf := new(bytes.Buffer)
 	err = tmpl.Execute(buf, tmp)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	resp, err := requests.Get(buf.String())
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
+
+	/**
+	未开播主播 roomInitUrl 接口 返回 {"resultCode":0,"data":null}
+	yy直播接口未返回开播状态，通过 roomInitUrl 返回 data是否有数据判断是否开播
+	*/
+
 	if resp.StatusCode != http.StatusOK {
-		return nil, live.ErrRoomNotExist
+		return nil, false, live.ErrRoomNotExist
 	}
 	body, err := resp.Bytes()
-	if err != nil || gjson.GetBytes(body, "h.resultCode").Int() != 0 {
-		return nil, live.ErrRoomNotExist
+	if err != nil || gjson.GetBytes(body, "resultCode").Int() != 0 {
+		return nil, false, live.ErrRoomNotExist
 	}
-	return body, nil
+	if gjson.Get(string(body), "data").Type == gjson.Null {
+		//返回无data，则停播，从其他接口获取直播间信息
+		resp, err = requests.Get(roomInitBakUrl + roomid)
+		if err != nil {
+			return nil, false, err
+		}
+		if resp.StatusCode != http.StatusOK {
+			return nil, false, live.ErrRoomNotExist
+		}
+		body, err = resp.Bytes()
+		return body, false, nil
+	}
+
+	return body, true, nil
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
-	body, err := l.getRoomInfo()
+	body, islive, err := l.getRoomInfo()
 	if err != nil {
 		return nil, live.ErrRoomNotExist
 	}
-	info = &live.Info{
-		Live:         l,
-		HostName:     gjson.GetBytes(body, "data.name").String(),
-		RoomName:     gjson.GetBytes(body, "data.desc").String(),
-		Status:       true,
-		CustomLiveId: "yy/" + l.roomID,
+	if islive {
+		info = &live.Info{
+			Live:         l,
+			HostName:     gjson.GetBytes(body, "data.name").String(),
+			RoomName:     gjson.GetBytes(body, "data.desc").String(),
+			Status:       islive,
+			CustomLiveId: "yy/" + l.roomID,
+		}
+	} else {
+		info = &live.Info{
+			Live:         l,
+			HostName:     gjson.GetBytes(body, "data.video.name").String(),
+			RoomName:     gjson.GetBytes(body, "data.video.title").String(),
+			Status:       islive,
+			CustomLiveId: "yy/" + l.roomID,
+		}
 	}
 	return info, nil
 }
