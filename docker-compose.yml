@@ -9,6 +9,7 @@ services:
     container_name: bililive-go
     volumes:
       - ./Videos:/srv/bililive
+      - ./config.docker.yml:/etc/bililive-go/config.yml
     ports:
       - 8080:8080
 
