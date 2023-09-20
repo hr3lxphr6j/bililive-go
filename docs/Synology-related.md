@@ -47,7 +47,7 @@
 
 删除 `docker-compose.yml` 文件中 prometheus 和 grafana 部分的`#`字符以启用统计面板。
 
-如果已经按照上面的步骤创建了项目，那么需要先停止项目后，才能修改 yaml 配置。修改后保存配置并重新构建和启动项目。
+如果已经按照上面的步骤创建了项目并且项目正在运行中，那么需要先停止项目后，才能修改 yaml 配置。修改后保存配置并重新构建和启动项目。
 
 ![image](./synology-change-yaml-to-enable-other-containers.png)
 
