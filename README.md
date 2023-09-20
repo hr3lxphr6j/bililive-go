@@ -154,6 +154,9 @@ cookies:
 
 ![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/dashboard.webp)
 
+增加说明
+[grafana](docs/grafana.md)
+
 ## 依赖
 * [ffmpeg](https://ffmpeg.org/)
 
