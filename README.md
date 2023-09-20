@@ -7,7 +7,7 @@
 
 Bililive-go是一个支持多种直播平台的直播录制工具   
 
-![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/screenshot.webp)
+![image](docs/screenshot.webp)
 
 ## 支持网站
 
