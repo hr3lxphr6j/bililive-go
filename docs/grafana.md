@@ -38,3 +38,6 @@ scrape_configs:
       - targets: ["bililive-go:8080"] #自行修改ip端口
 ```
 grafana 需要打开浏览器，然后复制[面板内容](/contrib/grafana/dashboard.json)导入
+
+# 群晖（Synology）的情况
+[启用 grafana 统计面板](./Synology-related.md#启用-grafana-统计面板)

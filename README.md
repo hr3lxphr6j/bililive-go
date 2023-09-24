@@ -7,7 +7,7 @@
 
 Bililive-go是一个支持多种直播平台的直播录制工具   
 
-![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/screenshot.webp)
+![image](docs/screenshot.webp)
 
 ## 支持网站
 
@@ -123,7 +123,7 @@ Bililive-go是一个支持多种直播平台的直播录制工具
     <tr align="center">
         <td>快手</td>
         <td>live.kuaishou.com</td>
-        <td>滋瓷</td>
+        <td>滋瓷(不稳定)</td>
         <td>滋瓷</td>
     </tr>
     <tr align="center">
@@ -142,33 +142,77 @@ Bililive-go是一个支持多种直播平台的直播录制工具
 
 ### cookie 在 config.yml 中的设置方法
 
-cookie的设置以域名为单位。比如想在录制抖音直播时使用 cookie，那么 config.yml 中可以像下面这样写：
+cookie的设置以域名为单位。比如想在录制抖音直播时使用 cookie，那么 `config.yml` 中可以像下面这样写：
 ```
 cookies:
   live.douyin.com: __ac_nonce=123456789012345678903;name=value
 ```
+这里 name 和 value 只是随便举的例子，用来说明当添加超过一条 cookie 的键值对时应该用分号隔开。
+至于具体应该添加哪些键，就需要用户针对不同网站自己获取了。
+
+## 在网页中修改设置
+
+点击网页左边的 `设置` 可以在线修改项目的配置文件，之后点击页面下面的 `保存设置` 按钮保存设置。
+如果保存后窗口提醒设置保存成功，那就是配置文件已经被写入磁盘了。如果是保存失败，那可能是配置文件格式问题或者遇到程序 bug，总之磁盘上的配置文件没变。
+
+在网页中即使保存配置成功也不一定表示相应的配置会立即生效。
+有些配置需要停止监控后再重新开始监控才会生效，有些配置也许要重启程序才会生效。
+
+## 网页播放器
+
+点击对应直播间行右边的 `文件` 链接可以跳转到对应直播间的录播目录中。  
+当然你点左边的 `文件` 一路找过去也行。
+
+https://github.com/hr3lxphr6j/bililive-go/assets/2352900/6453900c-6321-417b-94f2-d65ec2ab3d7e
 
 ## Grafana 面板
 
-> 请自行部署 prometheus 和 grafana
+docker compose 用户可以取消项目根目录下 `docker-compose.yml` 文件中 prometheus 和 grafana 部分的注释以启用统计面板。  
+这里是 [设置说明](docs/grafana.md)
+
+非 docker compose 用户需要自行部署 prometheus 和 grafana。  
+这里是 [一些建议](docs/grafana.md#%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E7%AC%94%E8%AE%B0)
 
 ![image](https://github.com/hr3lxphr6j/bililive-go/raw/master/docs/dashboard.webp)
 
-增加说明
-[grafana](docs/grafana.md)
 
 ## 依赖
 * [ffmpeg](https://ffmpeg.org/)
 
-## 使用例子
-- 本地
-    ```
-    ./bililive-go -i https://live.bilibili.com/1030 -i https://www.douyu.com/6655
-    ```
-- docker
-    ```
-    docker run --restart=always -v ~/config.yml:/etc/bililive-go/config.yml -v ~/Videos:/srv/bililive -p 8080:8080 -d chigusa/bililive-go
-    ```
+## 安装和使用
+
+### Windows
+https://github.com/hr3lxphr6j/bililive-go/wiki/Install-Windows
+
+### macOS
+https://github.com/hr3lxphr6j/bililive-go/wiki/Install-macOS
+
+### Linux
+https://github.com/hr3lxphr6j/bililive-go/wiki/Install-Linux
+
+### docker
+
+使用 https://hub.docker.com/r/chigusa/bililive-go 镜像创建容器运行。
+
+例如：
+```
+docker run --restart=always -v ~/config.yml:/etc/bililive-go/config.yml -v ~/Videos:/srv/bililive -p 8080:8080 -d chigusa/bililive-go
+```
+
+### docker compose
+
+使用项目根目录下的 `docker-compose.yml` 配置文件启动 docker compose 运行。
+
+例如：
+```
+docker compose up
+```
+此时默认使用 `config.docker.yml` 文件作为程序的配置文件，`Videos/` 目录作为录制视频的输出目录。
+
+NAS 用户使用系统自带 GUI 创建 docker compose 的情况请参考群晖用 docker compose 安装 bgo 的 [图文说明](./docs/Synology-related.md#如何用-docker-compose-安装-bgo)
+
+## 常见问题
+[docs/FAQ.md](docs/FAQ.md)
 
 ## 开发环境搭建（linux系统）
 ```
