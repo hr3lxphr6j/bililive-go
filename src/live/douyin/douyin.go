@@ -137,12 +137,6 @@ func (l *Live) getRoomInfoFromBody(body string) (info *live.Info, streamUrlInfos
 		err = fmt.Errorf(errorMessageForErrorf+". %s does not exist: %s", stepNumberForLog, streamIdPath, mainInfoLine)
 		return
 	}
-	sessionIdPath := "state.streamStore.streamData.H264_streamData.common.session_id"
-	sessionId := mainJson.Get(sessionIdPath).String()
-	if streamId == "" {
-		err = fmt.Errorf(errorMessageForErrorf+". %s does not exist: %s", stepNumberForLog, sessionIdPath, mainInfoLine)
-		return
-	}
 	stepNumberForLog++
 
 	streamUrlInfos = make([]live.StreamUrlInfo, 0, 4)
@@ -177,7 +171,7 @@ func (l *Live) getRoomInfoFromBody(body string) (info *live.Info, streamUrlInfos
 		}
 
 		commonJson.Get("data").ForEach(func(key, value gjson.Result) bool {
-			flv := value.Get("main.flv").String() + "&session_id=" + sessionId
+			flv := value.Get("main.flv").String()
 			var Url *url.URL
 			Url, err = url.Parse(flv)
 			if err != nil {
