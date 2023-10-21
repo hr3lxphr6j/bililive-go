@@ -131,7 +131,10 @@ class LiveList extends React.Component<Props, IState> {
         {
             title: '主播名称',
             dataIndex: 'name',
-            key: 'name'
+            key: 'name',
+            sorter: (a: ItemData, b: ItemData) => {
+                return a.name.localeCompare(b.name);
+            },
         },
         {
             title: '直播间名称',
@@ -143,6 +146,9 @@ class LiveList extends React.Component<Props, IState> {
             title: '直播平台',
             dataIndex: 'address',
             key: 'address',
+            sorter: (a: ItemData, b: ItemData) => {
+                return a.address.localeCompare(b.address);
+            },
         },
         this.runStatus,
         this.runAction
