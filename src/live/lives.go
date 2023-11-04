@@ -96,7 +96,8 @@ type StreamUrlInfo struct {
 	Url         *url.URL
 	Name        string
 	Description string
-	Priority    int
+	Resolution  int
+	Vbitrate    int
 }
 
 type Live interface {
