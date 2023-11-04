@@ -192,7 +192,7 @@ cookies:
    3. make build-web
    4. make 
 三、linux编译其他环境(以windows 为例)
-   1. GOOS=windows GOARCH=amd64 CGO_ENABLED=0 UPX_ENABLE=0 TAGS=dev ./src/hack/build.sh bililive
+   1. GOOS=windows GOARCH=amd64 CGO_ENABLED=0 UPX_ENABLE=0 TAGS=dev GCFLAGS="all=-N -l" ./src/hack/build.sh bililive
    2.如果不需要调试，可以改成
       GOOS=windows GOARCH=amd64 CGO_ENABLED=0 UPX_ENABLE=0 TAGS=release ./src/hack/build.sh bililive
 ```

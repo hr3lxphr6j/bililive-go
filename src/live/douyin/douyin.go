@@ -23,7 +23,7 @@ const (
 
 	randomCookieChars          = "1234567890abcdef"
 	roomIdCatcherRegex         = `{\\"webrid\\":\\"([^"]+)\\"}`
-	mainInfoLineCatcherRegex   = `self.__pace_f.push\(\[1,\s*"a:(\[.*\])\\n"\]\)`
+	mainInfoLineCatcherRegex   = `self.__pace_f.push\(\[1,\s*"[^:]*:([^<]*,null,\{\\"state\\"[^<]*\])\\n"\]\)`
 	commonInfoLineCatcherRegex = `self.__pace_f.push\(\[1,\s*\"(\{.*\})\"\]\)`
 )
 
@@ -95,26 +95,51 @@ func (l *Live) getLiveRoomWebPageResponse() (body string, err error) {
 	return
 }
 
+func getMainInfoLine(body string) (json *gjson.Result, err error) {
+	reg, err := regexp.Compile(mainInfoLineCatcherRegex)
+	if err != nil {
+		return
+	}
+	match := reg.FindAllStringSubmatch(body, -1)
+	if match == nil {
+		err = fmt.Errorf("0 match for mainInfoLineCatcherRegex: %s", mainInfoLineCatcherRegex)
+		return
+	}
+	for _, item := range match {
+		if len(item) < 2 {
+			// err = fmt.Errorf("len(item) = %d", len(item))
+			continue
+		}
+		mainInfoLine := item[1]
+
+		// 获取房间信息
+		mainJson := gjson.Parse(fmt.Sprintf(`"%s"`, mainInfoLine))
+		if !mainJson.Exists() {
+			// err = fmt.Errorf(errorMessageForErrorf+". Invalid json: %s", stepNumberForLog, mainInfoLine)
+			continue
+		}
+
+		mainJson = gjson.Parse(mainJson.String()).Get("3")
+		if !mainJson.Exists() {
+			// err = fmt.Errorf(errorMessageForErrorf+". Main json does not exist: %s", stepNumberForLog, mainInfoLine)
+			continue
+		}
+
+		fmt.Println(mainJson.Get("state.roomStore.roomInfo.room.status_str").String())
+		if mainJson.Get("state.roomStore.roomInfo.room.status_str").Exists() {
+			json = &mainJson
+			return
+		}
+	}
+	return nil, fmt.Errorf("MainInfoLine not found")
+}
+
 func (l *Live) getRoomInfoFromBody(body string) (info *live.Info, streamUrlInfos []live.StreamUrlInfo, err error) {
 	const errorMessageForErrorf = "getRoomInfoFromBody() failed on step %d"
 	stepNumberForLog := 1
-	mainInfoLine := utils.Match1(mainInfoLineCatcherRegex, body)
-	if mainInfoLine == "" {
-		err = fmt.Errorf(errorMessageForErrorf, stepNumberForLog)
-		return
-	}
-	stepNumberForLog++
-
-	// 获取房间信息
-	mainJson := gjson.Parse(fmt.Sprintf(`"%s"`, mainInfoLine))
-	if !mainJson.Exists() {
-		err = fmt.Errorf(errorMessageForErrorf+". Invalid json: %s", stepNumberForLog, mainInfoLine)
-		return
-	}
-
-	mainJson = gjson.Parse(mainJson.String()).Get("3")
-	if !mainJson.Exists() {
-		err = fmt.Errorf(errorMessageForErrorf+". Main json does not exist: %s", stepNumberForLog, mainInfoLine)
+	mainJson, err := getMainInfoLine(body)
+	if err != nil {
+		err = fmt.Errorf(errorMessageForErrorf+". %s", stepNumberForLog, err.Error())
 		return
 	}
 
@@ -134,7 +159,7 @@ func (l *Live) getRoomInfoFromBody(body string) (info *live.Info, streamUrlInfos
 	streamIdPath := "state.streamStore.streamData.H264_streamData.common.stream"
 	streamId := mainJson.Get(streamIdPath).String()
 	if streamId == "" {
-		err = fmt.Errorf(errorMessageForErrorf+". %s does not exist: %s", stepNumberForLog, streamIdPath, mainInfoLine)
+		err = fmt.Errorf(errorMessageForErrorf+". %s does not exist", stepNumberForLog, streamIdPath)
 		return
 	}
 	stepNumberForLog++
@@ -187,7 +212,7 @@ func (l *Live) getRoomInfoFromBody(body string) (info *live.Info, streamUrlInfos
 				description.WriteString("\n")
 				return true
 			})
-			Priority := 0
+			Resolution := 0
 			resolution := strings.Split(paramsJson.Get("resolution").String(), "x")
 			if len(resolution) == 2 {
 				x, err := strconv.Atoi(resolution[0])
@@ -198,19 +223,25 @@ func (l *Live) getRoomInfoFromBody(body string) (info *live.Info, streamUrlInfos
 				if err != nil {
 					return true
 				}
-				Priority = x * y
+				Resolution = x * y
 			}
+			Vbitrate := int(paramsJson.Get("vbitrate").Int())
 			streamUrlInfos = append(streamUrlInfos, live.StreamUrlInfo{
 				Name:        key.String(),
 				Description: description.String(),
 				Url:         Url,
-				Priority:    Priority,
+				Resolution:  Resolution,
+				Vbitrate:    Vbitrate,
 			})
 			return true
 		})
 	}
 	sort.Slice(streamUrlInfos, func(i, j int) bool {
-		return streamUrlInfos[i].Priority > streamUrlInfos[j].Priority
+		if streamUrlInfos[i].Resolution != streamUrlInfos[j].Resolution {
+			return streamUrlInfos[i].Resolution > streamUrlInfos[j].Resolution
+		} else {
+			return streamUrlInfos[i].Vbitrate > streamUrlInfos[j].Vbitrate
+		}
 	})
 	stepNumberForLog++
 
