@@ -149,7 +149,7 @@ class LiveList extends React.Component<Props, IState> {
             key: 'address',
             sorter: (a: ItemData, b: ItemData) => {
                 return a.address.localeCompare(b.address);
-            }
+            },
         },
         this.runStatus,
         this.runAction
@@ -276,11 +276,13 @@ class LiveList extends React.Component<Props, IState> {
         const { list } = this.state;
         this.columns.forEach((column: ColumnProps<ItemData>) => {
             if (column.key === 'address') {
-                column.filters = list.map(item => ({ text: item.address, value: item.address }));
-                column.onFilter = (value: string, record: ItemData) => record.address.toLowerCase() === value.toLowerCase();
+                // 直播平台去重数组
+                const addressList = Array.from(new Set(list.map(item => item.address)));
+                column.filters = addressList.map(text => ({ text, value: text }));
+                column.onFilter = (value: string, record: ItemData) => record.address === value;
             }
             if (column.key === 'tags') {
-                column.filters = ['初始化', '监控中', '录制中', '已停止'].map((text) => ({ text, value: text }));
+                column.filters = ['初始化', '监控中', '录制中', '已停止'].map(text => ({ text, value: text }));
                 column.onFilter = (value: string, record: ItemData) => record.tags.includes(value);
             }
         })
