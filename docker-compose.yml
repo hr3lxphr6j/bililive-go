@@ -1,0 +1,45 @@
+version: "3.7"
+
+volumes:
+    prometheus_data: {}
+services:
+  bililive-go:
+    image: chigusa/bililive-go
+    restart: unless-stopped
+    container_name: bililive-go
+    volumes:
+      - ./Videos:/srv/bililive
+      - ./config.docker.yml:/etc/bililive-go/config.yml
+    ports:
+      - 8080:8080
+
+#  prometheus:
+#    image: quay.io/prometheus/prometheus
+#    restart: unless-stopped
+#    container_name: bililive-prom
+#    volumes:
+#      - prometheus_data:/prometheus
+#      - ./contrib/prometheus:/etc/prometheus
+#    command:
+#      # retention 建议大于30天
+#      - '--storage.tsdb.retention.time=30d'
+#      - '--config.file=/etc/prometheus/prometheus.yml'
+#      - '--storage.tsdb.path=/prometheus'
+#      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+#      - '--web.console.templates=/usr/share/prometheus/consoles'
+#    ports:
+#      - 9090:9090
+#
+#  grafana:
+#    image: grafana/grafana-oss
+#    restart: unless-stopped
+#    container_name: bililive-graf
+#    volumes:
+#      - ./contrib/grafana/provisioning:/etc/grafana/provisioning
+#    environment:
+#      - GF_SECURITY_ADMIN_USER=${ADMIN_USER}
+#      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD}
+#      - GF_USERS_ALLOW_SIGN_UP=false
+#      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/bilipanel.json
+#    ports:
+#      - 3000:3000
