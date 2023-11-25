@@ -125,7 +125,6 @@ func getMainInfoLine(body string) (json *gjson.Result, err error) {
 			continue
 		}
 
-		fmt.Println(mainJson.Get("state.roomStore.roomInfo.room.status_str").String())
 		if mainJson.Get("state.roomStore.roomInfo.room.status_str").Exists() {
 			json = &mainJson
 			return
