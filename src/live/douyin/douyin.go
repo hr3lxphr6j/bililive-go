@@ -47,6 +47,10 @@ func createRandomCookie() string {
 	return utils.GenRandomString(21, randomCookieChars)
 }
 
+func createRandomOdintt() string {
+	return utils.GenRandomString(160, randomCookieChars)
+}
+
 type Live struct {
 	internal.BaseLive
 	responseCookies             map[string]string
@@ -74,9 +78,10 @@ func (l *Live) getLiveRoomWebPageResponse() (body string, err error) {
 	resp, err := requests.Get(
 		l.Url.String(),
 		live.CommonUserAgent,
-		requests.Cookies(cookieKVs),
+		// requests.Cookies(cookieKVs),
 		requests.Headers(map[string]interface{}{
 			"Cache-Control": "no-cache",
+			"Cookie":        fmt.Sprintf("odin_tt=%s; __ac_nonce=%s", createRandomOdintt(), createRandomCookie()),
 		}),
 	)
 	if err != nil {
