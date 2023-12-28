@@ -36,6 +36,20 @@ func (m *MockLive) EXPECT() *MockLiveMockRecorder {
 	return m.recorder
 }
 
+// GetHeadersForDownloader mocks base method.
+func (m *MockLive) GetHeadersForDownloader() map[string]string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHeadersForDownloader")
+	ret0, _ := ret[0].(map[string]string)
+	return ret0
+}
+
+// GetHeadersForDownloader indicates an expected call of GetHeadersForDownloader.
+func (mr *MockLiveMockRecorder) GetHeadersForDownloader() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeadersForDownloader", reflect.TypeOf((*MockLive)(nil).GetHeadersForDownloader))
+}
+
 // GetInfo mocks base method.
 func (m *MockLive) GetInfo() (*live.Info, error) {
 	m.ctrl.T.Helper()
