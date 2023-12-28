@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -13,7 +12,6 @@ import (
 	"time"
 
 	"github.com/hr3lxphr6j/requests"
-	uuid "github.com/satori/go.uuid"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
@@ -92,17 +90,26 @@ func GetMD5Hash(text string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func parseAntiCode(anticode string, uid int64, streamName string) (string, error) {
+func parseAntiCode(anticode string, streamName string, defaultRate string) (string, error) {
 	qr, err := url.ParseQuery(anticode)
 	if err != nil {
 		return "", err
 	}
+	afterTime := time.Now().AddDate(0, 1, 0)
 	qr.Set("ver", "1")
-	qr.Set("sv", "2110211124")
-	qr.Set("seqid", strconv.FormatInt(time.Now().Unix()*1000+uid, 10))
-	qr.Set("uid", strconv.FormatInt(uid, 10))
-	uuid, _ := uuid.NewV4()
-	qr.Set("uuid", uuid.String())
+	qr.Set("sv", "2312270928")
+	qr.Set("seqid", "3"+strconv.FormatInt(afterTime.UnixMilli()/10, 10))
+	qr.Del("fm")
+	qr.Set("ctype", "huya_webh5")
+	qr.Set("dMod", "wcs-25")
+	qr.Set("sdkPcdn", "1_1")
+	qr.Set("u", "1465700161675")
+	qr.Set("t", "100")
+	qr.Set("sdk_sid", strconv.FormatInt(time.Now().UnixMilli(), 10))
+	qr.Set("ratio", defaultRate)
+	// qr.Set("uid", strconv.FormatInt(uid, 10))
+	// uuid, _ := uuid.NewV4()
+	// qr.Set("uuid", uuid.String())
 	ss := GetMD5Hash(fmt.Sprintf("%s|%s|%s", qr.Get("seqid"), qr.Get("ctype"), qr.Get("t")))
 
 	decodeString, _ := base64.StdEncoding.DecodeString(qr.Get("fm"))
@@ -136,14 +143,20 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		sStreamName  = utils.Match1(`"sStreamName":"([^"]*)"`, streamStr)
 		sFlvUrl      = strings.ReplaceAll(utils.Match1(`"sFlvUrl":"([^"]*)"`, streamStr), `\/`, `/`)
 		sFlvAntiCode = utils.Match1(`"sFlvAntiCode":"([^"]*)"`, streamStr)
+		defaultRate  = utils.Match1(`"iWebDefaultBitRate":([^"]*),`, streamStr)
 		// iLineIndex   = utils.Match1(`"iLineIndex":(\d*),`, streamStr)
-		uid = (time.Now().Unix()%1e7*1e6 + int64(1e3*rand.Float64())) % 4294967295
+		// uid = (time.Now().Unix()%1e7*1e6 + int64(1e3*rand.Float64())) % 4294967295
+
 	)
-	query, err := parseAntiCode(sFlvAntiCode, uid, sStreamName)
+	sFlvUrlToHttps := strings.ReplaceAll(sFlvUrl, `http`, `https`)
+	if strings.Contains(sFlvUrlToHttps, `al`) {
+		sFlvUrlToHttps = strings.ReplaceAll(sFlvUrlToHttps, `al`, `hw`)
+	}
+	query, err := parseAntiCode(sFlvAntiCode, sStreamName, defaultRate)
 	if err != nil {
 		return nil, err
 	}
-	u, err := url.Parse(fmt.Sprintf("%s/%s.flv?%s", sFlvUrl, sStreamName, query))
+	u, err := url.Parse(fmt.Sprintf("%s/%s.flv?%s", sFlvUrlToHttps, sStreamName, query))
 	if err != nil {
 		return nil, err
 	}
