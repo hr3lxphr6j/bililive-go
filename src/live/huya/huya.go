@@ -14,6 +14,7 @@ import (
 
 	"github.com/hr3lxphr6j/requests"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
@@ -21,8 +22,9 @@ import (
 )
 
 const (
-	domain = "www.huya.com"
-	cnName = "虎牙"
+	domain    = "www.huya.com"
+	cnName    = "虎牙"
+	userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
 )
 
 func init() {
@@ -39,6 +41,7 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 
 type Live struct {
 	internal.BaseLive
+	lastCdnIndex int
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
@@ -104,20 +107,25 @@ func parseAntiCode(anticode string, uid int64, streamName string) (string, error
 	uuid, _ := uuid.NewV4()
 	qr.Set("uuid", uuid.String())
 	ss := GetMD5Hash(fmt.Sprintf("%s|%s|%s", qr.Get("seqid"), qr.Get("ctype"), qr.Get("t")))
+	wsTime := strconv.FormatInt(time.Now().Add(6*time.Hour).Unix(), 16)
 
 	decodeString, _ := base64.StdEncoding.DecodeString(qr.Get("fm"))
 	fm := string(decodeString)
 	fm = strings.ReplaceAll(fm, "$0", qr.Get("uid"))
 	fm = strings.ReplaceAll(fm, "$1", streamName)
 	fm = strings.ReplaceAll(fm, "$2", ss)
-	fm = strings.ReplaceAll(fm, "$3", qr.Get("wsTime"))
+	fm = strings.ReplaceAll(fm, "$3", wsTime)
 
 	qr.Set("wsSecret", GetMD5Hash(fm))
+	qr.Set("ratio", "0")
+	qr.Set("wsTime", wsTime)
 	return qr.Encode(), nil
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	resp, err := requests.Get(l.Url.String(), live.CommonUserAgent)
+	roomId := strings.Split(strings.Split(l.Url.Path, "/")[1], "?")[0]
+	mobileUrl := fmt.Sprintf("https://m.huya.com/%s", roomId)
+	resp, err := requests.Get(mobileUrl, requests.UserAgent(userAgent))
 	if err != nil {
 		return nil, err
 	}
@@ -129,16 +137,31 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, err
 	}
 
-	// Decode stream part.
-	streamStr := utils.Match1(`(?m)stream: (.*?)$`, body)
+	liveInfoJson := gjson.Parse(strings.Split(strings.Split(body, `"tLiveInfo":`)[1], `,"_classname":"LiveRoom.LiveInfo"}`)[0] + "}")
+	if !liveInfoJson.Exists() {
+		return nil, fmt.Errorf("liveInfo not found")
+	}
 
-	var (
-		sStreamName  = utils.Match1(`"sStreamName":"([^"]*)"`, streamStr)
-		sFlvUrl      = strings.ReplaceAll(utils.Match1(`"sFlvUrl":"([^"]*)"`, streamStr), `\/`, `/`)
-		sFlvAntiCode = utils.Match1(`"sFlvAntiCode":"([^"]*)"`, streamStr)
-		// iLineIndex   = utils.Match1(`"iLineIndex":(\d*),`, streamStr)
-		uid = (time.Now().Unix()%1e7*1e6 + int64(1e3*rand.Float64())) % 4294967295
-	)
+	streamInfoJsons := liveInfoJson.Get("tLiveStreamInfo.vStreamInfo.value").Array()
+	if len(streamInfoJsons) == 0 {
+		return nil, fmt.Errorf("streamInfoJsons not found")
+	}
+
+	index := l.lastCdnIndex + 1
+	if index >= len(streamInfoJsons) {
+		index = 0
+	}
+	l.lastCdnIndex = index
+	gameStreamInfo := streamInfoJsons[index]
+	// get streamName
+	sStreamName := gameStreamInfo.Get("sStreamName").String()
+	// get sFlvAntiCode
+	sFlvAntiCode := gameStreamInfo.Get("sFlvAntiCode").String()
+	// get sFlvUrl
+	sFlvUrl := gameStreamInfo.Get("sFlvUrl").String()
+	// get random uid
+	uid := rand.Int63n(99999999999) + 1400000000000
+
 	query, err := parseAntiCode(sFlvAntiCode, uid, sStreamName)
 	if err != nil {
 		return nil, err
@@ -147,16 +170,18 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	if err != nil {
 		return nil, err
 	}
-	// value := url.Values{}
-	// value.Add("line", iLineIndex)
-	// value.Add("p2p", "0")
-	// value.Add("type", "web")
-	// value.Add("ver", "1805071653")
-	// value.Add("uid", fmt.Sprintf("%d", uid))
-	// u.RawQuery = fmt.Sprintf("%s&%s", value.Encode(), utils.UnescapeHTMLEntity(sFlvAntiCode))
 	return []*url.URL{u}, nil
 }
 
 func (l *Live) GetPlatformCNName() string {
 	return cnName
+}
+
+func (l *Live) GetHeadersForDownloader() map[string]string {
+	return map[string]string{
+		"User-Agent":      userAgent,
+		"Accept":          `text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8`,
+		"Accept-Encoding": `gzip, deflate`,
+		"Accept-Language": `zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3`,
+	}
 }

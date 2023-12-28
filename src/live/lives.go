@@ -109,6 +109,7 @@ type Live interface {
 	GetPlatformCNName() string
 	GetLastStartTime() time.Time
 	SetLastStartTime(time.Time)
+	GetHeadersForDownloader() map[string]string
 }
 
 type WrappedLive struct {
