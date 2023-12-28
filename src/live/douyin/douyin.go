@@ -47,6 +47,10 @@ func createRandomCookie() string {
 	return utils.GenRandomString(21, randomCookieChars)
 }
 
+func createRandomOdintt() string {
+	return utils.GenRandomString(160, randomCookieChars)
+}
+
 type Live struct {
 	internal.BaseLive
 	responseCookies             map[string]string
@@ -66,12 +70,13 @@ func (l *Live) getLiveRoomWebPageResponse() (body string, err error) {
 	}
 
 	// proxy, _ := url.Parse("http://localhost:8888")
-	// resp, err := requests.NewSession(&http.Client{
-	// 	Transport: &http.Transport{
-	// 		Proxy: http.ProxyURL(proxy),
-	// 	},
-	// }).Get(
-	resp, err := requests.Get(
+	requestSession := requests.NewSession(&http.Client{
+		// Transport: &http.Transport{
+		// 	Proxy: http.ProxyURL(proxy),
+		// },
+	})
+	req, err := requests.NewRequest(
+		http.MethodGet,
 		l.Url.String(),
 		live.CommonUserAgent,
 		requests.Cookies(cookieKVs),
@@ -79,6 +84,12 @@ func (l *Live) getLiveRoomWebPageResponse() (body string, err error) {
 			"Cache-Control": "no-cache",
 		}),
 	)
+	if err != nil {
+		return
+	}
+	cookieWithOdinTt := fmt.Sprintf("odin_tt=%s; %s", createRandomOdintt(), req.Header.Get("Cookie"))
+	req.Header.Set("Cookie", cookieWithOdinTt)
+	resp, err := requestSession.Do(req)
 	if err != nil {
 		return
 	}
