@@ -151,7 +151,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 		"-http_proxy", "http://localhost:8888",
 	}
 	for k, v := range headers {
-		// skip User-Agent and Referer
 		if k == "User-Agent" || k == "Referer" {
 			continue
 		}
