@@ -148,7 +148,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 		"-i", url.String(),
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
-		"-http_proxy", "http://localhost:8888",
 	}
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
