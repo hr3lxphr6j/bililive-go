@@ -70,20 +70,26 @@ func (l *Live) getLiveRoomWebPageResponse() (body string, err error) {
 	}
 
 	// proxy, _ := url.Parse("http://localhost:8888")
-	// resp, err := requests.NewSession(&http.Client{
-	// 	Transport: &http.Transport{
-	// 		Proxy: http.ProxyURL(proxy),
-	// 	},
-	// }).Get(
-	resp, err := requests.Get(
+	requestSession := requests.NewSession(&http.Client{
+		// Transport: &http.Transport{
+		// 	Proxy: http.ProxyURL(proxy),
+		// },
+	})
+	req, err := requests.NewRequest(
+		http.MethodGet,
 		l.Url.String(),
 		live.CommonUserAgent,
-		// requests.Cookies(cookieKVs),
+		requests.Cookies(cookieKVs),
 		requests.Headers(map[string]interface{}{
 			"Cache-Control": "no-cache",
-			"Cookie":        fmt.Sprintf("odin_tt=%s; __ac_nonce=%s", createRandomOdintt(), createRandomCookie()),
 		}),
 	)
+	if err != nil {
+		return
+	}
+	cookieWithOdinTt := fmt.Sprintf("odin_tt=%s; %s", createRandomOdintt(), req.Header.Get("Cookie"))
+	req.Header.Set("Cookie", cookieWithOdinTt)
+	resp, err := requestSession.Do(req)
 	if err != nil {
 		return
 	}
