@@ -80,6 +80,10 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 		return err
 	}
 	req.Header.Add("User-Agent", "Chrome/59.0.3071.115")
+	// add headers for downloader from live
+	for k, v := range live.GetHeadersForDownloader() {
+		req.Header.Set(k, v)
+	}
 	resp, err := p.hc.Do(req)
 	if err != nil {
 		return err
