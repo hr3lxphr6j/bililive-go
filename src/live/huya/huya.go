@@ -137,10 +137,15 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, err
 	}
 
-	liveInfoJson := gjson.Parse(strings.Split(strings.Split(body, `"tLiveInfo":`)[1], `,"_classname":"LiveRoom.LiveInfo"}`)[0] + "}")
-	if !liveInfoJson.Exists() {
-		return nil, fmt.Errorf("liveInfo not found")
+	tmpStrings := strings.Split(body, `"tLiveInfo":`)
+	if len(tmpStrings) < 2 {
+		return nil, fmt.Errorf("tLiveInfo not found")
 	}
+	liveInfoJsonRawString := strings.Split(tmpStrings[1], `,"_classname":"LiveRoom.LiveInfo"}`)[0] + "}"
+	if !gjson.Valid(liveInfoJsonRawString) {
+		return nil, fmt.Errorf("liveInfoJsonRawString not valid")
+	}
+	liveInfoJson := gjson.Parse(liveInfoJsonRawString)
 
 	streamInfoJsons := liveInfoJson.Get("tLiveStreamInfo.vStreamInfo.value").Array()
 	if len(streamInfoJsons) == 0 {
