@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
-chown -R ${PUID}:${PGID} /opt/bililive/
-chown -R ${PUID}:${PGID} /srv/bililive/
+HOME=/srv/bililive
+
+chown -R ${PUID}:${PGID} ${HOME}
 
 umask ${UMASK}
 

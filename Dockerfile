@@ -1,9 +1,10 @@
 FROM alpine
 
 ARG tag
+
+ENV WORKDIR="/srv/bililive"
 ENV OUTPUT_DIR="/srv/bililive" \
     CONF_DIR="/etc/bililive-go" \
-    LOG_DIR="/opt/bililive" \
     PORT=8080
 
 ENV PUID=0 PGID=0 UMASK=022
@@ -27,12 +28,10 @@ COPY config.docker.yml $CONF_DIR/config.yml
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-VOLUME $LOG_DIR
-
 VOLUME $OUTPUT_DIR
 
 EXPOSE $PORT
 
-WORKDIR /opt/bililive
+WORKDIR ${WORKDIR}
 ENTRYPOINT [ "sh" ]
 CMD [ "/entrypoint.sh" ]
