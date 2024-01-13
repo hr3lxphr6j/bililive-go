@@ -29,7 +29,6 @@ class AddRoomDialog extends React.Component<Props> {
             ModalText: '正在添加直播间......',
             confirmLoading: true,
         });
-
         api.addNewRoom(this.state.textView)
             .then((rsp) => {
                 // 保存设置
@@ -37,7 +36,9 @@ class AddRoomDialog extends React.Component<Props> {
                 this.setState({
                     visible: false,
                     confirmLoading: false,
+                    textView: ''
                 });
+                // window.location.reload()
                 this.props.refresh();
             })
             .catch(err => {
@@ -45,6 +46,7 @@ class AddRoomDialog extends React.Component<Props> {
                 this.setState({
                     visible: false,
                     confirmLoading: false,
+                    textView: ''
                 });
             })
     };
@@ -52,6 +54,7 @@ class AddRoomDialog extends React.Component<Props> {
     handleCancel = () => {
         this.setState({
             visible: false,
+            textView: ''
         });
     };
 
@@ -62,7 +65,7 @@ class AddRoomDialog extends React.Component<Props> {
     }
 
     render() {
-        const { visible, confirmLoading, ModalText } = this.state;
+        const { visible, confirmLoading, ModalText,textView } = this.state;
         return (
             <div>
                 <Modal
@@ -72,7 +75,7 @@ class AddRoomDialog extends React.Component<Props> {
                     confirmLoading={confirmLoading}
                     onCancel={this.handleCancel}>
                     <p>{ModalText}</p>
-                    <Input size="large" placeholder="https://" onChange={this.textChange} />
+                    <Input size="large" value={textView} placeholder="https://" onChange={this.textChange} />
                 </Modal>
             </div>
         );
