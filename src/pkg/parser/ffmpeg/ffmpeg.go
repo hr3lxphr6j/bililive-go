@@ -149,6 +149,10 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
 	}
+	//针对YY直播hevc推流的处理，未测试其他平台，故做限制，测试可用 https://www.yy.com/1450434500/1450434500
+	if live.GetPlatformCNName() == "YY直播" {
+		args = append(args, "-f", "mpegts")
+	}
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
 			continue
