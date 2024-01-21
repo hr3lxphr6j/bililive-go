@@ -37,7 +37,6 @@ class AddRoomDialog extends React.Component<Props> {
                 this.setState({
                     visible: false,
                     confirmLoading: false,
-                    textView:''
                 });
                 this.props.refresh();
             })
@@ -46,7 +45,6 @@ class AddRoomDialog extends React.Component<Props> {
                 this.setState({
                     visible: false,
                     confirmLoading: false,
-                    textView:''
                 });
             })
     };
@@ -54,7 +52,6 @@ class AddRoomDialog extends React.Component<Props> {
     handleCancel = () => {
         this.setState({
             visible: false,
-            textView:''
         });
     };
 
@@ -65,7 +62,7 @@ class AddRoomDialog extends React.Component<Props> {
     }
 
     render() {
-        const { visible, confirmLoading, ModalText,textView } = this.state;
+        const { visible, confirmLoading, ModalText } = this.state;
         return (
             <div>
                 <Modal
@@ -75,7 +72,7 @@ class AddRoomDialog extends React.Component<Props> {
                     confirmLoading={confirmLoading}
                     onCancel={this.handleCancel}>
                     <p>{ModalText}</p>
-                    <Input size="large" value={textView} placeholder="https://" onChange={this.textChange} />
+                    <Input size="large" placeholder="https://" onChange={this.textChange} />
                 </Modal>
             </div>
         );
