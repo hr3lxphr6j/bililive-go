@@ -20,6 +20,7 @@ import (
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/system"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/twitch"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/weibolive"
+	_ "github.com/hr3lxphr6j/bililive-go/src/live/xiaohongshu"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/yizhibo"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/yy"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/zhanqi"
