@@ -50,14 +50,11 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		cookieKVs[item.Name] = item.Value
 	}
 
-	roomUrl := l.Url.String()
-	urlParts := strings.Split(roomUrl, "?")
-	pathParts := strings.Split(urlParts[0], "/")
+	pathParts := strings.Split(l.Url.Path, "/")
 	roomId := pathParts[len(pathParts)-1]
 
 	resp, err := requests.Get(
 		roomApiUrl,
-		live.CommonUserAgent,
 		requests.Query("room_id", roomId),
 		requests.Cookies(cookieKVs),
 		requests.Headers(headers),
@@ -77,11 +74,22 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		return nil, live.ErrRoomNotExist
 	}
 
+	mobileUrl := fmt.Sprintf("%s/%s.flv", streamUrl, roomId)
+	response, err := requests.Head(mobileUrl,
+		requests.Cookies(cookieKVs),
+		requests.Headers(headers),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	info = &live.Info{
 		Live:     l,
 		HostName: gjson.GetBytes(body, "data.host_info.nickname").String(),
 		RoomName: gjson.GetBytes(body, "data.room.name").String(),
-		Status:   gjson.GetBytes(body, "data.room.status").Int() == 0,
+		// 小红书直播间开没开播，status都为0
+		//Status:   gjson.GetBytes(body, "data.room.status").Int() == 0
+		Status: response.StatusCode == http.StatusOK,
 	}
 
 	return
