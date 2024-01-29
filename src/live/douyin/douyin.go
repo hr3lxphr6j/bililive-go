@@ -196,6 +196,9 @@ func (l *Live) getRoomInfoFromBody(body string) (info *live.Info, streamUrlInfos
 			err = fmt.Errorf(errorMessageForErrorf+". Not valid json: %s", stepNumberForLog, item[1])
 			return
 		}
+		if !commonJson.Get("common").Exists() {
+			continue
+		}
 		commonStreamId := commonJson.Get("common.stream").String()
 		if commonStreamId == "" {
 			err = fmt.Errorf(errorMessageForErrorf+". No valid common stream ID: %s", stepNumberForLog, item[1])
