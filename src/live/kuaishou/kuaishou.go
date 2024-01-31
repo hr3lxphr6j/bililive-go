@@ -66,6 +66,13 @@ func (l *Live) getData() (*gjson.Result, error) {
 		return nil, err
 	}
 	result := gjson.Parse(unescapedRawData)
+	if result.Get("liveroom.playList.0.errorType").Exists() {
+		msg := result.Get("liveroom.playList.0.errorType.title").String()
+		if msg == "" {
+			msg = result.Get("liveroom.playList.0.errorType").String()
+		}
+		return nil, fmt.Errorf(msg)
+	}
 	return &result, nil
 }
 
@@ -76,9 +83,9 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	}
 	info = &live.Info{
 		Live:     l,
-		HostName: data.Get("liveroom.author.name").String(),
-		RoomName: data.Get("liveroom.liveStream.caption").String(),
-		Status:   data.Get("liveroom.isLiving").Bool(),
+		HostName: data.Get("liveroom.playList.0.author.name").String(),
+		RoomName: data.Get("liveroom.playList.0.liveStream.caption").String(),
+		Status:   data.Get("liveroom.playList.0.isLiving").Bool(),
 	}
 	return
 }
@@ -91,7 +98,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	var urls []string
 
 	addr := ""
-	addr = "liveroom.liveStream.playUrls.0.adaptationSet.representation.0.url"
+	addr = "liveroom.playList.0.liveStream.playUrls.0.adaptationSet.representation|@reverse|0.url"
 
 	// 由于更高清晰度需要cookie，暂时无法传，先注释
 	//maxQuality := len(data.Get("liveroom.liveStream.playUrls.0.adaptationSet.representation").Array()) - 1
