@@ -189,8 +189,10 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 
 func (p *Parser) Stop() error {
 	p.closeOnce.Do(func() {
-		if p.cmd.ProcessState == nil {
-			p.cmdStdIn.Write([]byte("q"))
+		if p.cmdStdIn != nil && p.cmd.Process != nil && p.cmd.ProcessState == nil {
+			if _, err := p.cmdStdIn.Write([]byte("q")); err != nil {
+                		log.Printf("Error sending stop command to ffmpeg: %v", err)
+            		}
 		}
 	})
 	return nil
