@@ -41,8 +41,9 @@ type InitializingFinishedParam struct {
 }
 
 type Options struct {
-	Cookies *cookiejar.Jar
-	Quality int
+	Cookies   *cookiejar.Jar
+	Quality   int
+	AudioOnly bool
 }
 
 func NewOptions(opts ...Option) (*Options, error) {
@@ -87,6 +88,12 @@ func WithKVStringCookies(u *url.URL, cookies string) Option {
 func WithQuality(quality int) Option {
 	return func(opts *Options) {
 		opts.Quality = quality
+	}
+}
+
+func WithAudioOnly(audioOnly bool) Option {
+	return func(opts *Options) {
+		opts.AudioOnly = audioOnly
 	}
 }
 

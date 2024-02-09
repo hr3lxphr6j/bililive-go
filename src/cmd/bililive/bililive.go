@@ -106,6 +106,8 @@ func main() {
 			opts = append(opts, live.WithKVStringCookies(u, v))
 		}
 		opts = append(opts, live.WithQuality(room.Quality))
+		opts = append(opts, live.WithAudioOnly(room.AudioOnly))
+
 		l, err := live.New(u, inst.Cache, opts...)
 		if err != nil {
 			logger.WithField("url", room).Error(err.Error())
