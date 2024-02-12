@@ -25,6 +25,7 @@ const (
 	liveApiUrlv2    = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo"
 	appLiveApiUrlv2 = "https://api.live.bilibili.com/xlive/app-room/v2/index/getRoomPlayInfo"
 	biliAppAgent    = "Bilibili Freedoooooom/MarkII BiliDroid/5.49.0 os/android model/MuMu mobi_app/android build/5490400 channel/dw090 innerVer/5490400 osVer/6.0.1 network/2"
+	biliWebAgent    = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
 )
 
 func init() {
@@ -163,7 +164,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		}
 		query = "?" + values.Encode()
 		apiUrl = appLiveApiUrlv2
-		agent = live.AndroidBiliAgent
+		agent = requests.UserAgent(biliAppAgent)
 	}
 	resp, err := requests.Get(apiUrl+query, agent, requests.Cookies(cookieKVs))
 	if err != nil {
@@ -201,7 +202,14 @@ func (l *Live) GetPlatformCNName() string {
 }
 
 func (l *Live) GetHeadersForDownloader() map[string]string {
+	agent := biliWebAgent
+	referer := l.GetRawUrl()
+	if l.Options.AudioOnly {
+		agent = biliAppAgent
+		referer = ""
+	}
 	return map[string]string{
-		"User-Agent": biliAppAgent,
+		"User-Agent": agent,
+		"Referer":    referer,
 	}
 }

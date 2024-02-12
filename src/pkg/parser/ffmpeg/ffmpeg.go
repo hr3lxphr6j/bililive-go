@@ -131,7 +131,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 	}
 	headers := live.GetHeadersForDownloader()
 	ffUserAgent, exists := headers["User-Agent"]
-
 	if !exists {
 		ffUserAgent = userAgent
 	}
@@ -142,12 +141,13 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 	args := []string{
 		"-nostats",
 		"-progress", "-",
-		"-y",
+		"-y", "-re",
 		"-user_agent", ffUserAgent,
 		"-referer", referer,
 		"-rw_timeout", p.timeoutInUs,
 		"-i", url.String(),
 		"-c", "copy",
+		"-bsf:a", "aac_adtstoasc",
 	}
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
