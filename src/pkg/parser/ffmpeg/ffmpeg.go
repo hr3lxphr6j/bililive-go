@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/url"
 	"os"
@@ -187,13 +188,19 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 	return nil
 }
 
-func (p *Parser) Stop() error {
+func (p *Parser) Stop() (err error) {
 	p.closeOnce.Do(func() {
-		if p.cmdStdIn != nil && p.cmd.Process != nil && p.cmd.ProcessState == nil {
-			if _, err := p.cmdStdIn.Write([]byte("q")); err != nil {
-                		log.Printf("Error sending stop command to ffmpeg: %v", err)
-            		}
+		if p.cmd.ProcessState == nil {
+			if p.cmdStdIn != nil && p.cmd.Process != nil {
+				if _, err = p.cmdStdIn.Write([]byte("q")); err != nil {
+					err = fmt.Errorf("error sending stop command to ffmpeg: %v", err)
+				}
+			} else if p.cmdStdIn == nil {
+				err = fmt.Errorf("p.cmdStdIn == nil")
+			} else if p.cmd.Process == nil {
+				err = fmt.Errorf("p.cmd.Process == nil")
+			}
 		}
 	})
-	return nil
+	return err
 }
