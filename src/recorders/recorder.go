@@ -253,7 +253,9 @@ func (r *recorder) setAndCloseParser(p parser.Parser) {
 	r.parserLock.Lock()
 	defer r.parserLock.Unlock()
 	if r.parser != nil {
-		r.parser.Stop()
+		if err := r.parser.Stop(); err != nil {
+			r.getLogger().WithError(err).Warn("failed to end recorder")
+		}
 	}
 	r.parser = p
 }
@@ -279,7 +281,9 @@ func (r *recorder) Close() {
 	}
 	close(r.stop)
 	if p := r.getParser(); p != nil {
-		p.Stop()
+		if err := p.Stop(); err != nil {
+			r.getLogger().WithError(err).Warn("failed to end recorder")
+		}
 	}
 	r.getLogger().Info("Record End")
 	r.ed.DispatchEvent(events.NewEvent(RecorderStop, r.Live))
