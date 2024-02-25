@@ -87,6 +87,7 @@ type LiveRoom struct {
 	IsListening bool    `yaml:"is_listening"`
 	LiveId      live.ID `yaml:"-"`
 	Quality     int     `yaml:"quality"`
+	AudioOnly   bool    `yaml:"audio_only"`
 }
 
 type liveRoomAlias LiveRoom

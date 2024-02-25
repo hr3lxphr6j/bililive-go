@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/hr3lxphr6j/requests"
@@ -18,10 +19,13 @@ const (
 	domain = "live.bilibili.com"
 	cnName = "哔哩哔哩"
 
-	roomInitUrl  = "https://api.live.bilibili.com/room/v1/Room/room_init"
-	roomApiUrl   = "https://api.live.bilibili.com/room/v1/Room/get_info"
-	userApiUrl   = "https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room"
-	liveApiUrlv2 = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo"
+	roomInitUrl     = "https://api.live.bilibili.com/room/v1/Room/room_init"
+	roomApiUrl      = "https://api.live.bilibili.com/room/v1/Room/get_info"
+	userApiUrl      = "https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room"
+	liveApiUrlv2    = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo"
+	appLiveApiUrlv2 = "https://api.live.bilibili.com/xlive/app-room/v2/index/getRoomPlayInfo"
+	biliAppAgent    = "Bilibili Freedoooooom/MarkII BiliDroid/5.49.0 os/android model/MuMu mobi_app/android build/5490400 channel/dw090 innerVer/5490400 osVer/6.0.1 network/2"
+	biliWebAgent    = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
 )
 
 func init() {
@@ -100,9 +104,10 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	}
 
 	info = &live.Info{
-		Live:     l,
-		RoomName: gjson.GetBytes(body, "data.title").String(),
-		Status:   gjson.GetBytes(body, "data.live_status").Int() == 1,
+		Live:      l,
+		RoomName:  gjson.GetBytes(body, "data.title").String(),
+		Status:    gjson.GetBytes(body, "data.live_status").Int() == 1,
+		AudioOnly: l.Options.AudioOnly,
 	}
 
 	resp, err = requests.Get(userApiUrl, live.CommonUserAgent, requests.Query("roomid", l.realID))
@@ -135,9 +140,33 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	for _, item := range cookies {
 		cookieKVs[item.Name] = item.Value
 	}
+	apiUrl := liveApiUrlv2
 	query := fmt.Sprintf("?room_id=%s&protocol=0,1&format=0,1,2&codec=0,1&qn=10000&platform=web&ptype=8&dolby=5&panorama=1", l.realID)
-	resp, err := requests.Get(liveApiUrlv2+query, live.CommonUserAgent, requests.Cookies(cookieKVs))
-
+	agent := live.CommonUserAgent
+	// for audio only use android api
+	if l.Options.AudioOnly {
+		params := map[string]string{"appkey": "iVGUTjsxvpLeuDCf",
+			"build":       "6310200",
+			"codec":       "0,1",
+			"device":      "android",
+			"device_name": "ONEPLUS",
+			"dolby":       "5",
+			"format":      "0,2",
+			"only_audio":  "1",
+			"platform":    "android",
+			"protocol":    "0,1",
+			"room_id":     l.realID,
+			"qn":          strconv.Itoa(l.Options.Quality),
+		}
+		values := url.Values{}
+		for key, value := range params {
+			values.Add(key, value)
+		}
+		query = "?" + values.Encode()
+		apiUrl = appLiveApiUrlv2
+		agent = requests.UserAgent(biliAppAgent)
+	}
+	resp, err := requests.Get(apiUrl+query, agent, requests.Cookies(cookieKVs))
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +178,6 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, err
 	}
 	urls := make([]string, 0, 4)
-
 	addr := ""
 
 	if l.Options.Quality == 0 && gjson.GetBytes(body, "data.playurl_info.playurl.stream.1.format.1.codec.#").Int() > 1 {
@@ -171,4 +199,17 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 
 func (l *Live) GetPlatformCNName() string {
 	return cnName
+}
+
+func (l *Live) GetHeadersForDownloader() map[string]string {
+	agent := biliWebAgent
+	referer := l.GetRawUrl()
+	if l.Options.AudioOnly {
+		agent = biliAppAgent
+		referer = ""
+	}
+	return map[string]string{
+		"User-Agent": agent,
+		"Referer":    referer,
+	}
 }
