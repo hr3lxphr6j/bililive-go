@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"regexp"
 
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/hr3lxphr6j/requests"
@@ -85,6 +86,11 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 
 	streamurl := gjson.GetBytes(body, "data.live_origin_flv_url").String()
+    queryParams := l.Url.Query()
+	reg, err := regexp.Compile(`_wb[\d]+avc\.flv`)
+    if err == nil {
+        streamurl = reg.ReplaceAllString(streamurl, "_wb" + queryParams.Get("q") + "avc.flv")
+    }
 	return utils.GenUrls(streamurl)
 }
 
