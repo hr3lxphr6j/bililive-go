@@ -195,20 +195,58 @@ https://github.com/hr3lxphr6j/bililive-go/wiki/Install-Linux
 使用 https://hub.docker.com/r/chigusa/bililive-go 镜像创建容器运行。
 
 例如：
+```bash
+docker run -d \
+--name=bililive-go \
+--restart=unless-stopped \
+-p 8080:8080 \
+-v /你喜欢的配置文件目录/config.yml:/etc/bililive-go/config.yml \
+-v /你喜欢的录像目录:/srv/bililive \
+-e PORT=8080 \
+-e PUID=0 \
+-e PGID=0 \
+chigusa/bililive-go
 ```
-docker run --restart=always -v ~/config.yml:/etc/bililive-go/config.yml -v ~/Videos:/srv/bililive -p 8080:8080 -d chigusa/bililive-go
+`PUID` `PGID` 不建议为`0` 这将以`root`身份运行容器 一些情况下会对权限管理造成麻烦<br>
+使用非 `root` 用户运行容器是推荐的安全做法 可以通过运行 id "你的用户名" 来查找你的 `UID` 和 `GID` <br>
 ```
-
+id "你的用户名"
+```
+会显示例如 `uid=1000` `gid=1000` 等信息
+修改环境变量
+```
+-e PUID=1000
+-e PGID=1000
+```
 ### docker compose
-
-使用项目根目录下的 `docker-compose.yml` 配置文件启动 docker compose 运行。
-
-例如：
+创建 `vim docker-compose.yaml`
+```yaml
+version: '3.9'
+services:
+  bililive-go:
+    image: chigusa/bililive-go
+    container_name: bililive-go
+    ports:
+      - "8080:8080"
+    volumes:
+      - /你喜欢的配置文件目录/config.yml:/etc/bililive-go/config.yml
+      - /你喜欢的录像目录:/srv/bililive
+    environment:
+      - PORT=8080 # Web ui 监听端口
+      - PUID=0  # 不建议为0 `id 你的用户名` 查找 UID
+      - PGID=0  # 不建议为0 `id 你的用户名` 查找 GID
+    restart: unless-stopped
 ```
-docker compose up
+部署容器
 ```
-此时默认使用 `config.docker.yml` 文件作为程序的配置文件，`Videos/` 目录作为录制视频的输出目录。
+docker compose up -d
+```
+如果你的 `docker compose` 版本较老 可能需要运行
+```
+docker-compose up -d
+```
 
+### NAS
 NAS 用户使用系统自带 GUI 创建 docker compose 的情况请参考群晖用 docker compose 安装 bgo 的 [图文说明](./docs/Synology-related.md#如何用-docker-compose-安装-bgo)
 
 ## 常见问题
