@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"regexp"
+	"fmt"
 
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/hr3lxphr6j/requests"
@@ -85,6 +87,19 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 
 	streamurl := gjson.GetBytes(body, "data.live_origin_flv_url").String()
+    queryParams := l.Url.Query()
+	quality := queryParams.Get("q")
+	if quality != "" {
+		targetQuality := "_wb" + quality + "avc.flv"
+		reg, err := regexp.Compile(`_wb[\d]+avc\.flv`)
+		if err == nil && reg.MatchString(streamurl) {
+			streamurl = reg.ReplaceAllString(streamurl, targetQuality)
+		} else {
+			streamurl = strings.Replace(streamurl, ".flv", targetQuality, -1)
+		}
+		fmt.Println("weibo stream quality fixed: " + streamurl)
+	}
+	
 	return utils.GenUrls(streamurl)
 }
 
