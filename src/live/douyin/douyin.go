@@ -383,11 +383,23 @@ func (l *Live) legacy_GetInfo(body string) (info *live.Info, err error) {
 	if err != nil {
 		return nil, err
 	}
+	nickname := data.Get("data.user.nickname").String()
+	title := data.Get("data.data.0.title").String()
+	if title == "" {
+		title = nickname
+	}
+	isLiving := false
+	statusJson := data.Get("data.data.0.status")
+	if statusJson.Exists() {
+		isLiving = statusJson.Int() == 2
+	} else {
+		isLiving = data.Get("data.room_status").Int() == 0
+	}
 	info = &live.Info{
 		Live:     l,
-		HostName: data.Get("user.nickname").String(),
-		RoomName: data.Get("data.0.title").String(),
-		Status:   data.Get("data.0.status").Int() == 2,
+		HostName: nickname,
+		RoomName: title,
+		Status:   isLiving,
 	}
 	return
 }
