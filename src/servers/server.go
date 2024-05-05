@@ -52,7 +52,18 @@ func initMux(ctx context.Context) *mux.Router {
 	apiRoute.HandleFunc("/file/{path:.*}", getFileInfo).Methods("GET")
 	apiRoute.Handle("/metrics", promhttp.Handler())
 
-	m.PathPrefix("/files/").Handler(http.StripPrefix("/files/", http.FileServer(http.Dir(instance.GetInstance(ctx).Config.OutPutPath))))
+	m.PathPrefix("/files/").Handler(
+		CORSMiddleware(
+			http.StripPrefix(
+				"/files/",
+				http.FileServer(
+					http.Dir(
+						instance.GetInstance(ctx).Config.OutPutPath,
+					),
+				),
+			),
+		),
+	)
 
 	fs, err := webapp.FS()
 	if err != nil {
@@ -65,6 +76,15 @@ func initMux(ctx context.Context) *mux.Router {
 		m.PathPrefix("/debug/").Handler(http.DefaultServeMux)
 	}
 	return m
+}
+
+func CORSMiddleware(h http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+        w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+        h.ServeHTTP(w, r)
+    })
 }
 
 func NewServer(ctx context.Context) *Server {
