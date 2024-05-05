@@ -42,7 +42,7 @@ class LiveList extends React.Component<Props, IState> {
     //定时器
     timer!: NodeJS.Timeout;
 
-    runStatus = {
+    runStatus: ColumnProps<ItemData> = {
         title: '运行状态',
         key: 'tags',
         dataIndex: 'tags',
@@ -71,9 +71,21 @@ class LiveList extends React.Component<Props, IState> {
                 })}
             </span>
         ),
+        sorter: (a: ItemData, b: ItemData) => {
+            const isRecordingA = a.tags.includes('录制中');
+            const isRecordingB = b.tags.includes('录制中');
+            if (isRecordingA === isRecordingB) {
+                return 0;
+            } else if (isRecordingA) {
+                return 1;
+            } else {
+                return -1;
+            }
+        },
+        defaultSortOrder: 'descend',
     };
 
-    runAction = {
+    runAction: ColumnProps<ItemData> = {
         title: '操作',
         key: 'action',
         dataIndex: 'listening',
