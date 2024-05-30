@@ -1,10 +1,12 @@
 package huya
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"html/template"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -13,7 +15,6 @@ import (
 	"time"
 
 	"github.com/hr3lxphr6j/requests"
-	uuid "github.com/satori/go.uuid"
 	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
@@ -95,83 +96,122 @@ func GetMD5Hash(text string) string {
 	return hex.EncodeToString(hash[:])
 }
 
+type urlQueryParams struct {
+	WsSecret string
+	WsTime   string
+	Seqid    string
+	Ctype    string
+	Ver      string
+	Fs       string
+	U        string
+	T        string
+	Sv       string
+	Sdk_sid  string
+	Codec    string
+}
+
 func parseAntiCode(anticode string, uid int64, streamName string) (string, error) {
 	qr, err := url.ParseQuery(anticode)
 	if err != nil {
 		return "", err
 	}
-	qr.Set("ver", "1")
-	qr.Set("sv", "2110211124")
-	qr.Set("seqid", strconv.FormatInt(time.Now().Unix()*1000+uid, 10))
-	qr.Set("uid", strconv.FormatInt(uid, 10))
-	uuid, _ := uuid.NewV4()
-	qr.Set("uuid", uuid.String())
-	ss := GetMD5Hash(fmt.Sprintf("%s|%s|%s", qr.Get("seqid"), qr.Get("ctype"), qr.Get("t")))
-	wsTime := strconv.FormatInt(time.Now().Add(6*time.Hour).Unix(), 16)
+	resultTemplate := template.Must(template.New("urlQuery").Parse(
+		"wsSecret={{.WsSecret}}" +
+			"&wsTime={{.WsTime}}" +
+			"&seqid={{.Seqid}}" +
+			"&ctype={{.Ctype}}" +
+			"&ver={{.Ver}}" +
+			"&fs={{.Fs}}" +
+			"&u={{.U}}" +
+			"&t={{.T}}" +
+			"&sv={{.Sv}}" +
+			"&sdk_sid={{.Sdk_sid}}" +
+			"&codec={{.Codec}}",
+	))
+	timeNow := time.Now().Unix() * 1000
+	resultParams := urlQueryParams{
+		WsSecret: "",
+		WsTime:   qr.Get("wsTime"),
+		Seqid:    strconv.FormatInt(timeNow+uid, 10),
+		Ctype:    qr.Get("ctype"),
+		Ver:      "1",
+		Fs:       qr.Get("fs"),
+		U:        strconv.FormatInt(uid, 10),
+		T:        "100",
+		Sv:       "2405220949",
+		Sdk_sid:  strconv.FormatInt(uid, 10),
+		Codec:    "264",
+	}
+	ss := GetMD5Hash(fmt.Sprintf("%s|%s|%s", resultParams.Seqid, resultParams.Ctype, resultParams.T))
 
 	decodeString, _ := base64.StdEncoding.DecodeString(qr.Get("fm"))
 	fm := string(decodeString)
-	fm = strings.ReplaceAll(fm, "$0", qr.Get("uid"))
+	fm = strings.ReplaceAll(fm, "$0", resultParams.U)
 	fm = strings.ReplaceAll(fm, "$1", streamName)
 	fm = strings.ReplaceAll(fm, "$2", ss)
-	fm = strings.ReplaceAll(fm, "$3", wsTime)
+	fm = strings.ReplaceAll(fm, "$3", resultParams.WsTime)
 
-	qr.Set("wsSecret", GetMD5Hash(fm))
-	qr.Set("ratio", "0")
-	qr.Set("wsTime", wsTime)
-	return qr.Encode(), nil
+	resultParams.WsSecret = GetMD5Hash(fm)
+	var buf bytes.Buffer
+	if err := resultTemplate.Execute(&buf, resultParams); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	roomId := strings.Split(strings.Split(l.Url.Path, "/")[1], "?")[0]
-	mobileUrl := fmt.Sprintf("https://m.huya.com/%s", roomId)
-	resp, err := requests.Get(mobileUrl, requests.UserAgent(userAgent))
+	resp, err := requests.Get(l.Url.String(), requests.UserAgent(userAgent))
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, live.ErrRoomNotExist
+		return nil, fmt.Errorf("status code: %d", resp.StatusCode)
 	}
 	body, err := resp.Text()
 	if err != nil {
 		return nil, err
 	}
 
-	tmpStrings := strings.Split(body, `"tLiveInfo":`)
+	tmpStrings := strings.Split(body, `stream: `)
 	if len(tmpStrings) < 2 {
-		return nil, fmt.Errorf("tLiveInfo not found")
+		return nil, fmt.Errorf("stream not found")
 	}
-	liveInfoJsonRawString := strings.Split(tmpStrings[1], `,"_classname":"LiveRoom.LiveInfo"}`)[0] + "}"
-	if !gjson.Valid(liveInfoJsonRawString) {
-		return nil, fmt.Errorf("liveInfoJsonRawString not valid")
+	streamJsonRawString := strings.Split(tmpStrings[1], `};`)[0]
+	if !gjson.Valid(streamJsonRawString) {
+		return nil, fmt.Errorf("streamJsonRawString not valid")
 	}
-	liveInfoJson := gjson.Parse(liveInfoJsonRawString)
+	streamJson := gjson.Parse(streamJsonRawString)
+	vMultiStreamInfoJson := streamJson.Get("vMultiStreamInfo").Array()
+	if len(vMultiStreamInfoJson) == 0 {
+		return nil, fmt.Errorf("vMultiStreamInfo not found")
+	}
 
-	streamInfoJsons := liveInfoJson.Get("tLiveStreamInfo.vStreamInfo.value").Array()
-	if len(streamInfoJsons) == 0 {
-		return nil, fmt.Errorf("streamInfoJsons not found")
-	}
-
-	index := l.lastCdnIndex + 1
+	streamInfoJsons := streamJson.Get("data.0.gameStreamInfoList").Array()
+	index := l.lastCdnIndex
 	if index >= len(streamInfoJsons) {
 		index = 0
 	}
-	l.lastCdnIndex = index
-	gameStreamInfo := streamInfoJsons[index]
+	l.lastCdnIndex = index + 1
+	gameStreamInfoJson := streamInfoJsons[index]
+	return getStreamUrlsFromGameStreamInfoJson(gameStreamInfoJson)
+}
+
+func getStreamUrlsFromGameStreamInfoJson(gameStreamInfoJson gjson.Result) (us []*url.URL, err error) {
 	// get streamName
-	sStreamName := gameStreamInfo.Get("sStreamName").String()
+	sStreamName := gameStreamInfoJson.Get("sStreamName").String()
 	// get sFlvAntiCode
-	sFlvAntiCode := gameStreamInfo.Get("sFlvAntiCode").String()
+	sFlvAntiCode := gameStreamInfoJson.Get("sFlvAntiCode").String()
 	// get sFlvUrl
-	sFlvUrl := gameStreamInfo.Get("sFlvUrl").String()
+	sFlvUrl := gameStreamInfoJson.Get("sFlvUrl").String()
 	// get random uid
-	uid := rand.Int63n(99999999999) + 1400000000000
+	uid := rand.Int63n(99999999999) + 1200000000000
 
 	query, err := parseAntiCode(sFlvAntiCode, uid, sStreamName)
 	if err != nil {
 		return nil, err
 	}
-	u, err := url.Parse(fmt.Sprintf("%s/%s.flv?%s", sFlvUrl, sStreamName, query))
+	tmpUrlString := fmt.Sprintf("%s/%s.flv?%s", sFlvUrl, sStreamName, query)
+	u, err := url.Parse(tmpUrlString)
 	if err != nil {
 		return nil, err
 	}
