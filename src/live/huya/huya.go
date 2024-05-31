@@ -174,9 +174,13 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 
 	tmpStrings := strings.Split(body, `stream: `)
 	if len(tmpStrings) < 2 {
-		return nil, fmt.Errorf("stream not found")
+		return nil, fmt.Errorf("stream json info not found")
 	}
-	streamJsonRawString := strings.Split(tmpStrings[1], `};`)[0]
+	tmpStreamJsonRawString := strings.Split(tmpStrings[1], `};`)
+	if len(tmpStreamJsonRawString) < 1 {
+		return nil, fmt.Errorf("stream json info end not found. stream text: %s", tmpStrings[1])
+	}
+	streamJsonRawString := tmpStreamJsonRawString[0]
 	if !gjson.Valid(streamJsonRawString) {
 		return nil, fmt.Errorf("streamJsonRawString not valid")
 	}
