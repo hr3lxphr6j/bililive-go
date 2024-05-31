@@ -393,7 +393,11 @@ func (l *Live) legacy_GetInfo(body string) (info *live.Info, err error) {
 	if statusJson.Exists() {
 		isLiving = statusJson.Int() == 2
 	} else {
-		isLiving = data.Get("data.room_status").Int() == 0
+		isLivingJson := data.Get("data.room_status")
+		if !isLivingJson.Exists() {
+			return nil, fmt.Errorf("failed to get room status")
+		}
+		isLiving = isLivingJson.Int() == 0
 	}
 	info = &live.Info{
 		Live:     l,
