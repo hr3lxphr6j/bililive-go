@@ -191,6 +191,9 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 
 	streamInfoJsons := streamJson.Get("data.0.gameStreamInfoList").Array()
+	if len(streamInfoJsons) == 0 {
+		return nil, fmt.Errorf("gameStreamInfoList not found")
+	}
 	index := l.lastCdnIndex
 	if index >= len(streamInfoJsons) {
 		index = 0
