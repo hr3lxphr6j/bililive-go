@@ -38,8 +38,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const issue = context.issue;
-            const body = context.payload.issue.body;
+            const body = github.event.issue.body;
             const versionRegex = /### 程序版本\s*(.+)\s*### 所使用的/;
             const versionMatch = body.match(versionRegex);
             let closeReasons = [];
@@ -47,14 +46,16 @@ jobs:
               closeReasons.push('请填入有效的程序版本。');
             }
             if (closeReasons.length > 0) {
-              const newComment = context.issue({
-                body: `Issue 未通过验证：\n${closeReasons.join('\n')}`
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `Issue 未通过验证：\n${closeReasons.join('\n')}`,
               });
-              await github.issues.createComment(newComment);
-              await github.issues.update({
-                owner: issue.owner,
-                repo: issue.repo,
-                issue_number: issue.number,
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
                 state: 'closed'
               });
             }
