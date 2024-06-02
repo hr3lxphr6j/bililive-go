@@ -1,0 +1,14 @@
+name: 'Close stale issues'
+on:
+  schedule:
+    - cron: '30 1 * * *'
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          stale-issue-message: 'This issue has been automatically closed due to inactivity. Please feel free to reopen it if you are still facing this issue.'
+          stale-issue-label: 'no-issue-activity'
+          only-labels: 'awaiting-feedback'

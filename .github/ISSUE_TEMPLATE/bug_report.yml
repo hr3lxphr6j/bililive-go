@@ -13,7 +13,7 @@ body:
   - type: textarea
     id: config
     validations:
-      required: false
+      required: true
     attributes:
       label: 所使用的 config 文件的内容
       placeholder: 如果启动时没有使用 config，则此项留空
@@ -23,7 +23,7 @@ body:
   - type: textarea
     id: log
     validations:
-      required: false
+      required: true
     attributes:
       label: 程序 log
       description: 错误发生前后程序输出的错误信息。
@@ -31,7 +31,7 @@ body:
   - type: textarea
     id: content
     validations:
-      required: false
+      required: true
     attributes:
       label: 自由描述
       description: 详细介绍您所遇到的问题。

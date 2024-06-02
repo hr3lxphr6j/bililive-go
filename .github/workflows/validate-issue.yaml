@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Check if issue is labeled within one minute
         id: check-time
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           script: |
             const issue = context.issue;
@@ -26,34 +26,25 @@ jobs:
       - name: Check if issue is labeled as bug or question
         id: check-label
         if: steps.check-time.outputs.result == 'true'
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           script: |
-            const issue = context.issue;
-            const labels = issue.labels.map(label => label.name);
+            const labels = github.event.issue.labels;
             const isBugOrQuestion = labels.includes('bug') || labels.includes('question');
             core.setOutput('isBugOrQuestion', isBugOrQuestion);
 
       - name: Validate issues
-        if: steps.check-label.outputs.isBugOrQuestion
-        uses: actions/github-script@v5
+        if: steps.check-label.outputs.isBugOrQuestion == 'true'
+        uses: actions/github-script@v6
         with:
           script: |
             const issue = context.issue;
             const body = context.payload.issue.body;
             const versionRegex = /### 程序版本\s*(.+)\s*### 所使用的/;
-            const configRegex = /### 所使用的 config 文件的内容\s*(.+)\s*### 程序 log/;
-            const logRegex = /### 程序 log\s*(.+)\s*### 自由描述/;
             const versionMatch = body.match(versionRegex);
-            const configMatch = body.match(configRegex);
-            const logMatch = body.match(logRegex);
             let closeReasons = [];
             if (!versionMatch || !versionMatch[1].match(/\d+/)) {
               closeReasons.push('请填入有效的程序版本。');
-            } else if (!configMatch || configMatch[1] === '_No response_') {
-              closeReasons.push('请填入有效的conifg内容。');
-            } else if (!logMatch || logMatch[1] === '_No response_') {
-              closeReasons.push('请填入有效的log内容。');
             }
             if (closeReasons.length > 0) {
               const newComment = context.issue({
