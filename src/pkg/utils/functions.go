@@ -9,8 +9,8 @@ import (
 
 func getFunctionList(config *configs.Config) map[string]interface{} {
 	filenameFilters := []StringFilter{
-		ReplaceIllegalChar,
 		UnescapeHTMLEntity,
+		ReplaceIllegalChar,
 	}
 	if config.Feature.RemoveSymbolOtherCharacter {
 		filenameFilters = append(filenameFilters, RemoveSymbolOtherChar)
