@@ -73,12 +73,6 @@ Bililive-go是一个支持多种直播平台的直播录制工具
         <td></td>
     </tr>
     <tr align="center">
-        <td>twitch</td>
-        <td>www.twitch.tv</td>
-        <td>TODO</td>
-        <td></td>
-    </tr>
-    <tr align="center">
         <td>OPENREC</td>
         <td>www.openrec.tv</td>
         <td>滋瓷</td>
@@ -119,12 +113,6 @@ Bililive-go是一个支持多种直播平台的直播录制工具
         <td>www.hongdoufm.com</td>
         <td>滋瓷</td>
         <td></td>
-    </tr>
-    <tr align="center">
-        <td>快手</td>
-        <td>live.kuaishou.com</td>
-        <td>滋瓷(不稳定)</td>
-        <td>滋瓷</td>
     </tr>
     <tr align="center">
         <td>YY直播</td>
