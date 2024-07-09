@@ -11,7 +11,6 @@ import (
 	"github.com/tidwall/gjson"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 const (
@@ -39,7 +38,22 @@ type Live struct {
 }
 
 func (l *Live) getDate() (result *gjson.Result, err error) {
-	roomId := strings.Trim(l.Url.Path, "/")
+	html, err := requests.Get(l.Url.String(), live.CommonUserAgent)
+	if err != nil {
+		return nil, err
+	}
+	if html.StatusCode != http.StatusOK {
+		return nil, live.ErrRoomNotExist
+	}
+	htmlBody, err := html.Text()
+	if err != nil {
+		return nil, err
+	}
+	strFilter := utils.NewStringFilterChain(utils.ParseUnicode, utils.UnescapeHTMLEntity)
+	rjson := strFilter.Do(utils.Match1(`stream: (\{"data".*?),"iWebDefaultBitRate"`, htmlBody)) + "}"
+	gj := gjson.Parse(rjson)
+
+	roomId := gj.Get("data.0.gameLiveInfo.profileRoom").String()
 	params := make(map[string]string)
 	params["m"] = "Live"
 	params["do"] = "profileRoom"
