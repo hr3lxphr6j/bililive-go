@@ -4,20 +4,21 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
+
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
-	"net/http"
-	"net/url"
 )
 
 const (
-	domain    = "www.huya.com"
-	cnName    = "虎牙"
-	userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-	uaApp     = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.49(0x18003137) NetType/WIFI Language/zh_CN WeChat/8.0.49.33 CFNetwork/1474 Darwin/23.0.0"
+	domain = "www.huya.com"
+	cnName = "虎牙"
+	uaApp  = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.49(0x18003137) NetType/WIFI Language/zh_CN WeChat/8.0.49.33 CFNetwork/1474 Darwin/23.0.0"
 )
 
 func init() {
@@ -34,21 +35,22 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 
 type Live struct {
 	internal.BaseLive
-	lastCdnIndex int
 }
 
-func (l *Live) getDate() (result *gjson.Result, err error) {
+func (l *Live) GetHtmlBody() (htmlBody string, err error) {
 	html, err := requests.Get(l.Url.String(), live.CommonUserAgent)
 	if err != nil {
-		return nil, err
+		return
 	}
 	if html.StatusCode != http.StatusOK {
-		return nil, live.ErrRoomNotExist
+		err = fmt.Errorf("status code: %d", html.StatusCode)
+		return
 	}
-	htmlBody, err := html.Text()
-	if err != nil {
-		return nil, err
-	}
+	htmlBody, err = html.Text()
+	return
+}
+
+func (l *Live) getDate(htmlBody string) (result *gjson.Result, err error) {
 	strFilter := utils.NewStringFilterChain(utils.ParseUnicode, utils.UnescapeHTMLEntity)
 	rjson := strFilter.Do(utils.Match1(`stream: (\{"data".*?),"iWebDefaultBitRate"`, htmlBody)) + "}"
 	gj := gjson.Parse(rjson)
@@ -81,22 +83,32 @@ func (l *Live) getDate() (result *gjson.Result, err error) {
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
-	res, err := l.getDate()
+	body, err := l.GetHtmlBody()
 	if err != nil {
 		return nil, err
 	}
-	if res := utils.Match1("该主播不存在！", res.String()); res != "" {
+
+	if res := utils.Match1("哎呀，虎牙君找不到这个主播，要不搜索看看？", body); res != "" {
 		return nil, live.ErrRoomNotExist
 	}
 
-	//if strings.Contains(body, "该主播涉嫌违规，正在整改中") {
-	//	return &live.Info{
-	//		Live:     l,
-	//		HostName: "该主播涉嫌违规，正在整改中",
-	//		RoomName: "该主播涉嫌违规，正在整改中",
-	//		Status:   false,
-	//	}, nil
-	//}
+	if strings.Contains(body, "该主播涉嫌违规，正在整改中") {
+		return &live.Info{
+			Live:     l,
+			HostName: "该主播涉嫌违规，正在整改中",
+			RoomName: "该主播涉嫌违规，正在整改中",
+			Status:   false,
+		}, nil
+	}
+
+	res, err := l.getDate(body)
+	if err != nil {
+		return nil, err
+	}
+
+	if res := utils.Match1("该主播不存在！", res.String()); res != "" {
+		return nil, live.ErrRoomNotExist
+	}
 
 	var (
 		hostName = res.Get("data.liveData.nick").String()
@@ -123,7 +135,12 @@ func GetMD5Hash(text string) string {
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	data, err := l.getDate()
+	body, err := l.GetHtmlBody()
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := l.getDate(body)
 	if err != nil {
 		return nil, err
 	}
