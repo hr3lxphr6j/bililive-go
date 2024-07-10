@@ -203,7 +203,7 @@ func (p *Parser) Stop() (err error) {
 	p.closeOnce.Do(func() {
 		p.cmdLock.Lock()
 		defer p.cmdLock.Unlock()
-		if p.cmd.ProcessState == nil {
+		if p.cmd != nil && p.cmd.ProcessState == nil {
 			if p.cmdStdIn != nil && p.cmd.Process != nil {
 				if _, err = p.cmdStdIn.Write([]byte("q")); err != nil {
 					err = fmt.Errorf("error sending stop command to ffmpeg: %v", err)
