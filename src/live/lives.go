@@ -113,15 +113,12 @@ type Live interface {
 	GetLiveId() ID
 	GetRawUrl() string
 	GetInfo() (*Info, error)
+	// Deprecated: GetStreamUrls is deprecated, using GetStreamInfos instead
+	GetStreamUrls() ([]*url.URL, error)
 	GetStreamInfos() ([]*StreamUrlInfo, error)
 	GetPlatformCNName() string
 	GetLastStartTime() time.Time
 	SetLastStartTime(time.Time)
-}
-
-type HasGetStreamUrls interface {
-	// Deprecated: GetStreamUrls is deprecated, using GetStreamInfos instead
-	GetStreamUrls() ([]*url.URL, error)
 }
 
 type WrappedLive struct {
