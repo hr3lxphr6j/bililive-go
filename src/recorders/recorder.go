@@ -103,9 +103,34 @@ func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 	}, nil
 }
 
+func getStreamInfosForDeprecatedImpl(l live.HasGetStreamUrls) ([]*live.StreamUrlInfo, error) {
+	urls, err := l.GetStreamUrls()
+	if err != nil {
+		return nil, err
+	}
+	infos := make([]*live.StreamUrlInfo, 0, len(urls))
+	for _, u := range urls {
+		infos = append(infos, &live.StreamUrlInfo{
+			Url:                  u,
+			Name:                 "",
+			Description:          "",
+			Resolution:           0,
+			Vbitrate:             0,
+			HeadersForDownloader: make(map[string]string),
+		})
+	}
+	return infos, nil
+}
+
 func (r *recorder) tryRecord(ctx context.Context) {
-	urls, err := r.Live.GetStreamUrls()
-	if err != nil || len(urls) == 0 {
+	var streamInfos []*live.StreamUrlInfo
+	var err error
+	if l, ok := r.Live.(live.HasGetStreamUrls); ok {
+		streamInfos, err = getStreamInfosForDeprecatedImpl(l)
+	} else {
+		streamInfos, err = r.Live.GetStreamInfos()
+	}
+	if err != nil || len(streamInfos) == 0 {
 		r.getLogger().WithError(err).Warn("failed to get stream url, will retry after 5s...")
 		time.Sleep(5 * time.Second)
 		return
@@ -128,7 +153,8 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	}
 	fileName := filepath.Join(r.OutPutPath, buf.String())
 	outputPath, _ := filepath.Split(fileName)
-	url := urls[0]
+	streamInfo := streamInfos[0]
+	url := streamInfo.Url
 
 	if strings.Contains(url.Path, "m3u8") {
 		fileName = fileName[:len(fileName)-4] + ".ts"
@@ -156,7 +182,7 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	r.setAndCloseParser(p)
 	r.startTime = time.Now()
 	r.getLogger().Debugln("Start ParseLiveStream(" + url.String() + ", " + fileName + ")")
-	r.getLogger().Println(r.parser.ParseLiveStream(ctx, url, r.Live, fileName))
+	r.getLogger().Println(r.parser.ParseLiveStream(ctx, streamInfo, r.Live, fileName))
 	r.getLogger().Debugln("End ParseLiveStream(" + url.String() + ", " + fileName + ")")
 	removeEmptyFile(fileName)
 	ffmpegPath, err := utils.GetFFmpegPath(ctx)

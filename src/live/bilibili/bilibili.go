@@ -129,7 +129,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	return info, nil
 }
 
-func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
+func (l *Live) GetStreamInfos() (infos []*live.StreamUrlInfo, err error) {
 	if l.realID == "" {
 		if err := l.parseRealId(); err != nil {
 			return nil, err
@@ -177,7 +177,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	if err != nil {
 		return nil, err
 	}
-	urls := make([]string, 0, 4)
+	urlStrings := make([]string, 0, 4)
 	addr := ""
 
 	if l.Options.Quality == 0 && gjson.GetBytes(body, "data.playurl_info.playurl.stream.1.format.1.codec.#").Int() > 1 {
@@ -190,18 +190,23 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	gjson.GetBytes(body, addr+".url_info").ForEach(func(_, value gjson.Result) bool {
 		hosts := gjson.Get(value.String(), "host").String()
 		queries := gjson.Get(value.String(), "extra").String()
-		urls = append(urls, hosts+baseURL+queries)
+		urlStrings = append(urlStrings, hosts+baseURL+queries)
 		return true
 	})
 
-	return utils.GenUrls(urls...)
+	urls, err := utils.GenUrls(urlStrings...)
+	if err != nil {
+		return nil, err
+	}
+	infos = utils.GenUrlInfos(urls, l.getHeadersForDownloader())
+	return
 }
 
 func (l *Live) GetPlatformCNName() string {
 	return cnName
 }
 
-func (l *Live) GetHeadersForDownloader() map[string]string {
+func (l *Live) getHeadersForDownloader() map[string]string {
 	agent := biliWebAgent
 	referer := l.GetRawUrl()
 	if l.Options.AudioOnly {

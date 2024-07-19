@@ -4,7 +4,6 @@ package parser
 import (
 	"context"
 	"errors"
-	"net/url"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 )
@@ -14,7 +13,7 @@ type Builder interface {
 }
 
 type Parser interface {
-	ParseLiveStream(ctx context.Context, url *url.URL, live live.Live, file string) error
+	ParseLiveStream(ctx context.Context, streamUrlInfo *live.StreamUrlInfo, live live.Live, file string) error
 	Stop() error
 }
 

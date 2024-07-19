@@ -52,6 +52,7 @@ func (a *BaseLive) SetLastStartTime(time time.Time) {
 	a.LastStartTime = time
 }
 
-func (a *BaseLive) GetHeadersForDownloader() map[string]string {
-	return make(map[string]string)
+// TODO: remove this method
+func (a *BaseLive) GetStreamInfos() ([]*live.StreamUrlInfo, error) {
+	return nil, fmt.Errorf("GetStreamInfos() is not implemented")
 }

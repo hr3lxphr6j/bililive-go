@@ -6,7 +6,6 @@ package mock
 
 import (
 	context "context"
-	url "net/url"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -37,7 +36,7 @@ func (m *MockParser) EXPECT() *MockParserMockRecorder {
 }
 
 // ParseLiveStream mocks base method.
-func (m *MockParser) ParseLiveStream(arg0 context.Context, arg1 *url.URL, arg2 live.Live, arg3 string) error {
+func (m *MockParser) ParseLiveStream(arg0 context.Context, arg1 *live.StreamUrlInfo, arg2 live.Live, arg3 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ParseLiveStream", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
