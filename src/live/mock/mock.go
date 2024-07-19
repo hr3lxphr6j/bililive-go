@@ -5,6 +5,7 @@
 package mock
 
 import (
+	url "net/url"
 	reflect "reflect"
 	time "time"
 
@@ -119,6 +120,21 @@ func (m *MockLive) GetStreamInfos() ([]*live.StreamUrlInfo, error) {
 func (mr *MockLiveMockRecorder) GetStreamInfos() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamInfos", reflect.TypeOf((*MockLive)(nil).GetStreamInfos))
+}
+
+// GetStreamUrls mocks base method.
+func (m *MockLive) GetStreamUrls() ([]*url.URL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStreamUrls")
+	ret0, _ := ret[0].([]*url.URL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStreamUrls indicates an expected call of GetStreamUrls.
+func (mr *MockLiveMockRecorder) GetStreamUrls() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamUrls", reflect.TypeOf((*MockLive)(nil).GetStreamUrls))
 }
 
 // SetLastStartTime mocks base method.

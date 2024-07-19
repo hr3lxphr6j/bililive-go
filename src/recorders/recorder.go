@@ -103,32 +103,16 @@ func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 	}, nil
 }
 
-func getStreamInfosForDeprecatedImpl(l live.HasGetStreamUrls) ([]*live.StreamUrlInfo, error) {
-	urls, err := l.GetStreamUrls()
-	if err != nil {
-		return nil, err
-	}
-	infos := make([]*live.StreamUrlInfo, 0, len(urls))
-	for _, u := range urls {
-		infos = append(infos, &live.StreamUrlInfo{
-			Url:                  u,
-			Name:                 "",
-			Description:          "",
-			Resolution:           0,
-			Vbitrate:             0,
-			HeadersForDownloader: make(map[string]string),
-		})
-	}
-	return infos, nil
-}
-
 func (r *recorder) tryRecord(ctx context.Context) {
 	var streamInfos []*live.StreamUrlInfo
 	var err error
-	if l, ok := r.Live.(live.HasGetStreamUrls); ok {
-		streamInfos, err = getStreamInfosForDeprecatedImpl(l)
-	} else {
-		streamInfos, err = r.Live.GetStreamInfos()
+	if streamInfos, err = r.Live.GetStreamInfos(); err == live.ErrNotImplemented {
+		var urls []*url.URL
+		if urls, err = r.Live.GetStreamUrls(); err == live.ErrNotImplemented {
+			panic("GetStreamInfos and GetStreamUrls are not implemented for " + r.Live.GetPlatformCNName())
+		} else if err == nil {
+			streamInfos = utils.GenUrlInfos(urls, make(map[string]string))
+		}
 	}
 	if err != nil || len(streamInfos) == 0 {
 		r.getLogger().WithError(err).Warn("failed to get stream url, will retry after 5s...")

@@ -53,6 +53,11 @@ func (a *BaseLive) SetLastStartTime(time time.Time) {
 }
 
 // TODO: remove this method
+func (a *BaseLive) GetStreamUrls() ([]*url.URL, error) {
+	return nil, live.ErrNotImplemented
+}
+
+// TODO: remove this method
 func (a *BaseLive) GetStreamInfos() ([]*live.StreamUrlInfo, error) {
-	return nil, fmt.Errorf("GetStreamInfos() is not implemented")
+	return nil, live.ErrNotImplemented
 }
