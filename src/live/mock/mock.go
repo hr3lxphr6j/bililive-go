@@ -5,7 +5,6 @@
 package mock
 
 import (
-	url "net/url"
 	reflect "reflect"
 	time "time"
 
@@ -34,20 +33,6 @@ func NewMockLive(ctrl *gomock.Controller) *MockLive {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockLive) EXPECT() *MockLiveMockRecorder {
 	return m.recorder
-}
-
-// GetHeadersForDownloader mocks base method.
-func (m *MockLive) GetHeadersForDownloader() map[string]string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetHeadersForDownloader")
-	ret0, _ := ret[0].(map[string]string)
-	return ret0
-}
-
-// GetHeadersForDownloader indicates an expected call of GetHeadersForDownloader.
-func (mr *MockLiveMockRecorder) GetHeadersForDownloader() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeadersForDownloader", reflect.TypeOf((*MockLive)(nil).GetHeadersForDownloader))
 }
 
 // GetInfo mocks base method.
@@ -121,19 +106,19 @@ func (mr *MockLiveMockRecorder) GetRawUrl() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawUrl", reflect.TypeOf((*MockLive)(nil).GetRawUrl))
 }
 
-// GetStreamUrls mocks base method.
-func (m *MockLive) GetStreamUrls() ([]*url.URL, error) {
+// GetStreamInfos mocks base method.
+func (m *MockLive) GetStreamInfos() ([]*live.StreamUrlInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStreamUrls")
-	ret0, _ := ret[0].([]*url.URL)
+	ret := m.ctrl.Call(m, "GetStreamInfos")
+	ret0, _ := ret[0].([]*live.StreamUrlInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetStreamUrls indicates an expected call of GetStreamUrls.
-func (mr *MockLiveMockRecorder) GetStreamUrls() *gomock.Call {
+// GetStreamInfos indicates an expected call of GetStreamInfos.
+func (mr *MockLiveMockRecorder) GetStreamInfos() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamUrls", reflect.TypeOf((*MockLive)(nil).GetStreamUrls))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamInfos", reflect.TypeOf((*MockLive)(nil).GetStreamInfos))
 }
 
 // SetLastStartTime mocks base method.

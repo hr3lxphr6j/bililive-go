@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
@@ -126,12 +125,13 @@ func (p *Parser) Status() (map[string]string, error) {
 	return <-p.statusResp, nil
 }
 
-func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Live, file string) (err error) {
+func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.StreamUrlInfo, live live.Live, file string) (err error) {
+	url := streamUrlInfo.Url
 	ffmpegPath, err := utils.GetFFmpegPath(ctx)
 	if err != nil {
 		return err
 	}
-	headers := live.GetHeadersForDownloader()
+	headers := streamUrlInfo.HeadersForDownloader
 	ffUserAgent, exists := headers["User-Agent"]
 	if !exists {
 		ffUserAgent = userAgent
@@ -183,7 +183,9 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 			p.cmd.Stderr = os.Stderr
 		}
 		if err = p.cmd.Start(); err != nil {
-			p.cmd.Process.Kill()
+			if p.cmd.Process != nil {
+				p.cmd.Process.Kill()
+			}
 			return
 		}
 	}()

@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
 )
 
 func GetFFmpegPath(ctx context.Context) (string, error) {
@@ -93,6 +94,21 @@ func GenUrls(strs ...string) ([]*url.URL, error) {
 		urls = append(urls, u)
 	}
 	return urls, nil
+}
+
+func GenUrlInfos(urls []*url.URL, headersForDownloader map[string]string) []*live.StreamUrlInfo {
+	infos := make([]*live.StreamUrlInfo, 0, len(urls))
+	for _, u := range urls {
+		infos = append(infos, &live.StreamUrlInfo{
+			Url:                  u,
+			Name:                 "",
+			Description:          "",
+			Resolution:           0,
+			Vbitrate:             0,
+			HeadersForDownloader: headersForDownloader,
+		})
+	}
+	return infos
 }
 
 func PrintStack(ctx context.Context) {
