@@ -17,6 +17,7 @@ import (
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/missevan"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/openrec"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/qq"
+	_ "github.com/hr3lxphr6j/bililive-go/src/live/stripchat"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/system"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/twitch"
 	_ "github.com/hr3lxphr6j/bililive-go/src/live/weibolive"
