@@ -1,8 +1,11 @@
 name: Release
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - master
+
+    # tags:
+      # - 'v*'
 jobs:
   release-bins:
     runs-on: ubuntu-latest
