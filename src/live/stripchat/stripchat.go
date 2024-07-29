@@ -34,34 +34,36 @@ func get_modelId(modleName string) string {
 	// 处理响应
 	if len(errs) > 0 {
 		fmt.Println("请求出错:", errs)
-		return ""
+		return "false"
 	} else {
-		// fmt.Println("成功获取modelId", resp.StatusCode)
 		// 解析 JSON 响应
-		modelId := gjson.Get(body, "messages.0.modelId").String()
-		return modelId
+		if (len(gjson.Get(body, "messages").String())) > 2 {
+			modelId := gjson.Get(body, "messages.0.modelId").String()
+			return modelId
+		} else {
+			return "false"
+		}
 	}
 }
 
 func get_M3u8(modelId string) string {
+	// fmt.Println(modelId)
 	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
 	request := gorequest.New()
-	_, body, errs := request.Get(url).End()
+	resp, body, errs := request.Get(url).End()
 
-	if len(errs) > 0 {
-		// fmt.Println("请求出错:", errs)
-		return ""
+	if len(errs) > 0 || resp.StatusCode == 404 || modelId == "false" {
+		return "false"
 	} else {
 		// fmt.Println((body))
 		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d]+\.m3u8\?playlistType=lowLatency)`)
-
-		// 查找匹配的字符串
 		matches := re.FindString(body)
 		return matches
 	}
 }
 
 func main() {
-	m3u8 := get_M3u8(get_modelId("Lucky-is-lucky"))
+	// m3u8 := get_M3u8(get_modelId("Sakura_Anne"))
+	m3u8 := get_M3u8(get_modelId("Lucky-uu"))
 	fmt.Println(m3u8)
 }
