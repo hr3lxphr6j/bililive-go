@@ -17,6 +17,8 @@ require (
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/lthibault/jitterbug v2.0.0+incompatible
 	github.com/mitchellh/copystructure v1.0.0 // indirect
+	github.com/moul/http2curl v1.0.0 // indirect
+	github.com/parnurzeal/gorequest v0.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.11.0
 	github.com/robertkrimen/otto v0.0.0-20191219234010-c382bd3c16ff
