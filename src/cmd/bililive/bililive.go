@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/bluele/gcache"
+	"github.com/robfig/cron/v3"
 
 	_ "github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal/flag"
@@ -139,6 +140,8 @@ func main() {
 		logger.Fatalf("failed to init metrics collector, error: %s", err)
 	}
 
+	cron := cron.New()
+
 	for _, _live := range inst.Lives {
 		room, err := inst.Config.GetLiveRoomByUrl(_live.GetRawUrl())
 		if err != nil {
@@ -150,8 +153,32 @@ func main() {
 				logger.WithFields(map[string]interface{}{"url": _live.GetRawUrl()}).Error(err)
 			}
 		}
+		if room.StartTime != "" {
+			_, err := cron.AddFunc(room.StartTime, func() {
+				if err := lm.AddListener(ctx, _live); err != nil {
+					logger.WithFields(map[string]interface{}{"url": _live.GetRawUrl()}).Error(err)
+				}
+			})
+			if err != nil {
+				logger.Errorf("invalid start time format of %s, error: %s", _live.GetRawUrl(), err)
+			}
+		}
+		fmt.Println("room.PauseTime", room.PauseTime)
+		if room.PauseTime != "" {
+			_, err := cron.AddFunc(room.PauseTime, func() {
+				if err := lm.RemoveListener(ctx, _live.GetLiveId()); err != nil {
+					logger.WithFields(map[string]interface{}{"url": _live.GetRawUrl()}).Error(err)
+				}
+			})
+			if err != nil {
+				logger.Errorf("invalid pause time format of %s, error: %s", _live.GetRawUrl(), err)
+			}
+		}
 		time.Sleep(time.Second * 5)
 	}
+
+	cron.Start()
+	defer cron.Stop()
 
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)

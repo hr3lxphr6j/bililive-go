@@ -19,8 +19,20 @@ live_rooms:
 - url: https://www.lang.live/room/5664344
   is_listening: false
 - url: https://live.bilibili.com/22603245
-  is_listening: true
-  quality: 0 
+  is_listening: false
+  quality: 0
+  audio_only: false
+  start_time: 38 22 * * *
+  pause_time: 39 23 * * *
+  #在定时任务中, 两个参数分别代表开始监听和暂停监听的时间, 遵循通用的cron规则, 如下:
+  # *    *    *    *    *
+  # -    -    -    -    -
+  # |    |    |    |    |
+  # |    |    |    |    +----- 星期中星期几 (0 - 6) (星期天 为0)
+  # |    |    |    +---------- 月份 (1 - 12) 
+  # |    |    +--------------- 一个月中的第几天 (1 - 31)
+  # |    +-------------------- 小时 (0 - 23)
+  # +------------------------- 分钟 (0 - 59)
 out_put_tmpl: ""
 video_split_strategies:
   on_room_name_changed: false
