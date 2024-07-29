@@ -53,20 +53,15 @@ func get_M3u8(modelId string) string {
 		return ""
 	} else {
 		// fmt.Println((body))
-		return body
+		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d]+\.m3u8\?playlistType=lowLatency)`)
+
+		// 查找匹配的字符串
+		matches := re.FindString(body)
+		return matches
 	}
 }
 
 func main() {
-	m3u8_old := get_M3u8(get_modelId("Lucky-is-lucky"))
-	// 定义正则表达式
-	re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d]+\.m3u8\?playlistType=lowLatency)`)
-
-	// 查找匹配的字符串
-	matches := re.FindString(m3u8_old)
-
-	// 输出匹配的结果
-
-	fmt.Println(matches)
-
+	m3u8 := get_M3u8(get_modelId("Lucky-is-lucky"))
+	fmt.Println(m3u8)
 }
