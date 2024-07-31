@@ -108,8 +108,8 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	if (modelID == "OffLine") || (m3u8 == "false") {
 		info = &live.Info{
 			Live:     l,
-			HostName: modelID,
-			RoomName: modelName,
+			RoomName: modelID,
+			HostName: modelName,
 			Status:   false,
 		}
 		return info, nil
@@ -117,8 +117,8 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	if m3u8 != "false" {
 		info = &live.Info{
 			Live:     l,
-			HostName: modelID,
-			RoomName: modelName,
+			RoomName: modelID,
+			HostName: modelName,
 			Status:   true,
 		}
 		return info, nil
