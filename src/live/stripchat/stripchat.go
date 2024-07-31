@@ -105,7 +105,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	if modelID == "false" {
 		return nil, live.ErrRoomNotExist
 	}
-	if (modelID == "OffLine") && (m3u8 == "false") {
+	if (modelID == "OffLine") || (m3u8 == "false") {
 		info = &live.Info{
 			Live:     l,
 			HostName: modelID,
