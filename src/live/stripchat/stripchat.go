@@ -57,7 +57,7 @@ func get_M3u8(modelId string) string {
 	request := gorequest.New()
 	resp, body, errs := request.Get(url).End()
 
-	if len(errs) > 0 || resp.StatusCode != 200 || modelId == "false" {
+	if len(errs) > 0 || modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 {
 		return "false"
 	} else {
 		// fmt.Println((body))
