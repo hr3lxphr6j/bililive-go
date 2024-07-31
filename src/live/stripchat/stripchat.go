@@ -46,7 +46,7 @@ func get_modelId(modleName string) string {
 			modelId := gjson.Get(body, "messages.0.modelId").String()
 			return modelId
 		} else {
-			return "false"
+			return "OffLine"
 		}
 	}
 }
@@ -99,29 +99,31 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 func (l *Live) GetInfo() (info *live.Info, err error) {
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	ModelName := get_modelId(modelName)
-	m3u8 := get_M3u8(ModelName)
+	modelID := get_modelId(modelName)
+	m3u8 := get_M3u8(modelID)
 
-	if ModelName == "false" {
+	if modelID == "false" {
 		return nil, live.ErrRoomNotExist
 	}
-	if m3u8 == "false" {
+	if (modelID == "OffLine") && (m3u8 == "false") {
 		info = &live.Info{
 			Live:     l,
-			HostName: modelName,
+			HostName: modelID,
 			RoomName: modelName,
 			Status:   false,
 		}
+		return info, nil
 	}
 	if m3u8 != "false" {
 		info = &live.Info{
 			Live:     l,
-			HostName: modelName,
+			HostName: modelID,
 			RoomName: modelName,
 			Status:   true,
 		}
+		return info, nil
 	}
-	return info, nil
+	return info, live.ErrRoomUrlIncorrect
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
