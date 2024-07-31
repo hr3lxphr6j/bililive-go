@@ -1,9 +1,14 @@
-package main
+package stripchat
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
+	"strings"
 
+	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/parnurzeal/gorequest"
 	"github.com/tidwall/gjson"
 )
@@ -62,8 +67,63 @@ func get_M3u8(modelId string) string {
 	}
 }
 
-func main() {
-	// m3u8 := get_M3u8(get_modelId("Sakura_Anne"))
-	m3u8 := get_M3u8(get_modelId("Lucky-uu"))
-	fmt.Println(m3u8)
+// func main() {
+// 	// m3u8 := get_M3u8(get_modelId("Sakura_Anne"))
+// 	m3u8 := get_M3u8(get_modelId("Lucky-uu"))
+// 	fmt.Println(m3u8)
+// }
+
+const (
+	domain = "zh.stripchat.com"
+	cnName = "stripchat"
+)
+
+type Live struct {
+	internal.BaseLive
+}
+
+func init() {
+	live.Register(domain, new(builder))
+}
+
+type builder struct{}
+
+func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
+	return &Live{
+		BaseLive: internal.NewBaseLive(url, opt...),
+	}, nil
+}
+
+func (l *Live) GetInfo() (info *live.Info, err error) {
+	modeName := strings.Split(l.Url.String(), "/")
+	modelName := modeName[len(modeName)-1]
+	m3u8 := get_M3u8(get_modelId(modelName))
+
+	if m3u8 == "false" {
+		return nil, live.ErrRoomNotExist
+	}
+	if m3u8 != "false" {
+		info = &live.Info{
+			Live:     l,
+			HostName: modelName,
+			RoomName: modelName,
+			Status:   true,
+		}
+	}
+	return info, nil
+}
+
+func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
+	// modeName := regexp.MustCompile(`stripchat.com\/(\w|-)+`).FindString(l.Url.String())
+	modeName := strings.Split(l.Url.String(), "/")
+	modelName := modeName[len(modeName)-1]
+	m3u8 := get_M3u8(get_modelId(modelName))
+	if m3u8 == "false" {
+		return nil, err //live.ErrRoomNotExist
+	}
+	return utils.GenUrls(m3u8)
+}
+
+func (l *Live) GetPlatformCNName() string {
+	return cnName
 }
