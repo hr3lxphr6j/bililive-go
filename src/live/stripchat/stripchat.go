@@ -57,7 +57,7 @@ func get_M3u8(modelId string) string {
 	request := gorequest.New()
 	resp, body, errs := request.Get(url).End()
 
-	if len(errs) > 0 || resp.StatusCode == 404 || modelId == "false" {
+	if len(errs) > 0 || resp.StatusCode != 200 || modelId == "false" {
 		return "false"
 	} else {
 		// fmt.Println((body))
@@ -130,8 +130,9 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	// modeName := regexp.MustCompile(`stripchat.com\/(\w|-)+`).FindString(l.Url.String())
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	m3u8 := get_M3u8(get_modelId(modelName))
-	if m3u8 == "false" {
+	modelID := get_modelId(modelName)
+	m3u8 := get_M3u8(modelID)
+	if modelID == "false" || modelID == "OffLine" || m3u8 == "false" {
 		return nil, err //live.ErrRoomNotExist
 	}
 	return utils.GenUrls(m3u8)
