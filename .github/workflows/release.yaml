@@ -21,7 +21,9 @@ jobs:
         run: make build-web
       - name: Build go binaries
         run: make release
-      - uses: softprops/action-gh-release@v1
+
+      - name: github release
+        uses: softprops/action-gh-release@v1
         with:
           files: 'bin/*'
           prerelease: ${{ contains(env.GIT_TAG, 'rc') }}
