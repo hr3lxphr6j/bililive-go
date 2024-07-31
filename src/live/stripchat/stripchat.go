@@ -61,7 +61,9 @@ func get_M3u8(modelId string) string {
 		return "false"
 	} else {
 		// fmt.Println((body))
-		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d]+\.m3u8\?playlistType=lowLatency)`)
+		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d]+\.m3u8\?playlistType=lowLatency)`)
+		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
+
 		matches := re.FindString(body)
 		return matches
 	}
@@ -97,10 +99,19 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 func (l *Live) GetInfo() (info *live.Info, err error) {
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	m3u8 := get_M3u8(get_modelId(modelName))
+	ModelName := get_modelId(modelName)
+	m3u8 := get_M3u8(ModelName)
 
-	if m3u8 == "false" {
+	if ModelName == "false" {
 		return nil, live.ErrRoomNotExist
+	}
+	if m3u8 == "false" {
+		info = &live.Info{
+			Live:     l,
+			HostName: modelName,
+			RoomName: modelName,
+			Status:   false,
+		}
 	}
 	if m3u8 != "false" {
 		info = &live.Info{
