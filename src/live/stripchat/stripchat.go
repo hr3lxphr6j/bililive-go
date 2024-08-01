@@ -38,7 +38,7 @@ func get_modelId(modleName string) string {
 
 	// 处理响应
 	if len(errs) > 0 {
-		fmt.Println("请求出错:", errs)
+		fmt.Println("请求modelID出错:", body, errs)
 		return "false"
 	} else {
 		// 解析 JSON 响应
@@ -57,7 +57,7 @@ func get_M3u8(modelId string) string {
 	request := gorequest.New()
 	resp, body, errs := request.Get(url).End()
 
-	if len(errs) > 0 || modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 {
+	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
 		return "false"
 	} else {
 		// fmt.Println((body))
@@ -68,12 +68,6 @@ func get_M3u8(modelId string) string {
 		return matches
 	}
 }
-
-// func main() {
-// 	// m3u8 := get_M3u8(get_modelId("Sakura_Anne"))
-// 	m3u8 := get_M3u8(get_modelId("Lucky-uu"))
-// 	fmt.Println(m3u8)
-// }
 
 const (
 	domain = "zh.stripchat.com"
@@ -103,7 +97,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	m3u8 := get_M3u8(modelID)
 
 	if modelID == "false" {
-		return nil, live.ErrRoomNotExist
+		return nil, live.ErrRoomUrlIncorrect
 	}
 	if (modelID == "OffLine") || (m3u8 == "false") {
 		info = &live.Info{
@@ -123,7 +117,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		}
 		return info, nil
 	}
-	return info, live.ErrRoomUrlIncorrect
+	return info, live.ErrInternalError
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
@@ -132,10 +126,13 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	modelName := modeName[len(modeName)-1]
 	modelID := get_modelId(modelName)
 	m3u8 := get_M3u8(modelID)
+	if m3u8 != "false" {
+		return utils.GenUrls(m3u8)
+	}
 	if modelID == "false" || modelID == "OffLine" || m3u8 == "false" {
 		return nil, err //live.ErrRoomNotExist
 	}
-	return utils.GenUrls(m3u8)
+	return nil, live.ErrInternalError
 }
 
 func (l *Live) GetPlatformCNName() string {
