@@ -121,6 +121,8 @@ func main() {
 		room.LiveId = l.GetLiveId()
 	}
 
+	fmt.Println("\n\nbilililive.go当前代理：", inst.Config.Proxy)
+
 	if inst.Config.RPC.Enable {
 		if err := servers.NewServer(ctx).Start(ctx); err != nil {
 			logger.WithError(err).Fatalf("failed to init server")

@@ -13,11 +13,13 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func get_modelId(modleName string) string {
+func get_modelId(modleName string, daili string) string {
 
-	// modleName := "S-wan"
-	// 创建一个新的 Request 对象
+	fmt.Println("主播名字：", modleName)
 	request := gorequest.New()
+	if daili != "" {
+		request = request.Proxy(daili)
+	}
 
 	// 添加头部信息
 	request.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
@@ -93,7 +95,7 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 func (l *Live) GetInfo() (info *live.Info, err error) {
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	modelID := get_modelId(modelName)
+	modelID := get_modelId(modelName, "http://127.0.0.1:7890")
 	m3u8 := get_M3u8(modelID)
 
 	if modelID == "false" {
@@ -120,11 +122,11 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	return info, live.ErrInternalError
 }
 
-func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
+func (l *Live) GetStreamUrls(daili string) (us []*url.URL, err error) {
 	// modeName := regexp.MustCompile(`stripchat.com\/(\w|-)+`).FindString(l.Url.String())
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	modelID := get_modelId(modelName)
+	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID)
 	if m3u8 != "false" {
 		return utils.GenUrls(m3u8)

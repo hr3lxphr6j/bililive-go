@@ -108,11 +108,20 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	var err error
 	if streamInfos, err = r.Live.GetStreamInfos(); err == live.ErrNotImplemented {
 		var urls []*url.URL
-		if urls, err = r.Live.GetStreamUrls(); err == live.ErrNotImplemented {
-			panic("GetStreamInfos and GetStreamUrls are not implemented for " + r.Live.GetPlatformCNName())
-		} else if err == nil {
-			streamInfos = utils.GenUrlInfos(urls, make(map[string]string))
+		if r.Live.GetPlatformCNName() == "stripchat" {
+			if urls, err = r.Live.GetStreamUrls(r.config.Proxy); err == live.ErrNotImplemented {
+				panic("GetStreamInfos and GetStreamUrls are not implemented for " + r.Live.GetPlatformCNName())
+			} else if err == nil {
+				streamInfos = utils.GenUrlInfos(urls, make(map[string]string))
+			}
+		} else {
+			if urls, err = r.Live.GetStreamUrls(); err == live.ErrNotImplemented {
+				panic("GetStreamInfos and GetStreamUrls are not implemented for " + r.Live.GetPlatformCNName())
+			} else if err == nil {
+				streamInfos = utils.GenUrlInfos(urls, make(map[string]string))
+			}
 		}
+
 	}
 	if err != nil || len(streamInfos) == 0 {
 		r.getLogger().WithError(err).Warn("failed to get stream url, will retry after 5s...")
