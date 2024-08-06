@@ -8,8 +8,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/WLaoDuo/bililive-go/src/instance"
-	"github.com/WLaoDuo/bililive-go/src/webapp"
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"github.com/hr3lxphr6j/bililive-go/src/webapp"
 )
 
 const (
@@ -79,12 +79,12 @@ func initMux(ctx context.Context) *mux.Router {
 }
 
 func CORSMiddleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		h.ServeHTTP(w, r)
-	})
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+        w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+        h.ServeHTTP(w, r)
+    })
 }
 
 func NewServer(ctx context.Context) *Server {

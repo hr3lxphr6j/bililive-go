@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/WLaoDuo/bililive-go/src/live"
-	"github.com/WLaoDuo/bililive-go/src/live/internal"
-	"github.com/WLaoDuo/bililive-go/src/pkg/utils"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/parnurzeal/gorequest"
 	"github.com/tidwall/gjson"
 )

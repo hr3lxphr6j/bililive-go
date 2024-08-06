@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/WLaoDuo/bililive-go/src/configs"
-	"github.com/WLaoDuo/bililive-go/src/instance"
-	"github.com/WLaoDuo/bililive-go/src/interfaces"
-	"github.com/WLaoDuo/bililive-go/src/listeners"
-	"github.com/WLaoDuo/bililive-go/src/live"
-	"github.com/WLaoDuo/bililive-go/src/pkg/events"
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
+	"github.com/hr3lxphr6j/bililive-go/src/listeners"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
 )
 
 func NewManager(ctx context.Context) Manager {

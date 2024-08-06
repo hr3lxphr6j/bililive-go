@@ -2,14 +2,13 @@ package xiaohongshu
 
 import (
 	"fmt"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
+	"github.com/hr3lxphr6j/requests"
+	"github.com/tidwall/gjson"
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/WLaoDuo/bililive-go/src/live"
-	"github.com/WLaoDuo/bililive-go/src/live/internal"
-	"github.com/hr3lxphr6j/requests"
-	"github.com/tidwall/gjson"
 )
 
 const (

@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	live "github.com/WLaoDuo/bililive-go/src/live"
+	live "github.com/hr3lxphr6j/bililive-go/src/live"
 )
 
 // MockParser is a mock of Parser interface.

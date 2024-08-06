@@ -1,18 +1,18 @@
 package weibolive
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
+	"regexp"
+	"fmt"
 
-	"github.com/WLaoDuo/bililive-go/src/pkg/utils"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
 
-	"github.com/WLaoDuo/bililive-go/src/live"
-	"github.com/WLaoDuo/bililive-go/src/live/internal"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 )
 
 const (
@@ -87,7 +87,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 
 	streamurl := gjson.GetBytes(body, "data.live_origin_flv_url").String()
-	queryParams := l.Url.Query()
+    queryParams := l.Url.Query()
 	quality := queryParams.Get("q")
 	if quality != "" {
 		targetQuality := "_wb" + quality + "avc.flv"
@@ -99,7 +99,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		}
 		fmt.Println("weibo stream quality fixed: " + streamurl)
 	}
-
+	
 	return utils.GenUrls(streamurl)
 }
 

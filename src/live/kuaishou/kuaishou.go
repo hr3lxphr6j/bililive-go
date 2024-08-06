@@ -2,15 +2,14 @@ package kuaishou
 
 import (
 	"fmt"
+	"github.com/hr3lxphr6j/requests"
+	"github.com/tidwall/gjson"
 	"net/http"
 	"net/url"
 
-	"github.com/hr3lxphr6j/requests"
-	"github.com/tidwall/gjson"
-
-	"github.com/WLaoDuo/bililive-go/src/live"
-	"github.com/WLaoDuo/bililive-go/src/live/internal"
-	"github.com/WLaoDuo/bililive-go/src/pkg/utils"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
 const (

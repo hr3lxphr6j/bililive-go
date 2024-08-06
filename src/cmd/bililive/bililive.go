@@ -12,19 +12,19 @@ import (
 
 	"github.com/bluele/gcache"
 
-	_ "github.com/WLaoDuo/bililive-go/src/cmd/bililive/internal"
-	"github.com/WLaoDuo/bililive-go/src/cmd/bililive/internal/flag"
-	"github.com/WLaoDuo/bililive-go/src/configs"
-	"github.com/WLaoDuo/bililive-go/src/consts"
-	"github.com/WLaoDuo/bililive-go/src/instance"
-	"github.com/WLaoDuo/bililive-go/src/listeners"
-	"github.com/WLaoDuo/bililive-go/src/live"
-	"github.com/WLaoDuo/bililive-go/src/log"
-	"github.com/WLaoDuo/bililive-go/src/metrics"
-	"github.com/WLaoDuo/bililive-go/src/pkg/events"
-	"github.com/WLaoDuo/bililive-go/src/pkg/utils"
-	"github.com/WLaoDuo/bililive-go/src/recorders"
-	"github.com/WLaoDuo/bililive-go/src/servers"
+	_ "github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal"
+	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal/flag"
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
+	"github.com/hr3lxphr6j/bililive-go/src/consts"
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
+	"github.com/hr3lxphr6j/bililive-go/src/listeners"
+	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/log"
+	"github.com/hr3lxphr6j/bililive-go/src/metrics"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
+	"github.com/hr3lxphr6j/bililive-go/src/recorders"
+	"github.com/hr3lxphr6j/bililive-go/src/servers"
 )
 
 func getConfig() (*configs.Config, error) {
