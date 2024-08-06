@@ -108,7 +108,7 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	var err error
 	if streamInfos, err = r.Live.GetStreamInfos(); err == live.ErrNotImplemented {
 		var urls []*url.URL
-		if r.Live.GetPlatformCNName() == "stripchat" {
+		if r.Live.GetPlatformCNName() == "stripchat" { //测试能否识别不同平台
 			if urls, err = r.Live.GetStreamUrls(r.config.Proxy); err == live.ErrNotImplemented {
 				panic("GetStreamInfos and GetStreamUrls are not implemented for " + r.Live.GetPlatformCNName())
 			} else if err == nil {
