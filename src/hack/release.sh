@@ -31,6 +31,7 @@ package() {
 }
 
 for dist in $(go tool dist list); do
+  echo $dist
   case $dist in
   linux/loong64 | android/* | ios/* | js/wasm )
     continue
@@ -40,7 +41,7 @@ for dist in $(go tool dist list); do
   esac
   platform=$(echo ${dist} | cut -d'/' -f1)
   arch=$(echo ${dist} | cut -d'/' -f2)
-  if [[platform=="*windows*"]];then
+  if [[ $platform =="*windows*"]];then
     echo "build "$dist
     make PLATFORM=${platform} ARCH=${arch} bililive
   fi
