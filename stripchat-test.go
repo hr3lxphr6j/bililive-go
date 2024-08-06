@@ -9,10 +9,13 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func get_modelId(modleName string) string {
+func get_modelId(modleName string, daili string) string {
 
 	fmt.Println("主播名字：", modleName)
 	request := gorequest.New()
+	if daili != "" {
+		request = request.Proxy(daili)
+	}
 
 	// 添加头部信息
 	request.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
@@ -41,7 +44,7 @@ func get_modelId(modleName string) string {
 			modelId := gjson.Get(body, "messages.0.modelId").String()
 			return modelId
 		} else {
-			fmt.Println("len messages:", len(gjson.Get(body, "messages").String()), gjson.Get(body, "messages").String())
+			fmt.Println("len messages=", len(gjson.Get(body, "messages").String()), "\nmessages:", gjson.Get(body, "messages").String())
 
 			return "OffLine"
 		}
@@ -64,8 +67,24 @@ func get_M3u8(modelId string) string {
 	}
 }
 
+func test_m3u8(url string) bool {
+	request := gorequest.New()
+	resp, body, errs := request.Get(url).End()
+	if url == "false" || len(errs) > 0 || resp.StatusCode != 200 {
+		return false
+	}
+	if resp.StatusCode == 200 {
+		_ = body
+		// fmt.Println(body)
+		return true
+	}
+
+	return false
+}
+
 func main() {
 	var name = flag.String("u", "Sakura_Anne", "主播名字")
+	var daili = flag.String("p", "http://127.0.0.1:7890", "代理")
 	flag.Parse()
 	// m3u8 := get_M3u8(get_modelId("Sakura_Anne"))
 	// m3u8 := get_M3u8(get_modelId("Ko_Alanna"))
@@ -74,6 +93,6 @@ func main() {
 	// m3u8 := get_M3u8(get_modelId("Lucky-uu"))
 	// m3u8 := get_M3u8(get_modelId("Hahaha_ha2"))
 	// m3u8 := get_M3u8(get_modelId("8-Monica"))
-	m3u8 := get_M3u8(get_modelId(*name))
-	fmt.Println("m3u8=", m3u8)
+	m3u8 := get_M3u8(get_modelId(*name, *daili))
+	fmt.Println("m3u8=", m3u8, "测试结果：", test_m3u8((m3u8)))
 }
