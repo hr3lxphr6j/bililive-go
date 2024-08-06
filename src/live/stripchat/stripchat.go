@@ -15,10 +15,13 @@ import (
 )
 
 var config *configs.Config
+var test_dali, _ = config.GetFilePath()
 
 func get_modelId(modleName string, daili string) string {
 
 	fmt.Println("主播名字：", modleName)
+
+	fmt.Println("传参测试:", test_dali)
 
 	request := gorequest.New()
 	if daili != "" {
@@ -62,8 +65,6 @@ func get_M3u8(modelId string) string {
 	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
 	request := gorequest.New()
 	resp, body, errs := request.Get(url).End()
-
-	fmt.Println("传参测试*configs.Config.Proxy:", config.Proxy)
 
 	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
 		return "false"
