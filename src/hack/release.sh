@@ -42,7 +42,7 @@ for dist in $(go tool dist list); do
   platform=$(echo ${dist} | cut -d'/' -f1)
   arch=$(echo ${dist} | cut -d'/' -f2)
   echo PLATFORM=${platform} ARCH=${arch}
-  if [ $dist == "windows/amd64" ];then
+  if [[ ${platform} == windows ]]; then
     echo "build "$dist
     make PLATFORM=${platform} ARCH=${arch} bililive
   fi
