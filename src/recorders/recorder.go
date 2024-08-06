@@ -20,15 +20,15 @@ import (
 	"github.com/bluele/gcache"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
-	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
-	"github.com/hr3lxphr6j/bililive-go/src/live"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser/ffmpeg"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/parser/native/flv"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
+	"github.com/WLaoDuo/bililive-go/src/configs"
+	"github.com/WLaoDuo/bililive-go/src/instance"
+	"github.com/WLaoDuo/bililive-go/src/interfaces"
+	"github.com/WLaoDuo/bililive-go/src/live"
+	"github.com/WLaoDuo/bililive-go/src/pkg/events"
+	"github.com/WLaoDuo/bililive-go/src/pkg/parser"
+	"github.com/WLaoDuo/bililive-go/src/pkg/parser/ffmpeg"
+	"github.com/WLaoDuo/bililive-go/src/pkg/parser/native/flv"
+	"github.com/WLaoDuo/bililive-go/src/pkg/utils"
 )
 
 const (

@@ -14,8 +14,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/hr3lxphr6j/bililive-go/src/live"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
+	"github.com/WLaoDuo/bililive-go/src/live"
+	"github.com/WLaoDuo/bililive-go/src/pkg/utils"
 	"github.com/hr3lxphr6j/requests"
 	"github.com/tidwall/gjson"
 )

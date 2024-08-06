@@ -8,12 +8,12 @@ import (
 
 	"github.com/lthibault/jitterbug"
 
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
-	"github.com/hr3lxphr6j/bililive-go/src/instance"
-	"github.com/hr3lxphr6j/bililive-go/src/interfaces"
-	"github.com/hr3lxphr6j/bililive-go/src/live"
-	"github.com/hr3lxphr6j/bililive-go/src/live/system"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
+	"github.com/WLaoDuo/bililive-go/src/configs"
+	"github.com/WLaoDuo/bililive-go/src/instance"
+	"github.com/WLaoDuo/bililive-go/src/interfaces"
+	"github.com/WLaoDuo/bililive-go/src/live"
+	"github.com/WLaoDuo/bililive-go/src/live/system"
+	"github.com/WLaoDuo/bililive-go/src/pkg/events"
 )
 
 const (

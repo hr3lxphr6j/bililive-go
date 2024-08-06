@@ -10,7 +10,7 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	live "github.com/hr3lxphr6j/bililive-go/src/live"
+	live "github.com/WLaoDuo/bililive-go/src/live"
 )
 
 // MockRecorder is a mock of Recorder interface.

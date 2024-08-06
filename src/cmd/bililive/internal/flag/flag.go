@@ -6,9 +6,9 @@ import (
 
 	"github.com/alecthomas/kingpin"
 
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
-	"github.com/hr3lxphr6j/bililive-go/src/consts"
-	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
+	"github.com/WLaoDuo/bililive-go/src/configs"
+	"github.com/WLaoDuo/bililive-go/src/consts"
+	"github.com/WLaoDuo/bililive-go/src/pkg/utils"
 )
 
 var (
