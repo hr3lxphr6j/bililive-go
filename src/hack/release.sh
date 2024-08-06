@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -o errexit
 set -o nounset
@@ -31,16 +31,21 @@ package() {
 }
 
 for dist in $(go tool dist list); do
+  echo $dist
   case $dist in
   linux/loong64 | android/* | ios/* | js/wasm )
     continue
     ;;
   *) ;;
 
-  esac
+  esac 
   platform=$(echo ${dist} | cut -d'/' -f1)
   arch=$(echo ${dist} | cut -d'/' -f2)
-  make PLATFORM=${platform} ARCH=${arch} bililive
+  echo PLATFORM=${platform} ARCH=${arch}
+  if [[ ${platform} == "windows" ]]; then
+    echo "build "$dist
+    make PLATFORM=${platform} ARCH=${arch} bililive
+  fi
 done
 
 for file in $(ls $BIN_PATH); do
