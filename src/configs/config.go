@@ -258,3 +258,10 @@ func (c Config) GetFilePath() (string, error) {
 	}
 	return c.File, nil
 }
+
+func (c Config) GetProxy() (string, error) {
+	if c.Proxy == "" {
+		return "", errors.New("Proxy not set")
+	}
+	return c.Proxy, nil
+}
