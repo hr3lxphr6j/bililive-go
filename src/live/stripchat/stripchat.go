@@ -18,7 +18,7 @@ func get_modelId(modleName string, daili string) string {
 	fmt.Println("主播名字：", modleName)
 	request := gorequest.New()
 	if daili != "" {
-		request = request.Proxy(daili)
+		request = request.Proxy(daili) //代理
 	}
 
 	// 添加头部信息
