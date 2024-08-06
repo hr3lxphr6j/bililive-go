@@ -122,11 +122,11 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	return info, live.ErrInternalError
 }
 
-func (l *Live) GetStreamUrls(daili string) (us []*url.URL, err error) {
+func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	// modeName := regexp.MustCompile(`stripchat.com\/(\w|-)+`).FindString(l.Url.String())
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	modelID := get_modelId(modelName, daili)
+	modelID := get_modelId(modelName, "http://127.0.0.1:7890")
 	m3u8 := get_M3u8(modelID)
 	if m3u8 != "false" {
 		return utils.GenUrls(m3u8)
