@@ -40,7 +40,10 @@ for dist in $(go tool dist list); do
   esac
   platform=$(echo ${dist} | cut -d'/' -f1)
   arch=$(echo ${dist} | cut -d'/' -f2)
-  make PLATFORM=${platform} ARCH=${arch} bililive
+  if [[platform=="*windows*"]];then
+    echo "build "$dist
+    make PLATFORM=${platform} ARCH=${arch} bililive
+  fi
 done
 
 for file in $(ls $BIN_PATH); do
