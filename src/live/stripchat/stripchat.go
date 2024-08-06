@@ -19,7 +19,7 @@ var config *configs.Config
 func get_modelId(modleName string, daili string) string {
 
 	fmt.Println("主播名字：", modleName)
-	fmt.Println("传参测试*configs.Config.config.Proxy:", config.Proxy, *configs.Config.Proxy)
+	fmt.Println("传参测试*configs.Config.config.Proxy:", config.Proxy)
 
 	request := gorequest.New()
 	if daili != "" {
