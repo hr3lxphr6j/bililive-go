@@ -2,6 +2,7 @@ package stripchat
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -66,7 +67,20 @@ func get_M3u8(modelId string, daili string) string {
 	}
 	resp, body, errs := request.Get(url).End()
 
+	if errs != nil {
+		for _, err := range errs {
+			if err == io.EOF {
+				// 处理 EOF 错误
+				fmt.Println("Got EOF error")
+			} else {
+				// 其他错误处理
+				fmt.Println("Error:", err)
+			}
+		}
+	}
+
 	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
+
 		return "false"
 	} else {
 		// fmt.Println((body))
@@ -131,7 +145,7 @@ func GetProxy() string {
 	daili := ""
 	read_config, err := getConfigBesidesExecutable()
 	if err == nil {
-		fmt.Println("daili=[", read_config.Proxy, "],len=", len(read_config.Proxy))
+		// fmt.Println("daili=[", read_config.Proxy, "],len=", len(read_config.Proxy))
 		daili = read_config.Proxy
 		return daili
 	} else {
