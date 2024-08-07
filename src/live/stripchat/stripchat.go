@@ -3,9 +3,12 @@ package stripchat
 import (
 	"fmt"
 	"net/url"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal/flag"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
@@ -14,14 +17,49 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-var config *configs.Config
-var test_dali, _ = config.GetFilePath()
+func getConfig() (*configs.Config, error) {
+	var config *configs.Config
+	if *flag.Conf != "" {
+		c, err := configs.NewConfigWithFile(*flag.Conf)
+		if err != nil {
+			return nil, err
+		}
+		config = c
+	} else {
+		config = flag.GenConfigFromFlags()
+	}
+	if !config.RPC.Enable && len(config.LiveRooms) == 0 {
+		// if config is invalid, try using the config.yml file besides the executable file.
+		config, err := getConfigBesidesExecutable()
+		if err == nil {
+			return config, config.Verify()
+		}
+	}
+	return config, config.Verify()
+}
 
+func getConfigBesidesExecutable() (*configs.Config, error) {
+	exePath, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+	configPath := filepath.Join(filepath.Dir(exePath), "config.yml")
+	config, err := configs.NewConfigWithFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+}
 func get_modelId(modleName string, daili string) string {
 
 	fmt.Println("主播名字：", modleName)
 
-	fmt.Println("传参测试:", test_dali)
+	config, err := getConfig()
+	if err != nil {
+		fmt.Fprint(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("传参测试:", config.Proxy)
 
 	request := gorequest.New()
 	if daili != "" {
