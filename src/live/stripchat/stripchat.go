@@ -131,7 +131,7 @@ func GetProxy() string {
 	daili := ""
 	read_config, err := getConfigBesidesExecutable()
 	if err == nil {
-		// fmt.Println("daili:", read_config.Proxy)
+		fmt.Println("daili=[", read_config.Proxy, "],len=", len(read_config.Proxy))
 		daili = read_config.Proxy
 		return daili
 	} else {
