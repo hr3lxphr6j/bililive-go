@@ -3,9 +3,12 @@ package stripchat
 import (
 	"fmt"
 	"net/url"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
@@ -13,11 +16,14 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func get_modelId(modleName string) string {
+func get_modelId(modleName string, daili string) string {
 
-	// modleName := "S-wan"
-	// 创建一个新的 Request 对象
+	fmt.Println("主播名字：", modleName)
+
 	request := gorequest.New()
+	if daili != "" {
+		request = request.Proxy(daili) //代理
+	}
 
 	// 添加头部信息
 	request.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
@@ -51,10 +57,13 @@ func get_modelId(modleName string) string {
 	}
 }
 
-func get_M3u8(modelId string) string {
+func get_M3u8(modelId string, daili string) string {
 	// fmt.Println(modelId)
 	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
 	request := gorequest.New()
+	if daili != "" {
+		request = request.Proxy(daili) //代理
+	}
 	resp, body, errs := request.Get(url).End()
 
 	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
@@ -67,6 +76,22 @@ func get_M3u8(modelId string) string {
 		matches := re.FindString(body)
 		return matches
 	}
+}
+func test_m3u8(url string, daili string) bool {
+	request := gorequest.New()
+	if daili != "" {
+		request = request.Proxy(daili) //代理
+	}
+	resp, body, errs := request.Get(url).End()
+	if url == "false" || len(errs) > 0 || resp.StatusCode != 200 {
+		return false
+	}
+	if resp.StatusCode == 200 {
+		_ = body
+		// fmt.Println(body)
+		return true
+	}
+	return false
 }
 
 const (
@@ -90,12 +115,40 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 	}, nil
 }
 
+func getConfigBesidesExecutable() (*configs.Config, error) {
+	exePath, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+	configPath := filepath.Join(filepath.Dir(exePath), "config.yml")
+	config, err := configs.NewConfigWithFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+}
+func GetProxy() string {
+	daili := ""
+	read_config, err := getConfigBesidesExecutable()
+	if err == nil {
+		// fmt.Println("daili:", read_config.Proxy)
+		daili = read_config.Proxy
+		return daili
+	} else {
+		daili = ""
+		return daili
+		// fmt.Println("err:", err)
+	}
+}
+
 func (l *Live) GetInfo() (info *live.Info, err error) {
+
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	modelID := get_modelId(modelName)
-	m3u8 := get_M3u8(modelID)
-
+	daili := GetProxy()
+	modelID := get_modelId(modelName, daili)
+	m3u8 := get_M3u8(modelID, daili)
+	m3u8_status := test_m3u8(m3u8, daili)
 	if modelID == "false" {
 		return nil, live.ErrRoomUrlIncorrect
 	}
@@ -104,7 +157,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 			Live:     l,
 			RoomName: modelID,
 			HostName: modelName,
-			Status:   false,
+			Status:   m3u8_status,
 		}
 		return info, nil
 	}
@@ -113,7 +166,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 			Live:     l,
 			RoomName: modelID,
 			HostName: modelName,
-			Status:   true,
+			Status:   m3u8_status,
 		}
 		return info, nil
 	}
@@ -124,12 +177,14 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	// modeName := regexp.MustCompile(`stripchat.com\/(\w|-)+`).FindString(l.Url.String())
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	modelID := get_modelId(modelName)
-	m3u8 := get_M3u8(modelID)
-	if m3u8 != "false" {
+	daili := GetProxy()
+	modelID := get_modelId(modelName, daili)
+	m3u8 := get_M3u8(modelID, daili)
+	m3u8_status := test_m3u8(m3u8, daili)
+	if m3u8_status {
 		return utils.GenUrls(m3u8)
 	}
-	if modelID == "false" || modelID == "OffLine" || m3u8 == "false" {
+	if modelID == "false" || modelID == "OffLine" || m3u8 == "false" || !m3u8_status {
 		return nil, err //live.ErrRoomNotExist
 	}
 	return nil, live.ErrInternalError
