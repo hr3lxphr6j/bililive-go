@@ -15,7 +15,7 @@ import (
 )
 
 var config *configs.Config
-var test_dali, _ = config.GetProxy()
+var test_dali, _ = config.GetFilePath()
 
 func get_modelId(modleName string, daili string) string {
 
