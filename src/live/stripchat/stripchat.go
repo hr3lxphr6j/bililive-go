@@ -16,14 +16,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func getConfig() (*configs.Config, error) {
-	var config *configs.Config
-	config, err := getConfigBesidesExecutable()
-	if err == nil {
-		return config, config.Verify()
-	}
-	return config, err
-}
 func getConfigBesidesExecutable() (*configs.Config, error) {
 	exePath, err := os.Executable()
 	if err != nil {
@@ -40,12 +32,12 @@ func get_modelId(modleName string, daili string) string {
 
 	fmt.Println("主播名字：", modleName)
 
-	test, err := getConfig()
-	if err != nil {
-		fmt.Fprint(os.Stderr, err.Error())
-		os.Exit(1)
+	test, err := getConfigBesidesExecutable()
+	if err == nil {
+		fmt.Println("daili:", test.Proxy)
+	} else {
+		fmt.Println("err:", err)
 	}
-	fmt.Println("传参测试:", test)
 
 	request := gorequest.New()
 	if daili != "" {
