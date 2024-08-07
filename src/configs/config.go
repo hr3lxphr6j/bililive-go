@@ -78,6 +78,7 @@ type Config struct {
 	Cookies              map[string]string    `yaml:"cookies"`
 	OnRecordFinished     OnRecordFinished     `yaml:"on_record_finished"`
 	TimeoutInUs          int                  `yaml:"timeout_in_us"`
+	Proxy                string               `yaml:"proxy"`
 
 	liveRoomIndexCache map[string]int
 }
@@ -148,6 +149,7 @@ var defaultConfig = Config{
 		DeleteFlvAfterConvert: false,
 	},
 	TimeoutInUs: 60000000,
+	Proxy:       "http://127.0.0.1:7890",
 }
 
 func NewConfig() *Config {
