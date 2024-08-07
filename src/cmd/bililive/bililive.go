@@ -67,7 +67,7 @@ func main() {
 		fmt.Fprint(os.Stderr, err.Error())
 		os.Exit(1)
 	}
-
+	fmt.Println("/bililive-go/src/cmd/bililive/bililive.go:", config.Proxy)
 	inst := new(instance.Instance)
 	inst.Config = config
 	// TODO: Replace gcache with hashmap.

@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal/flag"
 	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
@@ -19,25 +18,12 @@ import (
 
 func getConfig() (*configs.Config, error) {
 	var config *configs.Config
-	if *flag.Conf != "" {
-		c, err := configs.NewConfigWithFile(*flag.Conf)
-		if err != nil {
-			return nil, err
-		}
-		config = c
-	} else {
-		config = flag.GenConfigFromFlags()
+	config, err := getConfigBesidesExecutable()
+	if err == nil {
+		return config, config.Verify()
 	}
-	if !config.RPC.Enable && len(config.LiveRooms) == 0 {
-		// if config is invalid, try using the config.yml file besides the executable file.
-		config, err := getConfigBesidesExecutable()
-		if err == nil {
-			return config, config.Verify()
-		}
-	}
-	return config, config.Verify()
+	return config, err
 }
-
 func getConfigBesidesExecutable() (*configs.Config, error) {
 	exePath, err := os.Executable()
 	if err != nil {
@@ -54,12 +40,12 @@ func get_modelId(modleName string, daili string) string {
 
 	fmt.Println("主播名字：", modleName)
 
-	config, err := getConfig()
+	test, err := getConfig()
 	if err != nil {
 		fmt.Fprint(os.Stderr, err.Error())
 		os.Exit(1)
 	}
-	fmt.Println("传参测试:", config.Proxy)
+	fmt.Println("传参测试:", test)
 
 	request := gorequest.New()
 	if daili != "" {
