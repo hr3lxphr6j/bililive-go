@@ -152,11 +152,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-bsf:a", "aac_adtstoasc",
 	}
 
-	// index := 0 // 第5个位置的索引是4，从0开始计数
-	// data:="-http_proxy http://ip:port/"
-	// args = append(args[:index], append([]string{data}, args[index:]...)...) // 将 args 拆分为两部分，并在第5个位置插入数据 "测试"
-	// fmt.Println(args)
-
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
 			continue
@@ -165,6 +160,17 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	}
 
 	inst := instance.GetInstance(ctx)
+
+	daili := inst.Config.Proxy
+	if daili != "" {
+		fmt.Println("\nffmpeg.go inst.Config.Proxy:", daili)
+		index := 0 // 第5个位置的索引是4，从0开始计数
+		// data := "-http_proxy \"http://127.0.0.1:7890\""
+		data := "-http_proxy \"" + daili + "\""
+		args = append(args[:index], append([]string{data}, args[index:]...)...) // 将 args 拆分为两部分，并在第index+1个位置插入数据
+		fmt.Println(args)
+	}
+
 	MaxFileSize := inst.Config.VideoSplitStrategies.MaxFileSize
 	if MaxFileSize < 0 {
 		inst.Logger.Infof("Invalid MaxFileSize: %d", MaxFileSize)
