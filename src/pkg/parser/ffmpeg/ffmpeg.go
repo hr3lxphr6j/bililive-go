@@ -141,6 +141,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		referer = live.GetRawUrl()
 	}
 	args := []string{
+		"-re",
 		"-nostats",
 		"-progress", "-",
 		"-y", "-re",
