@@ -142,7 +142,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	}
 
 	inst := instance.GetInstance(ctx)
-
 	args := []string{
 		"-nostats",
 		"-progress", "-",
@@ -156,8 +155,18 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	}
 	daili := inst.Config.Proxy
 	if daili != "" {
-		data := "-http_proxy " + daili
-		args = append(args, data)
+		args = []string{
+			"-http_proxy ", daili,
+			"-nostats",
+			"-progress", "-",
+			"-y", "-re",
+			"-user_agent", ffUserAgent,
+			"-referer", referer,
+			"-rw_timeout", p.timeoutInUs,
+			"-i", url.String(),
+			"-c", "copy",
+			"-bsf:a", "aac_adtstoasc",
+		}
 	}
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
