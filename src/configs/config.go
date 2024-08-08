@@ -255,7 +255,7 @@ func ReadConfigWithFile(file string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can`t open file: %s", file)
 	}
-	config, err := NewConfigWithBytes(b)
+	config, err := ReadConfigWithBytes(b)
 	if err != nil {
 		return nil, err
 	}
