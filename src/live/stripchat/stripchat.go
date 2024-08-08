@@ -136,7 +136,7 @@ func getConfigBesidesExecutable() (*configs.Config, error) {
 		return nil, err
 	}
 	configPath := filepath.Join(filepath.Dir(exePath), "config.yml")
-	config, err := configs.NewConfigWithFile(configPath)
+	config, err := configs.ReadConfigWithFile(configPath)
 	if err != nil {
 		return nil, err
 	}

@@ -241,6 +241,28 @@ func NewConfigWithFile(file string) (*Config, error) {
 	return config, nil
 }
 
+func ReadConfigWithBytes(b []byte) (*Config, error) {
+	config := defaultConfig
+	if err := yaml.Unmarshal(b, &config); err != nil {
+		return nil, err
+	}
+	// config.RefreshLiveRoomIndexCache()
+	return &config, nil
+}
+
+func ReadConfigWithFile(file string) (*Config, error) {
+	b, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, fmt.Errorf("can`t open file: %s", file)
+	}
+	config, err := NewConfigWithBytes(b)
+	if err != nil {
+		return nil, err
+	}
+	config.File = file
+	return config, nil
+}
+
 func (c *Config) Marshal() error {
 	if c.File == "" {
 		return errors.New("config path not set")
