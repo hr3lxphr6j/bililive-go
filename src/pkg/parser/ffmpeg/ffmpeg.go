@@ -161,6 +161,15 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 
 	inst := instance.GetInstance(ctx)
 
+	MaxFileSize := inst.Config.VideoSplitStrategies.MaxFileSize
+	if MaxFileSize < 0 {
+		inst.Logger.Infof("Invalid MaxFileSize: %d", MaxFileSize)
+	} else if MaxFileSize > 0 {
+		args = append(args, "-fs", strconv.Itoa(MaxFileSize))
+	}
+
+	args = append(args, file)
+
 	daili := inst.Config.Proxy
 	if daili != "" {
 		// fmt.Println("\nffmpeg.go inst.Config.Proxy:", daili)
@@ -171,15 +180,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		// fmt.Println(args)
 	}
 	inst.Logger.Info(args)
-
-	MaxFileSize := inst.Config.VideoSplitStrategies.MaxFileSize
-	if MaxFileSize < 0 {
-		inst.Logger.Infof("Invalid MaxFileSize: %d", MaxFileSize)
-	} else if MaxFileSize > 0 {
-		args = append(args, "-fs", strconv.Itoa(MaxFileSize))
-	}
-
-	args = append(args, file)
 
 	// p.cmd operations need p.cmdLock
 	func() {
