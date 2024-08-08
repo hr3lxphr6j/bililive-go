@@ -140,6 +140,9 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	if !exists {
 		referer = live.GetRawUrl()
 	}
+
+	inst := instance.GetInstance(ctx)
+
 	args := []string{
 		"-nostats",
 		"-progress", "-",
@@ -159,8 +162,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		args = append(args, "-headers", k+": "+v)
 	}
 
-	inst := instance.GetInstance(ctx)
-
 	MaxFileSize := inst.Config.VideoSplitStrategies.MaxFileSize
 	if MaxFileSize < 0 {
 		inst.Logger.Infof("Invalid MaxFileSize: %d", MaxFileSize)
@@ -168,7 +169,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		args = append(args, "-fs", strconv.Itoa(MaxFileSize))
 	}
 
-	args = append(args, file)
+	args = append(args, "'"+file+"'")
 
 	// daili := inst.Config.Proxy
 	// if daili != "" {
