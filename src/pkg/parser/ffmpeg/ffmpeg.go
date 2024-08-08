@@ -171,6 +171,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		args = append(args[:index], append([]string{data}, args[index:]...)...) // 将 args 拆分为两部分，并在第index+1个位置插入数据
 		fmt.Println(args)
 	}
+	inst.Logger.Info(args)
 
 	MaxFileSize := inst.Config.VideoSplitStrategies.MaxFileSize
 	if MaxFileSize < 0 {
