@@ -170,15 +170,15 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 
 	args = append(args, file)
 
-	daili := inst.Config.Proxy
-	if daili != "" {
-		// fmt.Println("\nffmpeg.go inst.Config.Proxy:", daili)
-		index := 0 // 第5个位置的索引是4，从0开始计数
-		// data := "-http_proxy \"http://127.0.0.1:7890\""
-		data := "-http_proxy " + daili
-		args = append(args[:index], append([]string{data}, args[index:]...)...) // 将 args 拆分为两部分，并在第index+1个位置插入数据
-		// fmt.Println(args)
-	}
+	// daili := inst.Config.Proxy
+	// if daili != "" {
+	// 	// fmt.Println("\nffmpeg.go inst.Config.Proxy:", daili)
+	// 	index := 0 // 第5个位置的索引是4，从0开始计数
+	// 	// data := "-http_proxy \"http://127.0.0.1:7890\""
+	// 	data := "-http_proxy " + daili
+	// 	args = append(args[:index], append([]string{data}, args[index:]...)...) // 将 args 拆分为两部分，并在第index+1个位置插入数据
+	// 	// fmt.Println(args)
+	// }
 	inst.Logger.Info(args)
 
 	// p.cmd operations need p.cmdLock
