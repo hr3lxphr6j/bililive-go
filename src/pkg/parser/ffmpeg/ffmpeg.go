@@ -154,18 +154,18 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
 	}
-
+	daili := inst.Config.Proxy
+	if daili != "" {
+		data := "-http_proxy " + daili
+		args = append(args, data)
+	}
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
 			continue
 		}
 		args = append(args, "-headers", k+": "+v)
 	}
-	daili := inst.Config.Proxy
-	if daili != "" {
-		data := "-http_proxy " + "'" + daili + "'"
-		args = append(args, data)
-	}
+
 	MaxFileSize := inst.Config.VideoSplitStrategies.MaxFileSize
 	if MaxFileSize < 0 {
 		inst.Logger.Infof("Invalid MaxFileSize: %d", MaxFileSize)
