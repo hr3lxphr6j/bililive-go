@@ -153,21 +153,21 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
 	}
-	daili := inst.Config.Proxy
-	if daili != "" {
-		args = []string{
-			"-http_proxy ", daili,
-			"-nostats",
-			"-progress", "-",
-			"-y", "-re",
-			"-user_agent", ffUserAgent,
-			"-referer", referer,
-			"-rw_timeout", p.timeoutInUs,
-			"-i", url.String(),
-			"-c", "copy",
-			"-bsf:a", "aac_adtstoasc",
-		}
-	}
+	// daili := inst.Config.Proxy
+	// if daili != "" {
+	// 	args = []string{
+	// 		"-http_proxy ", daili,
+	// 		"-nostats",
+	// 		"-progress", "-",
+	// 		"-y", "-re",
+	// 		"-user_agent", ffUserAgent,
+	// 		"-referer", referer,
+	// 		"-rw_timeout", p.timeoutInUs,
+	// 		"-i", url.String(),
+	// 		"-c", "copy",
+	// 		"-bsf:a", "aac_adtstoasc",
+	// 	}
+	// }
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
 			continue
