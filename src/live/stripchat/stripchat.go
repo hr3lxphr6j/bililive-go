@@ -59,7 +59,8 @@ func get_modelId(modleName string, daili string) string {
 
 func get_M3u8(modelId string, daili string) string {
 	// fmt.Println(modelId)
-	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
+	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
+	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8"
 	request := gorequest.New()
 	if daili != "" {
 		request = request.Proxy(daili) //代理
@@ -70,8 +71,8 @@ func get_M3u8(modelId string, daili string) string {
 		return "false"
 	} else {
 		// fmt.Println((body))
-		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d]+\.m3u8\?playlistType=lowLatency)`)
-		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
+		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
+		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`)
 
 		matches := re.FindString(body)
 		return matches
