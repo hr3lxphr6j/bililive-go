@@ -2,6 +2,7 @@ package stripchat
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -17,9 +18,7 @@ import (
 )
 
 func get_modelId(modleName string, daili string) string {
-
 	fmt.Println("主播名字：", modleName)
-
 	request := gorequest.New()
 	if daili != "" {
 		request = request.Proxy(daili) //代理
@@ -67,7 +66,21 @@ func get_M3u8(modelId string, daili string) string {
 	}
 	resp, body, errs := request.Get(url).End()
 
+	if errs != nil {
+		fmt.Println("出错详情 modeId=", modelId)
+		for _, err := range errs {
+			if err == io.EOF {
+				// 处理 EOF 错误
+				fmt.Println("Got EOF error")
+			} else {
+				// 其他错误处理
+				fmt.Println("Error:", err)
+			}
+		}
+	}
+
 	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
+
 		return "false"
 	} else {
 		// fmt.Println((body))

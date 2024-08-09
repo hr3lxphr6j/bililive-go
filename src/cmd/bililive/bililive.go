@@ -67,7 +67,7 @@ func main() {
 		fmt.Fprint(os.Stderr, err.Error())
 		os.Exit(1)
 	}
-
+	// fmt.Println("/bililive-go/src/cmd/bililive/bililive.go:", config.Proxy)
 	inst := new(instance.Instance)
 	inst.Config = config
 	// TODO: Replace gcache with hashmap.
@@ -120,6 +120,8 @@ func main() {
 		inst.Lives[l.GetLiveId()] = l
 		room.LiveId = l.GetLiveId()
 	}
+
+	// fmt.Println("\n\nbilililive.go当前代理：", inst.Config.Proxy)
 
 	if inst.Config.RPC.Enable {
 		if err := servers.NewServer(ctx).Start(ctx); err != nil {
