@@ -46,15 +46,16 @@ func get_modelId(modleName string, daili string) string {
 
 	// 处理响应
 	if errs != nil {
-		fmt.Println("get_modeId出错详情 :", body, len(errs))
+		fmt.Println("get_modeId出错详情:")
 		for _, err := range errs {
 			fmt.Println(reflect.TypeOf(err))
-			if err, ok := err.(*url.Error); ok {
+			if err1, ok := err.(*url.Error); ok {
 				// urlErr 是 *url.Error 类型的错误
-				if err, ok := err.Err.(*net.OpError); ok {
+				fmt.Println("*url.Error 类型的错误")
+				if err2, ok := err1.Err.(*net.OpError); ok {
 					// netErr 是 *net.OpError 类型的错误
 					// 可以进一步判断 netErr.Err 的类型
-					fmt.Println(err.Err.Error())
+					fmt.Println("*net.OpError 类型的错误", err.Error(), err2.Op)
 				}
 			} else {
 				// 其他错误处理
