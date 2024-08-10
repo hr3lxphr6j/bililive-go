@@ -150,22 +150,27 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-referer", referer,
 		"-rw_timeout", p.TimeoutInMs,
 		"-i", url.String(),
-		"-c", "copy",
+		"-c", "copy", //所有流(视频、音频、字幕等) copy
+		// "-c:a", "copy", //对audio流使用 copy
+		// "-c:v", "copy", //对video流使用 copy
+		"-rtbufsize", "10M", //实时缓冲区，默认3M
+		"-max_delay", "300", //最大延迟300ms
 		"-bsf:a", "aac_adtstoasc",
 	}
 	daili := inst.Config.Proxy
 	if daili != "" {
 		args = []string{
-			// "-http_proxy ", daili,
-			"-copyts",
+			"-http_proxy", daili,
+			"-copyts",        //复制时间戳
 			"-nostats",       //-nostats 可以让终端输出更加简洁,只显示必要的信息
 			"-progress", "-", //-progress - 可以实时显示转码进度
 			"-y", //-y 可以自动覆盖已存在的输出文件,无需手动确认。
 			"-user_agent", ffUserAgent,
 			"-referer", referer,
 			"-i", url.String(),
-			"-c:a", "copy", //对audio流使用 copy
-			"-c:v", "copy", //对video流使用 copy
+			"-c", "copy", //所有流(视频、音频、字幕等) copy
+			// "-c:a", "copy", //对audio流使用 copy
+			// "-c:v", "copy", //对video流使用 copy
 			"-rtbufsize", "10M", //实时缓冲区，默认3M
 			"-max_delay", "300", //最大延迟300ms
 		}
@@ -184,7 +189,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		args = append(args, "-fs", strconv.Itoa(MaxFileSize))
 	}
 
-	args = append(args, file)
+	args = append(args, file) //增加输出文件路径名参数
 
 	inst.Logger.Info(args)
 
