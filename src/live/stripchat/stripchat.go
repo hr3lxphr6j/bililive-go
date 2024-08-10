@@ -2,7 +2,7 @@ package stripchat
 
 import (
 	"fmt"
-	"io"
+	"net"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -46,12 +46,16 @@ func get_modelId(modleName string, daili string) string {
 
 	// 处理响应
 	if errs != nil {
-		fmt.Println("get_modeId出错详情 :", body)
+		fmt.Println("get_modeId出错详情 :", body, len(errs))
 		for _, err := range errs {
 			fmt.Println(reflect.TypeOf(err))
-			if err == io.EOF {
-				// 处理 EOF 错误
-				fmt.Println("EOF error")
+			if err, ok := err.(*url.Error); ok {
+				// urlErr 是 *url.Error 类型的错误
+				if err, ok := err.Err.(*net.OpError); ok {
+					// netErr 是 *net.OpError 类型的错误
+					// 可以进一步判断 netErr.Err 的类型
+					fmt.Println(err.Err.Error())
+				}
 			} else {
 				// 其他错误处理
 				fmt.Println("Error:", err)
@@ -74,25 +78,13 @@ func get_M3u8(modelId string, daili string) string {
 		return "false"
 	}
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
-	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8"
+	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8"
+	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + ".m3u8"
 	request := gorequest.New()
 	if daili != "" {
 		request = request.Proxy(daili) //代理
 	}
 	resp, body, errs := request.Get(url).End()
-
-	if errs != nil {
-		fmt.Println("出错详情 modeId=", modelId)
-		for _, err := range errs {
-			if err == io.EOF {
-				// 处理 EOF 错误
-				fmt.Println("Got EOF error")
-			} else {
-				// 其他错误处理
-				fmt.Println("Error:", err)
-			}
-		}
-	}
 
 	if resp.StatusCode != 200 || len(errs) > 0 {
 		return "false"
