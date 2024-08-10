@@ -43,5 +43,5 @@ on_record_finished:
 #  以下是一个在录制结束后将 flv 视频转换为同名 mp4 视频的示例：
 #  custom_commandline: '{{ .Ffmpeg }} -hide_banner -i "{{ .FileName }}" -c copy "{{ .FileName | trimSuffix (.FileName | ext)}}.mp4"'
   custom_commandline: ""
-timeout_in_us: 60000000
+timeout_in_ms: 60000000
 proxy: http://127.0.0.1:7890
