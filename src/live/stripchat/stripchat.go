@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -45,8 +46,9 @@ func get_modelId(modleName string, daili string) string {
 
 	// 处理响应
 	if errs != nil {
-		fmt.Println("出错详情 :", body)
+		fmt.Println("get_modeId出错详情 :", body)
 		for _, err := range errs {
+			fmt.Println(reflect.TypeOf(err))
 			if err == io.EOF {
 				// 处理 EOF 错误
 				fmt.Println("EOF error")
