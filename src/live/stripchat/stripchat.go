@@ -18,7 +18,9 @@ import (
 )
 
 func get_modelId(modleName string, daili string) string {
-	// fmt.Println("主播名字：", modleName)
+	if modleName == "" {
+		return "false"
+	}
 	request := gorequest.New()
 	if daili != "" {
 		request = request.Proxy(daili) //代理
@@ -42,9 +44,17 @@ func get_modelId(modleName string, daili string) string {
 	_, body, errs := request.Get("https://zh.stripchat.com/api/front/v2/models/username/" + modleName + "/chat").End()
 
 	// 处理响应
-	if len(errs) > 0 {
-		fmt.Println("请求modelID出错:", body, errs)
-		return "false"
+	if errs != nil {
+		fmt.Println("出错详情 :", body)
+		for _, err := range errs {
+			if err == io.EOF {
+				// 处理 EOF 错误
+				fmt.Println("EOF error")
+			} else {
+				// 其他错误处理
+				fmt.Println("Error:", err)
+			}
+		}
 	} else {
 		// 解析 JSON 响应
 		if (len(gjson.Get(body, "messages").String())) > 2 {
@@ -57,7 +67,9 @@ func get_modelId(modleName string, daili string) string {
 }
 
 func get_M3u8(modelId string, daili string) string {
-	// fmt.Println(modelId)
+	if modelId == "false" || modelId == "OffLine" {
+		return "false"
+	}
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
 	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8"
 	request := gorequest.New()
@@ -79,25 +91,26 @@ func get_M3u8(modelId string, daili string) string {
 		}
 	}
 
-	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
-
+	if resp.StatusCode != 200 || len(errs) > 0 {
 		return "false"
 	} else {
 		// fmt.Println((body))
 		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
 		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`)
-
 		matches := re.FindString(body)
 		return matches
 	}
 }
 func test_m3u8(url string, daili string) bool {
+	if url == "false" || url == "" {
+		return false
+	}
 	request := gorequest.New()
 	if daili != "" {
 		request = request.Proxy(daili) //代理
 	}
 	resp, body, errs := request.Get(url).End()
-	if url == "false" || len(errs) > 0 || resp.StatusCode != 200 {
+	if len(errs) > 0 || resp.StatusCode != 200 {
 		return false
 	}
 	if resp.StatusCode == 200 {
