@@ -55,6 +55,7 @@ func get_modelId(modleName string, daili string) string {
 				fmt.Println("Error:", err)
 			}
 		}
+		return "false"
 	} else {
 		// 解析 JSON 响应
 		if (len(gjson.Get(body, "messages").String())) > 2 {
