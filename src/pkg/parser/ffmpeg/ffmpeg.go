@@ -40,7 +40,7 @@ func (b *builder) Build(cfg map[string]string) (parser.Parser, error) {
 		closeOnce:   new(sync.Once),
 		statusReq:   make(chan struct{}, 1),
 		statusResp:  make(chan map[string]string, 1),
-		TimeoutInMs: cfg["timeout_in_ms"],
+		timeoutInUs: cfg["timeout_in_us"],
 	}, nil
 }
 
@@ -50,7 +50,7 @@ type Parser struct {
 	cmdStdout   io.ReadCloser
 	closeOnce   *sync.Once
 	debug       bool
-	TimeoutInMs string
+	timeoutInUs string
 
 	statusReq  chan struct{}
 	statusResp chan map[string]string
@@ -148,7 +148,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-y", "-re",
 		"-user_agent", ffUserAgent,
 		"-referer", referer,
-		"-rw_timeout", p.TimeoutInMs,
+		"-rw_timeout", p.timeoutInUs,
 		"-i", url.String(),
 		"-c", "copy", //所有流(视频、音频、字幕等) copy
 		// "-c:a", "copy", //对audio流使用 copy

@@ -43,7 +43,7 @@ func init() {
 type builder struct{}
 
 func (b *builder) Build(cfg map[string]string) (parser.Parser, error) {
-	// timeout, err := time.ParseDuration(cfg["timeout_in_ms"] + "us")
+	// timeout, err := time.ParseDuration(cfg["timeout_in_us"] + "us")
 	// if err != nil {
 	// 	timeout = time.Minute
 	// }

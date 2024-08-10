@@ -77,7 +77,7 @@ type Config struct {
 	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 	Cookies              map[string]string    `yaml:"cookies"`
 	OnRecordFinished     OnRecordFinished     `yaml:"on_record_finished"`
-	TimeoutInMs          int                  `yaml:"timeout_in_ms"`
+	TimeoutInUs          int                  `yaml:"timeout_in_us"`
 	Proxy                string               `yaml:"proxy"`
 
 	liveRoomIndexCache map[string]int
@@ -148,7 +148,7 @@ var defaultConfig = Config{
 		ConvertToMp4:          false,
 		DeleteFlvAfterConvert: false,
 	},
-	TimeoutInMs: 60000,
+	TimeoutInUs: 60000000,
 	Proxy:       "http://127.0.0.1:7890",
 }
 

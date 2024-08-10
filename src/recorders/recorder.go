@@ -153,7 +153,7 @@ func (r *recorder) tryRecord(ctx context.Context) {
 		return
 	}
 	parserCfg := map[string]string{
-		"timeout_in_ms": strconv.Itoa(r.config.TimeoutInMs),
+		"timeout_in_us": strconv.Itoa(r.config.TimeoutInUs),
 	}
 	if r.config.Debug {
 		parserCfg["debug"] = "true"
