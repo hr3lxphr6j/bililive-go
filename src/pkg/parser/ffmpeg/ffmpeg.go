@@ -153,7 +153,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-c", "copy", //所有流(视频、音频、字幕等) copy
 		// "-c:a", "copy", //对audio流使用 copy
 		// "-c:v", "copy", //对video流使用 copy
-		"-rtbufsize", "100M", //实时缓冲区，默认3M
+		"-rtbufsize", "30M", //实时缓冲区，默认3M
 		// "-max_delay", "700000", //最大延迟700000us
 		// "-bsf:a", "aac_adtstoasc",
 	}
@@ -171,7 +171,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 			"-c", "copy", //所有流(视频、音频、字幕等) copy
 			// "-c:a", "copy", //对audio流使用 copy
 			// "-c:v", "copy", //对video流使用 copy
-			"-rtbufsize", "100M", //实时缓冲区，默认3M
+			"-rtbufsize", "30M", //实时缓冲区，默认3M
 			// "-max_delay", "700000", //最大延迟700000 us
 		}
 	}
