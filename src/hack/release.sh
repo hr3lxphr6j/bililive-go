@@ -30,6 +30,8 @@ package() {
   echo $BIN_PATH/$res
 }
 
+
+target_platform=("windows" "linux" )
 for dist in $(go tool dist list); do
   echo $dist
   case $dist in
@@ -38,11 +40,11 @@ for dist in $(go tool dist list); do
     ;;
   *) ;;
 
-  esac 
+  esac
   platform=$(echo ${dist} | cut -d'/' -f1)
   arch=$(echo ${dist} | cut -d'/' -f2)
   echo PLATFORM=${platform} ARCH=${arch}
-  if [[ ${platform} == "windows" ]]; then
+  if [[ " ${target_platform[*]} " == *${platform}* ]]; then
     echo "build "$dist
     make PLATFORM=${platform} ARCH=${arch} bililive
   fi
