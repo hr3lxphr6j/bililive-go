@@ -145,7 +145,8 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	args := []string{
 		"-nostats",
 		"-progress", "-",
-		"-y", "-re",
+		"-y",
+		// "-re",
 		"-user_agent", ffUserAgent,
 		"-referer", referer,
 		"-rw_timeout", p.timeoutInUs,
