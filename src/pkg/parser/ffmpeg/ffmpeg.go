@@ -159,21 +159,25 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		// "-max_delay", "700000", //最大延迟700000us
 		// "-bsf:a", "aac_adtstoasc",
 	}
-	// daili := inst.Config.Proxy
-	// if daili != "" {
-	// 	args = []string{
-	// 		"-http_proxy ", daili,
-	// 		"-nostats",
-	// 		"-progress", "-",
-	// 		"-y", "-re",
-	// 		"-user_agent", ffUserAgent,
-	// 		"-referer", referer,
-	// 		"-rw_timeout", p.timeoutInUs,
-	// 		"-i", url.String(),
-	// 		"-c", "copy",
-	// 		"-bsf:a", "aac_adtstoasc",
-	// 	}
-	// }
+	daili := inst.Config.Proxy
+	if daili != "" {
+		args = []string{
+			"-http_proxy", daili,
+			"-copyts",        //复制时间戳
+			"-nostats",       //-nostats 可以让终端输出更加简洁,只显示必要的信息
+			"-progress", "-", //-progress - 可以实时显示转码进度
+			"-y", //-y 可以自动覆盖已存在的输出文件,无需手动确认。
+			// "-re", //
+			"-user_agent '", ffUserAgent, "'",
+			"-referer", referer,
+			"-i", url.String(),
+			"-c", "copy", //所有流(视频、音频、字幕等) copy
+			// "-c:a", "copy", //对audio流使用 copy
+			// "-c:v", "copy", //对video流使用 copy
+			"-rtbufsize", "30M", //实时缓冲区，默认3M
+			// "-max_delay", "700000", //最大延迟700000 us
+		}
+	}
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
 			continue
