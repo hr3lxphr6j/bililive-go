@@ -193,7 +193,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	}
 
 	args = append(args, file) //增加输出文件路径名参数
-
+	fmt.Println("最终执行命令", args)
 	inst.Logger.Info(args)
 
 	// p.cmd operations need p.cmdLock
