@@ -148,10 +148,10 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-progress", "-",
 		"-y",
 		// "-re",
-		"-user_agent", ffUserAgent,
-		"-referer", referer,
+		"-user_agent", "'" + ffUserAgent + "'",
+		"-referer", "'" + referer + "'",
 		"-rw_timeout", p.timeoutInUs,
-		"-i", url.String(),
+		"-i", "'" + url.String() + "'",
 		"-c", "copy", //所有流(视频、音频、字幕等) copy
 		// "-c:a", "copy", //对audio流使用 copy
 		// "-c:v", "copy", //对video流使用 copy
@@ -169,8 +169,8 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 			"-y", //-y 可以自动覆盖已存在的输出文件,无需手动确认。
 			// "-re", //
 			"-user_agent", "'" + ffUserAgent + "'",
-			"-referer", referer,
-			"-i", url.String(),
+			"-referer", "'" + referer + "'",
+			"-i", "'" + url.String() + "'",
 			"-c", "copy", //所有流(视频、音频、字幕等) copy
 			// "-c:a", "copy", //对audio流使用 copy
 			// "-c:v", "copy", //对video流使用 copy
