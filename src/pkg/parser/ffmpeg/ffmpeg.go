@@ -168,8 +168,8 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 			// "-progress", "-", //-progress - 可以实时显示转码进度
 			"-y", //-y 可以自动覆盖已存在的输出文件,无需手动确认。
 			// "-re", //
-			"-user_agent '", ffUserAgent, "'",
-			"-referer", referer,
+			"-user_agent", "'" + ffUserAgent + "'",
+			"-referer", "'" + referer + "'",
 			"-i", url.String(),
 			"-c", "copy", //所有流(视频、音频、字幕等) copy
 			// "-c:a", "copy", //对audio流使用 copy
