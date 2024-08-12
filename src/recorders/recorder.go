@@ -125,9 +125,11 @@ func (r *recorder) tryRecord(ctx context.Context) {
 
 	tmpl := getDefaultFileNameTmpl(r.config)
 	if r.config.OutputTmpl != "" {
+		fmt.Println("config.OutputTmpl:", r.config.OutputTmpl)
 		_tmpl, err := template.New("user_filename").Funcs(utils.GetFuncMap(r.config)).Parse(r.config.OutputTmpl)
 		if err == nil {
 			tmpl = _tmpl
+			fmt.Println("tmpl:", tmpl)
 		}
 	}
 
