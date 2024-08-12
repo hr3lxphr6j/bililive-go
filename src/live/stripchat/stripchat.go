@@ -2,7 +2,6 @@ package stripchat
 
 import (
 	"fmt"
-	"io"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -18,6 +17,9 @@ import (
 )
 
 func get_modelId(modleName string, daili string) string {
+	if modleName == "" {
+		return "false"
+	}
 	fmt.Println("主播名字：", modleName)
 	request := gorequest.New()
 	if daili != "" {
@@ -59,7 +61,8 @@ func get_modelId(modleName string, daili string) string {
 func get_M3u8(modelId string, daili string) string {
 	// fmt.Println(modelId)
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
-	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8"
+	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8"
+	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + ".m3u8" //源视频，最高分辨率
 	request := gorequest.New()
 	if daili != "" {
 		request = request.Proxy(daili) //代理
@@ -67,45 +70,39 @@ func get_M3u8(modelId string, daili string) string {
 	resp, body, errs := request.Get(url).End()
 
 	if errs != nil {
-		fmt.Println("出错详情 modeId=", modelId)
-		for _, err := range errs {
-			if err == io.EOF {
-				// 处理 EOF 错误
-				fmt.Println("Got EOF error")
-			} else {
-				// 其他错误处理
-				fmt.Println("Error:", err)
-			}
-		}
+		return "false"
 	}
 
 	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
-
 		return "false"
 	} else {
 		// fmt.Println((body))
 		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
-		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`)
+		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`) //等价于\?playlistType=standard
 
 		matches := re.FindString(body)
 		return matches
 	}
 }
 func test_m3u8(url string, daili string) bool {
-	request := gorequest.New()
-	if daili != "" {
-		request = request.Proxy(daili) //代理
-	}
-	resp, body, errs := request.Get(url).End()
-	if url == "false" || len(errs) > 0 || resp.StatusCode != 200 {
+	if url == "false" || url == "" {
+		return false
+	} else {
+		request := gorequest.New()
+		if daili != "" {
+			request = request.Proxy(daili) //代理
+		}
+		resp, body, errs := request.Get(url).End()
+		if len(errs) > 0 || resp.StatusCode != 200 {
+			return false
+		}
+		if resp.StatusCode == 200 {
+			_ = body
+			// fmt.Println(body)
+			return true
+		}
 		return false
 	}
-	if resp.StatusCode == 200 {
-		_ = body
-		// fmt.Println(body)
-		return true
-	}
-	return false
 }
 
 const (
@@ -165,17 +162,15 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	m3u8_status := test_m3u8(m3u8, daili)
 	if modelID == "false" {
 		return nil, live.ErrRoomUrlIncorrect
-	}
-	if (modelID == "OffLine") || (m3u8 == "false") {
+	} else if modelID == "OffLine" {
 		info = &live.Info{
 			Live:     l,
 			RoomName: modelID,
 			HostName: modelName,
-			Status:   m3u8_status,
+			Status:   false,
 		}
 		return info, nil
-	}
-	if m3u8 != "false" {
+	} else if m3u8 != "" {
 		info = &live.Info{
 			Live:     l,
 			RoomName: modelID,
