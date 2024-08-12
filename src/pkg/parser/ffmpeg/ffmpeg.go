@@ -143,6 +143,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 
 	inst := instance.GetInstance(ctx)
 	args := []string{
+		"-copyts",
 		"-nostats",
 		"-progress", "-",
 		"-y",
@@ -151,9 +152,12 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-referer", referer,
 		"-rw_timeout", p.timeoutInUs,
 		"-i", url.String(),
-		"-c", "copy",
-		// "-bsf:a", "aac_adtstoasc",
+		"-c", "copy", //所有流(视频、音频、字幕等) copy
+		// "-c:a", "copy", //对audio流使用 copy
+		// "-c:v", "copy", //对video流使用 copy
 		"-rtbufsize", "30M", //实时缓冲区，默认3M
+		// "-max_delay", "700000", //最大延迟700000us
+		// "-bsf:a", "aac_adtstoasc",
 	}
 	// daili := inst.Config.Proxy
 	// if daili != "" {
