@@ -92,7 +92,7 @@ func get_M3u8(modelId string, daili string) string {
 	} else {
 		// fmt.Println((body))
 		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
-		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`)
+		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`) //等价于\?playlistType=standard
 		matches := re.FindString(body)
 		return matches
 	}
@@ -100,21 +100,22 @@ func get_M3u8(modelId string, daili string) string {
 func test_m3u8(url string, daili string) bool {
 	if url == "false" || url == "" {
 		return false
-	}
-	request := gorequest.New()
-	if daili != "" {
-		request = request.Proxy(daili) //代理
-	}
-	resp, body, errs := request.Get(url).End()
-	if len(errs) > 0 || resp.StatusCode != 200 {
+	} else {
+		request := gorequest.New()
+		if daili != "" {
+			request = request.Proxy(daili) //代理
+		}
+		resp, body, errs := request.Get(url).End()
+		if len(errs) > 0 || resp.StatusCode != 200 {
+			return false
+		}
+		if resp.StatusCode == 200 {
+			_ = body
+			// fmt.Println(body)
+			return true
+		}
 		return false
 	}
-	if resp.StatusCode == 200 {
-		_ = body
-		// fmt.Println(body)
-		return true
-	}
-	return false
 }
 
 const (
@@ -174,17 +175,15 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	m3u8_status := test_m3u8(m3u8, daili)
 	if modelID == "false" {
 		return nil, live.ErrRoomUrlIncorrect
-	}
-	if (modelID == "OffLine") || (m3u8 == "false") {
+	} else if modelID == "OffLine" {
 		info = &live.Info{
 			Live:     l,
 			RoomName: modelID,
 			HostName: modelName,
-			Status:   m3u8_status,
+			Status:   false,
 		}
 		return info, nil
-	}
-	if m3u8 != "false" {
+	} else if m3u8 != "" {
 		info = &live.Info{
 			Live:     l,
 			RoomName: modelID,
