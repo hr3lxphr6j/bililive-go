@@ -163,11 +163,12 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	if daili != "" {
 		args = []string{
 			"-http_proxy", daili,
-			"-copyts",        //复制时间戳
-			"-nostats",       //-nostats 可以让终端输出更加简洁,只显示必要的信息
-			"-progress", "-", //-progress - 可以实时显示转码进度
+			"-copyts",  //复制时间戳
+			"-nostats", //-nostats 可以让终端输出更加简洁,只显示必要的信息
+			// "-progress", "-", //-progress - 可以实时显示转码进度
 			"-y", //-y 可以自动覆盖已存在的输出文件,无需手动确认。
-			"-user_agent", ffUserAgent,
+			// "-re", //
+			"-user_agent '", ffUserAgent, "'",
 			"-referer", referer,
 			"-i", url.String(),
 			"-c", "copy", //所有流(视频、音频、字幕等) copy
