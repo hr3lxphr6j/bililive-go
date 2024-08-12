@@ -30,13 +30,10 @@ package() {
   echo $BIN_PATH/$res
 }
 
-<<<<<<< HEAD
-=======
 
 target_platform=("windows" "linux" )
 target_arch=("amd64")
 # 386,arch,mips,mipsle,riscv64
->>>>>>> c14ffdb (only release win/linux amd64)
 for dist in $(go tool dist list); do
   echo $dist
   case $dist in
@@ -49,15 +46,11 @@ for dist in $(go tool dist list); do
   platform=$(echo ${dist} | cut -d'/' -f1)
   arch=$(echo ${dist} | cut -d'/' -f2)
   echo PLATFORM=${platform} ARCH=${arch}
-<<<<<<< HEAD
-  if [[ ${platform} == "windows" ]]; then
-=======
   # [[ ${target_platform[@]/${platform}/} != ${target_platform[@]} ]]
   # 前一种方式是通过字符串替换后比较数组是否发生变化来判断,而后一种方式是直接使用通配符匹配字符串。
   # 前一种方式更加灵活,可以检查数组中是否存在某个特定值,而后一种方式则更加简单,只能检查数组中是否包含某个子串。
   # 前一种方式对数组的长度和结构没有要求,而后一种方式要求数组元素用空格连接成一个字符串
   if [[ " ${target_platform[*]} " == *${platform}* && " ${target_arch[*]} " == *${arch}* ]]; then   
->>>>>>> c14ffdb (only release win/linux amd64)
     echo "build "$dist
     make PLATFORM=${platform} ARCH=${arch} bililive
   fi
