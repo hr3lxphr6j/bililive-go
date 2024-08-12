@@ -151,7 +151,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-rw_timeout", p.timeoutInUs,
 		"-i", url.String(),
 		"-c", "copy",
-		"-bsf:a", "aac_adtstoasc",
+		// "-bsf:a", "aac_adtstoasc",
 		"-rtbufsize", "30M", //实时缓冲区，默认3M
 	}
 	// daili := inst.Config.Proxy
