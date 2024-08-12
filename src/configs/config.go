@@ -176,6 +176,7 @@ func (c *Config) Verify() error {
 		return fmt.Errorf("the minimum value of max_duration is one minute")
 	}
 	if !c.RPC.Enable && len(c.LiveRooms) == 0 {
+		fmt.Println("出错config:", c)
 		return fmt.Errorf("the RPC is not enabled, and no live room is set. the program has nothing to do using this setting")
 	}
 	return nil
