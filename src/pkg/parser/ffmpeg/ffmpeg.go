@@ -150,6 +150,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-i", url.String(),
 		"-c", "copy",
 		"-bsf:a", "aac_adtstoasc",
+		"-rtbufsize", "30M", //实时缓冲区，默认3M
 	}
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
