@@ -170,7 +170,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 			// "-re", //
 			"-user_agent", "'" + ffUserAgent + "'",
 			"-referer", "'" + referer + "'",
-			"-i", "'" + url.String() + "'",
+			"-i", url.String(),
 			"-c", "copy", //所有流(视频、音频、字幕等) copy
 			// "-c:a", "copy", //对audio流使用 copy
 			// "-c:v", "copy", //对video流使用 copy
