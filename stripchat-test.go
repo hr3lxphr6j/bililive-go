@@ -44,7 +44,7 @@ func get_modelId(modleName string, daili string) string {
 			modelId := gjson.Get(body, "messages.0.modelId").String()
 			return modelId
 		} else {
-			fmt.Println("len messages:", len(gjson.Get(body, "messages").String()), gjson.Get(body, "messages").String())
+			fmt.Println("len messages=", len(gjson.Get(body, "messages").String()), "\nmessages:", gjson.Get(body, "messages").String())
 
 			return "OffLine"
 		}
@@ -65,7 +65,6 @@ func get_M3u8(modelId string, daili string) string {
 		return "false"
 	} else {
 		// fmt.Println((body))
-
 		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
 		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`)
 		matches := re.FindString(body)
@@ -97,7 +96,6 @@ func main() {
 	// m3u8 := get_M3u8(get_modelId("Sakura_Anne"))
 	// m3u8 := get_M3u8(get_modelId("Ko_Alanna"))
 	// m3u8 := get_M3u8(get_modelId("NEW-girl520"))
-	// m3u8 := get_M3u8(get_modelId("5zzzzz_"))
 	// m3u8 := get_M3u8(get_modelId("Lucky-uu"))
 	// m3u8 := get_M3u8(get_modelId("Hahaha_ha2"))
 	// m3u8 := get_M3u8(get_modelId("8-Monica"))

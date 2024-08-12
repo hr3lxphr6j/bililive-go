@@ -140,6 +140,8 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	if !exists {
 		referer = live.GetRawUrl()
 	}
+
+	inst := instance.GetInstance(ctx)
 	args := []string{
 		"-nostats",
 		"-progress", "-",
@@ -152,6 +154,21 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-bsf:a", "aac_adtstoasc",
 		"-rtbufsize", "30M", //实时缓冲区，默认3M
 	}
+	// daili := inst.Config.Proxy
+	// if daili != "" {
+	// 	args = []string{
+	// 		"-http_proxy ", daili,
+	// 		"-nostats",
+	// 		"-progress", "-",
+	// 		"-y", "-re",
+	// 		"-user_agent", ffUserAgent,
+	// 		"-referer", referer,
+	// 		"-rw_timeout", p.timeoutInUs,
+	// 		"-i", url.String(),
+	// 		"-c", "copy",
+	// 		"-bsf:a", "aac_adtstoasc",
+	// 	}
+	// }
 	for k, v := range headers {
 		if k == "User-Agent" || k == "Referer" {
 			continue
@@ -159,7 +176,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		args = append(args, "-headers", k+": "+v)
 	}
 
-	inst := instance.GetInstance(ctx)
 	MaxFileSize := inst.Config.VideoSplitStrategies.MaxFileSize
 	if MaxFileSize < 0 {
 		inst.Logger.Infof("Invalid MaxFileSize: %d", MaxFileSize)
@@ -168,6 +184,8 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	}
 
 	args = append(args, file)
+
+	inst.Logger.Info(args)
 
 	// p.cmd operations need p.cmdLock
 	func() {
