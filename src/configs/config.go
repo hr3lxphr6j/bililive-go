@@ -160,7 +160,6 @@ func NewConfig() *Config {
 
 // Verify will return an error when this config has problem.
 func (c *Config) Verify() error {
-	fmt.Println("config.go:", c)
 	if c == nil {
 		return fmt.Errorf("config is null")
 	}
