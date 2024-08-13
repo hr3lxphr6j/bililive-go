@@ -21,7 +21,9 @@ live_rooms:
 - url: https://live.bilibili.com/22603245
   is_listening: true
   quality: 0 
-out_put_tmpl: ""
+out_put_tmpl: ''
+# '{{ .Live.GetPlatformCNName }}/{{ .HostName | filenameFilter }}/{{ .HostName | filenameFilter }}[{{ now | date "2006-01-02_15-04-05"}}][{{ .RoomName | filenameFilter }}].flv'
+# ./平台名称/主播名字/主播名字+时间戳+房间名字.flv
 video_split_strategies:
   on_room_name_changed: false
   max_duration: 0s
