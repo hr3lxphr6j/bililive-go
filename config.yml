@@ -2,8 +2,8 @@ rpc:
   enable: true
   bind: :8080
 debug: false
-interval: 20
-out_put_path: ./
+interval: 30 #间隔多久查询直播是否在线：默认30秒
+out_put_path: ./ #输出视频路径
 ffmpeg_path: # 如果此项为空，就自动在环境变量里寻找
 log:
   out_put_folder: ./
@@ -16,8 +16,10 @@ live_rooms:
 # (B站)0代表原画PRO(HEVC)优先, 其他数值为原画(AVC)
 # 原画PRO会保存为.ts文件, 原画为.flv
 # HEVC相比AVC体积更小, 减少35%体积, 画质相当, 但是B站转码有时候会崩
-- url: https://www.lang.live/room/5664344
-  is_listening: false
+- url: https://zh.stripchat.com/Sakura_Anne
+  is_listening: true
+  quality: 0
+  audio_only: false
 - url: https://live.bilibili.com/22603245
   is_listening: true
   quality: 0
@@ -45,3 +47,4 @@ on_record_finished:
   custom_commandline: ""
 timeout_in_us: 60000000
 proxy: http://127.0.0.1:7890
+#仅支持http代理（ffmpeg仅支持http代理，但获取直播间信息可用socks5代理）
