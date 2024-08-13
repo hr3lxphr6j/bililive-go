@@ -73,7 +73,7 @@ type Config struct {
 	Log                  Log                  `yaml:"log"`
 	Feature              Feature              `yaml:"feature"`
 	LiveRooms            []LiveRoom           `yaml:"live_rooms"`
-	OutputTmpl           string               `yaml:"out_put_name_format"`
+	OutputTmpl           string               `yaml:"out_put_tmpl"`
 	VideoSplitStrategies VideoSplitStrategies `yaml:"video_split_strategies"`
 	Cookies              map[string]string    `yaml:"cookies"`
 	OnRecordFinished     OnRecordFinished     `yaml:"on_record_finished"`
