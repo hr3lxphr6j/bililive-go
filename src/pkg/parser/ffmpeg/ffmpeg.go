@@ -143,7 +143,6 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 
 	inst := instance.GetInstance(ctx)
 	args := []string{
-		"-copyts",
 		"-nostats",
 		"-progress", "-",
 		"-y",
@@ -158,11 +157,11 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		"-rtbufsize", "30M", //实时缓冲区，默认3M
 		// "-max_delay", "700000", //最大延迟700000us
 		// "-bsf:a", "aac_adtstoasc",
+		"-copyts", //复制时间戳
 	}
 	daili := inst.Config.Proxy
 	if daili != "" {
 		args = []string{
-			"-copyts", //复制时间戳
 			"-http_proxy", daili,
 			"-nostats", //-nostats 可以让终端输出更加简洁,只显示必要的信息
 			// "-progress", "-", //-progress - 可以实时显示转码进度
@@ -176,6 +175,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 			// "-c:v", "copy", //对video流使用 copy
 			"-rtbufsize", "30M", //实时缓冲区，默认3M
 			// "-max_delay", "700000", //最大延迟700000 us
+			"-copyts", //复制时间戳
 		}
 	}
 	for k, v := range headers {
