@@ -1,13 +1,13 @@
-import React from "react";
-import API from "../../utils/api";
 import { Breadcrumb, Divider, Icon, Table } from "antd";
-import { Link, RouteComponentProps } from "react-router-dom";
-import Utils from "../../utils/common";
-import './file-list.css';
 import { PaginationConfig } from "antd/lib/pagination";
 import { SorterResult } from "antd/lib/table";
 import Artplayer from "artplayer";
 import mpegtsjs from "mpegts.js";
+import React from "react";
+import { Link, RouteComponentProps } from "react-router-dom";
+import API from "../../utils/api";
+import Utils from "../../utils/common";
+import './file-list.css';
 
 const api = new API();
 
@@ -133,6 +133,22 @@ class FileList extends React.Component<Props, IState> {
                             } else {
                                 if (art) {
                                     art.notice.show = "不支持播放格式: flv";
+                                }
+                            }
+                        },
+                        ts: function (video, url) {
+                            if (mpegtsjs.isSupported()) {
+                                const tsPlayer = mpegtsjs.createPlayer({
+                                    type: "mpegts", // could also be mpegts, m2ts, flv,mse
+                                    url: url,
+                                    hasVideo: true,
+                                    hasAudio: true,
+                                }, {});
+                                tsPlayer.attachMediaElement(video);
+                                tsPlayer.load();
+                            } else {
+                                if (art) {
+                                    art.notice.show = "不支持播放格式: mpegts";
                                 }
                             }
                         },
