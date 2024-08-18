@@ -163,8 +163,8 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 	if daili != "" {
 		args = []string{
 			"-http_proxy", daili,
-			"-nostats", //-nostats 可以让终端输出更加简洁,只显示必要的信息
-			// "-progress", "-", //-progress - 可以实时显示转码进度
+			"-nostats",       //-nostats 可以让终端输出更加简洁,只显示必要的信息
+			"-progress", "-", //-progress - 可以实时显示转码进度
 			"-y", //-y 可以自动覆盖已存在的输出文件,无需手动确认。
 			// "-re", //
 			"-user_agent", "'" + ffUserAgent + "'",
