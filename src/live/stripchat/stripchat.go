@@ -4,14 +4,11 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"os"
-	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
 
-	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/internal/flag"
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
+	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/test"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
@@ -80,7 +77,7 @@ func get_M3u8(modelId string, daili string) string {
 		return "false"
 	}
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
-	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8"
+	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=standard"
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + ".m3u8"
 	request := gorequest.New()
 	if daili != "" {
@@ -93,7 +90,7 @@ func get_M3u8(modelId string, daili string) string {
 	} else {
 		// fmt.Println((body))
 		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
-		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`) //等价于\?playlistType=standard
+		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=standard)`) //等价于\?playlistType=standard
 		matches := re.FindString(body)
 		return matches
 	}
@@ -140,57 +137,11 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 	}, nil
 }
 
-func getConfigBesidesExecutable() (*configs.Config, error) {
-	exePath, err := os.Executable()
-	if err != nil {
-		return nil, err
-	}
-	configPath := filepath.Join(filepath.Dir(exePath), "config.yml")
-	config, err := configs.ReadConfigWithFile(configPath)
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
-}
-func GetProxy() string {
-	// daili := ""
-	// read_config, err := getConfigBesidesExecutable()
-	// if err == nil {
-	// 	// fmt.Println("daili:", read_config.Proxy)
-	// 	daili = read_config.Proxy
-	// 	return daili
-	// } else {
-	// 	daili = ""
-	// 	return daili
-	// 	// fmt.Println("err:", err)
-	// }
-
-	// var config *configs.Config
-	if *flag.Conf != "" { //从参数中加载config
-		c, err := configs.ReadConfigWithFile(*flag.Conf)
-		if err != nil {
-			return ""
-		} else {
-			// config = c
-			return c.Proxy
-		}
-	} else { //无参数，默认搜索同目录下的config.yml
-		// if config is invalid, try using the config.yml file besides the executable file.
-		c, err := getConfigBesidesExecutable()
-		if err != nil {
-			return ""
-		} else {
-			// config = c
-			return c.Proxy
-		}
-	}
-}
-
 func (l *Live) GetInfo() (info *live.Info, err error) {
 
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	daili := GetProxy()
+	daili := test.Get_test_Proxy()
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
 	m3u8_status := test_m3u8(m3u8, daili)
@@ -220,7 +171,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	// modeName := regexp.MustCompile(`stripchat.com\/(\w|-)+`).FindString(l.Url.String())
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	daili := GetProxy()
+	daili := test.Get_test_Proxy()
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
 	m3u8_status := test_m3u8(m3u8, daili)
