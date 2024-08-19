@@ -1,4 +1,4 @@
-package readconfig
+package test
 
 import (
 	"os"

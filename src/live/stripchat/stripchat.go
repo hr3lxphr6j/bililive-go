@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/readconfig"
+	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/test"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
@@ -143,7 +143,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	modelName := modeName[len(modeName)-1]
 
 	daili := ""
-	config, config_err := readconfig.Get_config()
+	config, config_err := test.Get_config()
 	if config_err != nil {
 		daili = ""
 	} else {
@@ -179,7 +179,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
 	daili := ""
-	config, config_err := readconfig.Get_config()
+	config, config_err := test.Get_config()
 	if config_err != nil {
 		daili = ""
 	} else {
