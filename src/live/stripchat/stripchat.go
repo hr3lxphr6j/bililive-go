@@ -141,8 +141,14 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	daili := test.Get_test_Proxy()
-	fmt.Println("daili=", daili)
+
+	daili := ""
+	config, config_err := test.Get_config()
+	if config_err != nil {
+		daili = ""
+	} else {
+		daili = config.Proxy
+	}
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
 	m3u8_status := test_m3u8(m3u8, daili)
@@ -172,7 +178,13 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	// modeName := regexp.MustCompile(`stripchat.com\/(\w|-)+`).FindString(l.Url.String())
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	daili := test.Get_test_Proxy()
+	daili := ""
+	config, config_err := test.Get_config()
+	if config_err != nil {
+		daili = ""
+	} else {
+		daili = config.Proxy
+	}
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
 	m3u8_status := test_m3u8(m3u8, daili)
