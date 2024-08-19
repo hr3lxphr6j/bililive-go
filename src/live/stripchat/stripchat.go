@@ -185,7 +185,6 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	} else {
 		daili = config.Proxy
 	}
-	fmt.Println("daili", daili)
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
 	m3u8_status := test_m3u8(m3u8, daili)
