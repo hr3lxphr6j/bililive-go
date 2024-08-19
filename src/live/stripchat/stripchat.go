@@ -142,6 +142,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
 	daili := test.Get_test_Proxy()
+	fmt.Println("daili=", daili)
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
 	m3u8_status := test_m3u8(m3u8, daili)
