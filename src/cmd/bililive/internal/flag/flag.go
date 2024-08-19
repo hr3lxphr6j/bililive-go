@@ -20,7 +20,7 @@ var (
 	FfmpegPath      = app.Flag("ffmpeg-path", "Path for FFMPEG (default: find FFMPEG from your environment variable)").Default("").String()
 	Input           = app.Flag("input", "Live room urls").Short('i').Strings()
 	Conf            = app.Flag("config", "Config file.").Short('c').String()
-	RPC             = app.Flag("enable-rpc", "Enable RPC server.").Default("true").Bool()
+	RPC             = app.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
 	RPCBind         = app.Flag("rpc-bind", "RPC server bind address").Default(":8080").String()
 	NativeFlvParser = app.Flag("native-flv-parser", "use native flv parser").Default("false").Bool()
 	OutputFileTmpl  = app.Flag("output-file-tmpl", "output file name template").Default("").String()
