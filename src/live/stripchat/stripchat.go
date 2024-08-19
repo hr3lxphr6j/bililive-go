@@ -2,13 +2,13 @@ package stripchat
 
 import (
 	"fmt"
+	"net"
 	"net/url"
-	"os"
-	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
+	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/readconfig"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
@@ -20,7 +20,6 @@ func get_modelId(modleName string, daili string) string {
 	if modleName == "" {
 		return "false"
 	}
-	fmt.Println("主播名字：", modleName)
 	request := gorequest.New()
 	if daili != "" {
 		request = request.Proxy(daili) //代理
@@ -44,8 +43,23 @@ func get_modelId(modleName string, daili string) string {
 	_, body, errs := request.Get("https://zh.stripchat.com/api/front/v2/models/username/" + modleName + "/chat").End()
 
 	// 处理响应
-	if len(errs) > 0 {
-		fmt.Println("请求modelID出错:", body, errs)
+	if errs != nil {
+		fmt.Println("get_modeId出错详情:")
+		for _, err := range errs {
+			fmt.Println(reflect.TypeOf(err))
+			if err1, ok := err.(*url.Error); ok {
+				// urlErr 是 *url.Error 类型的错误
+				fmt.Println("*url.Error 类型的错误")
+				if err2, ok := err1.Err.(*net.OpError); ok {
+					// netErr 是 *net.OpError 类型的错误
+					// 可以进一步判断 netErr.Err 的类型
+					fmt.Println("*net.OpError 类型的错误", err.Error(), err2.Op)
+				}
+			} else {
+				// 其他错误处理
+				fmt.Println("Error:", err)
+			}
+		}
 		return "false"
 	} else {
 		// 解析 JSON 响应
@@ -59,27 +73,24 @@ func get_modelId(modleName string, daili string) string {
 }
 
 func get_M3u8(modelId string, daili string) string {
-	// fmt.Println(modelId)
+	if modelId == "false" || modelId == "OffLine" {
+		return "false"
+	}
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
-	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8"
-	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + ".m3u8" //源视频，最高分辨率
+	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=standard"
+	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + ".m3u8"
 	request := gorequest.New()
 	if daili != "" {
 		request = request.Proxy(daili) //代理
 	}
 	resp, body, errs := request.Get(url).End()
 
-	if errs != nil {
-		return "false"
-	}
-
-	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
+	if resp.StatusCode != 200 || len(errs) > 0 {
 		return "false"
 	} else {
 		// fmt.Println((body))
 		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
-		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`) //等价于\?playlistType=standard
-
+		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=standard)`) //等价于\?playlistType=standard
 		matches := re.FindString(body)
 		return matches
 	}
@@ -126,37 +137,18 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 	}, nil
 }
 
-func getConfigBesidesExecutable() (*configs.Config, error) {
-	exePath, err := os.Executable()
-	if err != nil {
-		return nil, err
-	}
-	configPath := filepath.Join(filepath.Dir(exePath), "config.yml")
-	config, err := configs.ReadConfigWithFile(configPath)
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
-}
-func GetProxy() string {
-	daili := ""
-	read_config, err := getConfigBesidesExecutable()
-	if err == nil {
-		// fmt.Println("daili:", read_config.Proxy)
-		daili = read_config.Proxy
-		return daili
-	} else {
-		daili = ""
-		return daili
-		// fmt.Println("err:", err)
-	}
-}
-
 func (l *Live) GetInfo() (info *live.Info, err error) {
 
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	daili := GetProxy()
+
+	daili := ""
+	config, config_err := readconfig.Get_config()
+	if config_err != nil {
+		daili = ""
+	} else {
+		daili = config.Proxy
+	}
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
 	m3u8_status := test_m3u8(m3u8, daili)
@@ -186,7 +178,14 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	// modeName := regexp.MustCompile(`stripchat.com\/(\w|-)+`).FindString(l.Url.String())
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-	daili := GetProxy()
+	daili := ""
+	config, config_err := readconfig.Get_config()
+	if config_err != nil {
+		daili = ""
+	} else {
+		daili = config.Proxy
+	}
+	fmt.Println("daili", daili)
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
 	m3u8_status := test_m3u8(m3u8, daili)
