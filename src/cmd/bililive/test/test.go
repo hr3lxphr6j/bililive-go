@@ -20,36 +20,23 @@ func getConfigBesidesExecutable() (*configs.Config, error) {
 	}
 	return config, nil
 }
-func Get_test_Proxy() string {
-	// daili := ""
-	// read_config, err := getConfigBesidesExecutable()
-	// if err == nil {
-	// 	// fmt.Println("daili:", read_config.Proxy)
-	// 	daili = read_config.Proxy
-	// 	return daili
-	// } else {
-	// 	daili = ""
-	// 	return daili
-	// 	// fmt.Println("err:", err)
-	// }
-
-	// var config *configs.Config
-	if *flag.Conf != "" { //从参数中加载config
+func Get_config() (*configs.Config, error) {
+	var config *configs.Config
+	if *flag.Conf != "" {
 		c, err := configs.ReadConfigWithFile(*flag.Conf)
 		if err != nil {
-			return ""
-		} else {
-			// config = c
-			return c.Proxy
+			return nil, err
 		}
-	} else { //无参数，默认搜索同目录下的config.yml
+		config = c
+	} else {
+		config = flag.GenConfigFromFlags()
+	}
+	if !config.RPC.Enable && len(config.LiveRooms) == 0 {
 		// if config is invalid, try using the config.yml file besides the executable file.
-		c, err := getConfigBesidesExecutable()
-		if err != nil {
-			return ""
-		} else {
-			// config = c
-			return c.Proxy
+		config, err := getConfigBesidesExecutable()
+		if err == nil {
+			return config, config.Verify()
 		}
 	}
+	return config, config.Verify()
 }
