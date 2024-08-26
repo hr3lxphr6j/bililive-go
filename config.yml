@@ -2,8 +2,8 @@ rpc:
   enable: true
   bind: :8080
 debug: false
-interval: 20
-out_put_path: ./
+interval: 30 #间隔多久查询直播是否在线：默认30秒
+out_put_path: ./ #输出视频文件夹路径
 ffmpeg_path: # 如果此项为空，就自动在环境变量里寻找
 log:
   out_put_folder: ./
@@ -21,9 +21,9 @@ live_rooms:
 - url: https://live.bilibili.com/22603245
   is_listening: true
   quality: 0 
-out_put_tmpl: ''
+out_put_tmpl: '{{ .Live.GetPlatformCNName }}/{{ .HostName | filenameFilter }}/{{ .HostName | filenameFilter }}[{{ now | date "2006-01-02_15-04-05"}}].flv'
 # '{{ .Live.GetPlatformCNName }}/{{ .HostName | filenameFilter }}/{{ .HostName | filenameFilter }}[{{ now | date "2006-01-02_15-04-05"}}][{{ .RoomName | filenameFilter }}].flv'
-# ./平台名称/主播名字/主播名字+时间戳+房间名字.flv
+# ./平台名称/主播名字/主播名字[时间戳][房间名字].flv
 video_split_strategies:
   on_room_name_changed: false
   max_duration: 0s
@@ -44,3 +44,5 @@ on_record_finished:
 #  custom_commandline: '{{ .Ffmpeg }} -hide_banner -i "{{ .FileName }}" -c copy "{{ .FileName | trimSuffix (.FileName | ext)}}.mp4"'
   custom_commandline: ""
 timeout_in_us: 60000000
+proxy: http://127.0.0.1:7890
+#仅支持http代理（ffmpeg仅支持http代理）
