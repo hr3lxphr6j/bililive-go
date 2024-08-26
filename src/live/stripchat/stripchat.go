@@ -85,7 +85,7 @@ func get_M3u8(modelId string, daili string) string {
 	}
 	resp, body, errs := request.Get(url).End()
 
-	if resp.StatusCode != 200 || len(errs) > 0 {
+	if len(errs) > 0 || resp.StatusCode != 200 {
 		return "false"
 	} else {
 		// fmt.Println((body))
@@ -107,9 +107,8 @@ func test_m3u8(url string, daili string) bool {
 		if len(errs) > 0 || resp.StatusCode != 200 {
 			return false
 		}
-		if resp.StatusCode == 200 {
+		if resp.StatusCode == 200 { //403代表开票，普通用户无法查看，只能看大厅表演
 			_ = body
-			// fmt.Println(body)
 			return true
 		}
 		return false
@@ -171,7 +170,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		}
 		return info, nil
 	}
-	return info, live.ErrInternalError
+	return nil, live.ErrInternalError
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
