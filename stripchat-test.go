@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"regexp"
+	"strconv"
 
 	"github.com/parnurzeal/gorequest"
 	"github.com/tidwall/gjson"
@@ -51,7 +52,7 @@ func get_modelId(modleName string, daili string) string {
 	}
 }
 
-func get_M3u8(modelId string, daili string) string {
+func get_M3u8(modelId string, daili string) (string, string) {
 	// fmt.Println(modelId)
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8" //可选分辨率视频，比原视频糊
@@ -64,13 +65,23 @@ func get_M3u8(modelId string, daili string) string {
 	resp, body, errs := request.Get(url).End()
 
 	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
-		return "false"
+		return "false", "false"
 	} else {
-		// fmt.Println((body))
+		fmt.Println((body))
+		re0 := regexp.MustCompile(`BANDWIDTH=([\d]+)`)
+		BANDWIDTH := re0.FindStringSubmatch(body)
+		bandwidthValue := "10M"
+		bandwidthValue1 := 0
+		if len(BANDWIDTH) == 2 {
+			bandwidthValue1, _ = strconv.Atoi(BANDWIDTH[1]) // 提取括号内的内容
+			bandwidthValue = strconv.Itoa(bandwidthValue1 * 5)
+		}
+		fmt.Println("码率:", bandwidthValue)
 		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
 		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8)`)
-		matches := re.FindString(body)
-		return matches
+		url := re.FindString(body)
+
+		return url, bandwidthValue
 	}
 }
 func test_m3u8(url string, daili string) bool {
@@ -101,6 +112,8 @@ func main() {
 	// m3u8 := get_M3u8(get_modelId("Lucky-uu"))
 	// m3u8 := get_M3u8(get_modelId("Hahaha_ha2"))
 	// m3u8 := get_M3u8(get_modelId("8-Monica"))
-	m3u8 := get_M3u8(get_modelId(*name, *daili), *daili)
+	m3u8, bandwidth := get_M3u8(get_modelId(*name, *daili), *daili)
 	fmt.Println("m3u8=", m3u8, "测试结果：", test_m3u8(m3u8, *daili))
+	fmt.Println("ffmpeg.exe -http_proxy ", *daili, " -copyts -progress - -y -i ", m3u8, " -c copy -rtbufsize ", bandwidth, "./ceshi_copyts.mkv")
+
 }
