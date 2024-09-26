@@ -46,34 +46,37 @@ func get_modelId(modleName string, daili string) string {
 	if errs != nil {
 		fmt.Println("get_modeId出错详情:")
 		for _, err := range errs {
-			fmt.Println(reflect.TypeOf(err))
 			if err1, ok := err.(*url.Error); ok {
 				// urlErr 是 *url.Error 类型的错误
-				fmt.Println("*url.Error 类型的错误")
+				// fmt.Println("*url.Error 类型的错误")
 				if err2, ok := err1.Err.(*net.OpError); ok {
 					// netErr 是 *net.OpError 类型的错误
 					// 可以进一步判断 netErr.Err 的类型
 					fmt.Println("*net.OpError 类型的错误", err.Error(), err2.Op)
 				}
+				return "url.Error"
 			} else {
-				// 其他错误处理
-				fmt.Println("Error:", err)
+				fmt.Println(reflect.TypeOf(err), "错误详情:", err)
 			}
 		}
 		return "false"
 	} else {
 		// 解析 JSON 响应
-		if (len(gjson.Get(body, "messages").String())) > 2 {
+		if len(gjson.Get(body, "messages").String()) > 2 {
 			modelId := gjson.Get(body, "messages.0.modelId").String()
 			return modelId
-		} else {
+		} else if len(gjson.Get(body, "messages").String()) == 2 {
 			return "OffLine"
+		} else if len(gjson.Get(body, "messages").String()) == 0 {
+			// fmt.Println("error name")
+			return "false"
 		}
+		return "false"
 	}
 }
 
 func get_M3u8(modelId string, daili string) string {
-	if modelId == "false" || modelId == "OffLine" {
+	if modelId == "false" || modelId == "OffLine" || modelId == "url.Error" {
 		return "false"
 	}
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
@@ -153,6 +156,8 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	m3u8_status := test_m3u8(m3u8, daili)
 	if modelID == "false" {
 		return nil, live.ErrRoomUrlIncorrect
+	} else if modelID == "url.Error" {
+		return nil, live.ErrInternalError
 	} else if modelID == "OffLine" {
 		info = &live.Info{
 			Live:     l,
@@ -170,7 +175,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		}
 		return info, nil
 	}
-	return nil, live.ErrInternalError
+	return nil, live.ErrRoomNotExist //live.ErrInternalError
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
@@ -189,6 +194,9 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	m3u8_status := test_m3u8(m3u8, daili)
 	if m3u8_status {
 		return utils.GenUrls(m3u8)
+	}
+	if modelID == "url.Error" {
+		return nil, live.ErrInternalError
 	}
 	if modelID == "false" || modelID == "OffLine" || m3u8 == "false" || !m3u8_status {
 		return nil, err //live.ErrRoomNotExist

@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net"
+	"net/url"
+	"reflect"
 	"regexp"
 	"strconv"
 
@@ -36,19 +39,38 @@ func get_modelId(modleName string, daili string) string {
 	_, body, errs := request.Get("https://zh.stripchat.com/api/front/v2/models/username/" + modleName + "/chat").End()
 
 	// 处理响应
-	if len(errs) > 0 {
-		fmt.Println("请求出错:", errs)
+	if errs != nil {
+		fmt.Println("get_modeId出错详情:")
+		for _, err := range errs {
+			if err1, ok := err.(*url.Error); ok {
+				// urlErr 是 *url.Error 类型的错误
+				fmt.Println("请求出错,可能网络故障", errs)
+				// fmt.Println("*url.Error 类型的错误")
+				if err2, ok := err1.Err.(*net.OpError); ok {
+					// netErr 是 *net.OpError 类型的错误
+					// 可以进一步判断 netErr.Err 的类型
+					fmt.Println("*net.OpError 类型的错误", err.Error(), err2.Op)
+				}
+				return "url.Error"
+			} else {
+				fmt.Println(reflect.TypeOf(err), "错误详情:", err)
+			}
+		}
 		return "false"
 	} else {
 		// 解析 JSON 响应
-		if (len(gjson.Get(body, "messages").String())) > 2 {
+		if len(gjson.Get(body, "messages").String()) > 2 {
 			modelId := gjson.Get(body, "messages.0.modelId").String()
 			return modelId
-		} else {
-			fmt.Println("len messages=", len(gjson.Get(body, "messages").String()), "\nmessages:", gjson.Get(body, "messages").String())
-
+		} else if len(gjson.Get(body, "messages").String()) == 2 {
+			fmt.Println("offline")
 			return "OffLine"
+		} else if len(gjson.Get(body, "messages").String()) == 0 {
+			fmt.Println("error name")
+			return "false"
 		}
+		fmt.Println("len messages=", len(gjson.Get(body, "messages").String()), "\nmessages:", gjson.Get(body, "messages").String())
+		return "false"
 	}
 }
 
@@ -64,7 +86,7 @@ func get_M3u8(modelId string, daili string) (string, string) {
 	}
 	resp, body, errs := request.Get(url).End()
 
-	if modelId == "false" || modelId == "OffLine" || resp.StatusCode != 200 || len(errs) > 0 {
+	if modelId == "false" || modelId == "OffLine" || modelId == "url.Error" || resp.StatusCode != 200 || len(errs) > 0 {
 		return "false", "false"
 	} else {
 		fmt.Println((body))
