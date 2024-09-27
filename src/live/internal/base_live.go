@@ -33,7 +33,8 @@ func NewBaseLive(url *url.URL, opt ...live.Option) BaseLive {
 }
 
 func (a *BaseLive) SetLiveIdByString(value string) {
-	a.LiveId = genLiveIdByString(value)
+	// a.LiveId = genLiveIdByString(value)
+	a.LiveId = live.ID(value)
 }
 
 func (a *BaseLive) GetLiveId() live.ID {

@@ -125,6 +125,8 @@ const (
 
 type Live struct {
 	internal.BaseLive
+	// liveroom map[string]*configs.LiveRoom
+	m3u8Url string
 }
 
 func init() {
@@ -140,7 +142,6 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
-
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
 
@@ -166,12 +167,14 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 			Status:   false,
 		}
 		return info, nil
-	} else if m3u8 != "" {
+	} else if m3u8 != "false" {
+		l.m3u8Url = m3u8
 		info = &live.Info{
-			Live:     l,
-			RoomName: modelID,
-			HostName: modelName,
-			Status:   m3u8_status,
+			Live:         l,
+			RoomName:     modelID,
+			HostName:     modelName,
+			Status:       m3u8_status,
+			CustomLiveId: m3u8, //l.GetLiveId()可获取持久化数据
 		}
 		return info, nil
 	}
@@ -179,7 +182,6 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
-	// modeName := regexp.MustCompile(`stripchat.com\/(\w|-)+`).FindString(l.Url.String())
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
 	daili := ""
@@ -190,7 +192,9 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		daili = config.Proxy
 	}
 	modelID := get_modelId(modelName, daili)
-	m3u8 := get_M3u8(modelID, daili)
+	// m3u8 := get_M3u8(modelID, daili)
+	m3u8 := l.m3u8Url
+	// fmt.Println("\n l.m3u8Url=", l.m3u8Url, " l.GetLiveId()", string(l.GetLiveId()))
 	m3u8_status := test_m3u8(m3u8, daili)
 	if m3u8_status {
 		return utils.GenUrls(m3u8)
