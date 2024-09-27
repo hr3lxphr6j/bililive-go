@@ -33,8 +33,8 @@ func NewBaseLive(url *url.URL, opt ...live.Option) BaseLive {
 }
 
 func (a *BaseLive) SetLiveIdByString(value string) {
-	// a.LiveId = genLiveIdByString(value)
-	a.LiveId = live.ID(value)
+	a.LiveId = genLiveIdByString(value)
+	// a.LiveId = live.ID(value) // 无法通过web端查询，删除id操作
 }
 
 func (a *BaseLive) GetLiveId() live.ID {
