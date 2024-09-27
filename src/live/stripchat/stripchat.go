@@ -157,7 +157,6 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	}
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
-	l.m3u8Url = m3u8
 	m3u8_status := test_m3u8(m3u8, daili)
 	if modelID == "false" {
 		return nil, live.ErrRoomUrlIncorrect
@@ -171,13 +170,14 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 			Status:   false,
 		}
 		return info, nil
-	} else if m3u8 != "" {
+	} else if m3u8 != "false" {
+		l.m3u8Url = m3u8
 		info = &live.Info{
 			Live:         l,
 			RoomName:     modelID,
 			HostName:     modelName,
 			Status:       m3u8_status,
-			CustomLiveId: m3u8,
+			CustomLiveId: m3u8, //l.GetLiveId()可获取持久化数据
 		}
 		return info, nil
 	}
@@ -190,12 +190,18 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	modelName := modeName[len(modeName)-1]
 	daili := ""
 	config, config_err := readconfig.Get_config()
-	fmt.Println(config.LiveRooms, l.GetLiveId())
+	// fmt.Println(config.LiveRooms, l.GetLiveId())
 	if config_err != nil {
 		daili = ""
 	} else {
 		daili = config.Proxy
 	}
+
+	fmt.Println("type l.GetLiveId()", reflect.TypeOf(l.GetLiveId()))
+	if strings.Contains(string(l.GetLiveId()), "m3u8") {
+		return utils.GenUrls(string(l.GetLiveId()))
+	}
+
 	modelID := get_modelId(modelName, daili)
 	// m3u8 := get_M3u8(modelID, daili)
 	m3u8 := l.m3u8Url
