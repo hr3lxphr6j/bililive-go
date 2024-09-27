@@ -197,14 +197,14 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		daili = config.Proxy
 	}
 
-	fmt.Println("type l.GetLiveId()", reflect.TypeOf(l.GetLiveId()))
-	if strings.Contains(string(l.GetLiveId()), "m3u8") {
-		return utils.GenUrls(string(l.GetLiveId()))
-	}
+	// if strings.Contains(string(l.GetLiveId()), "m3u8") {
+	// 	return utils.GenUrls(string(l.GetLiveId()))
+	// }
 
 	modelID := get_modelId(modelName, daili)
 	// m3u8 := get_M3u8(modelID, daili)
 	m3u8 := l.m3u8Url
+	fmt.Println("\n l.m3u8Url=", l.m3u8Url, " l.GetLiveId()", string(l.GetLiveId()))
 	m3u8_status := test_m3u8(m3u8, daili)
 	if m3u8_status {
 		return utils.GenUrls(m3u8)
