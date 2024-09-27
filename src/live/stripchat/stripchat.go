@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/readconfig"
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
@@ -125,6 +126,7 @@ const (
 
 type Live struct {
 	internal.BaseLive
+	liveroom configs.LiveRoom
 }
 
 func init() {
@@ -140,6 +142,8 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
+	fmt.Println(l.liveroom)
+	fmt.Println(l.GetStreamUrls())
 
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
