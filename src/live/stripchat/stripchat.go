@@ -126,7 +126,7 @@ const (
 
 type Live struct {
 	internal.BaseLive
-	liveroom configs.LiveRoom
+	liveroom *configs.LiveRoom
 }
 
 func init() {
