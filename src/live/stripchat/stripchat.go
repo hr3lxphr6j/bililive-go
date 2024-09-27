@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/hr3lxphr6j/bililive-go/src/cmd/bililive/readconfig"
-	"github.com/hr3lxphr6j/bililive-go/src/configs"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
@@ -126,7 +125,8 @@ const (
 
 type Live struct {
 	internal.BaseLive
-	liveroom *configs.LiveRoom
+	// liveroom map[string]*configs.LiveRoom
+	m3u8Url string
 }
 
 func init() {
@@ -142,8 +142,8 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 }
 
 func (l *Live) GetInfo() (info *live.Info, err error) {
-	fmt.Println(l.liveroom)
-	fmt.Println(l.GetStreamUrls())
+	// fmt.Println(l.liveroom)
+	// fmt.Println(l.GetStreamUrls())
 
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
@@ -157,6 +157,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	}
 	modelID := get_modelId(modelName, daili)
 	m3u8 := get_M3u8(modelID, daili)
+	l.m3u8Url = m3u8
 	m3u8_status := test_m3u8(m3u8, daili)
 	if modelID == "false" {
 		return nil, live.ErrRoomUrlIncorrect
@@ -172,10 +173,11 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		return info, nil
 	} else if m3u8 != "" {
 		info = &live.Info{
-			Live:     l,
-			RoomName: modelID,
-			HostName: modelName,
-			Status:   m3u8_status,
+			Live:         l,
+			RoomName:     modelID,
+			HostName:     modelName,
+			Status:       m3u8_status,
+			CustomLiveId: m3u8,
 		}
 		return info, nil
 	}
@@ -188,13 +190,15 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	modelName := modeName[len(modeName)-1]
 	daili := ""
 	config, config_err := readconfig.Get_config()
+	fmt.Println(config.LiveRooms, l.GetLiveId())
 	if config_err != nil {
 		daili = ""
 	} else {
 		daili = config.Proxy
 	}
 	modelID := get_modelId(modelName, daili)
-	m3u8 := get_M3u8(modelID, daili)
+	// m3u8 := get_M3u8(modelID, daili)
+	m3u8 := l.m3u8Url
 	m3u8_status := test_m3u8(m3u8, daili)
 	if m3u8_status {
 		return utils.GenUrls(m3u8)
