@@ -42,7 +42,7 @@ for dist in $(go tool dist list); do
     ;;
   *) ;;
 
-  esac 
+  esac
   platform=$(echo ${dist} | cut -d'/' -f1)
   arch=$(echo ${dist} | cut -d'/' -f2)
   echo PLATFORM=${platform} ARCH=${arch}

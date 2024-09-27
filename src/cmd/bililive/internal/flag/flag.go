@@ -15,7 +15,7 @@ var (
 	app = kingpin.New(consts.AppName, "A command-line live stream save tools.").Version(consts.AppVersion)
 
 	Debug           = app.Flag("debug", "Enable debug mode.").Default("false").Bool()
-	Interval        = app.Flag("interval", "Interval of query live status").Default("20").Short('t').Int()
+	Interval        = app.Flag("interval", "Interval of query live status").Default("30").Short('t').Int()
 	Output          = app.Flag("output", "Output file path.").Short('o').Default("./").String()
 	FfmpegPath      = app.Flag("ffmpeg-path", "Path for FFMPEG (default: find FFMPEG from your environment variable)").Default("").String()
 	Input           = app.Flag("input", "Live room urls").Short('i').Strings()

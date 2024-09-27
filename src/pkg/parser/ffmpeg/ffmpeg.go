@@ -192,8 +192,8 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		args = append(args, "-fs", strconv.Itoa(MaxFileSize))
 	}
 
-	args = append(args, file)
-
+	args = append(args, file) //增加输出文件路径名参数
+	// fmt.Println("最终执行命令", args)
 	inst.Logger.Info(args)
 
 	// p.cmd operations need p.cmdLock
@@ -201,6 +201,7 @@ func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.Stream
 		p.cmdLock.Lock()
 		defer p.cmdLock.Unlock()
 		p.cmd = exec.Command(ffmpegPath, args...)
+		fmt.Println("p.cmd:", p.cmd)
 		if p.cmdStdIn, err = p.cmd.StdinPipe(); err != nil {
 			return
 		}

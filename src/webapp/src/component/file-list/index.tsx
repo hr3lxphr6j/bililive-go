@@ -1,13 +1,13 @@
-import React from "react";
-import API from "../../utils/api";
 import { Breadcrumb, Divider, Icon, Table } from "antd";
-import { Link, RouteComponentProps } from "react-router-dom";
-import Utils from "../../utils/common";
-import './file-list.css';
 import { PaginationConfig } from "antd/lib/pagination";
 import { SorterResult } from "antd/lib/table";
 import Artplayer from "artplayer";
 import mpegtsjs from "mpegts.js";
+import React from "react";
+import { Link, RouteComponentProps } from "react-router-dom";
+import API from "../../utils/api";
+import Utils from "../../utils/common";
+import './file-list.css';
 
 const api = new API();
 
