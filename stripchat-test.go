@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
-	"net"
 	"net/url"
 	"reflect"
 	"regexp"
@@ -13,8 +13,17 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func get_modelId(modleName string, daili string) string {
+var (
+	ErrNoModelName   = errors.New("未输入modleName")
+	ErrInternalError = errors.New("url.Error")
+	ErrOffline       = errors.New("OffLine")
+	ErrFalse         = errors.New("false")
+)
 
+func get_modelId(modleName string, daili string) (result string, err error) {
+	if modleName == "" {
+		return "", ErrNoModelName
+	}
 	fmt.Println("主播名字：", modleName)
 	request := gorequest.New()
 	if daili != "" {
@@ -42,35 +51,29 @@ func get_modelId(modleName string, daili string) string {
 	if errs != nil {
 		fmt.Println("get_modeId出错详情:")
 		for _, err := range errs {
-			if err1, ok := err.(*url.Error); ok {
+			if _, ok := err.(*url.Error); ok {
 				// urlErr 是 *url.Error 类型的错误
 				fmt.Println("请求出错,可能网络故障", errs)
-				// fmt.Println("*url.Error 类型的错误")
-				if err2, ok := err1.Err.(*net.OpError); ok {
-					// netErr 是 *net.OpError 类型的错误
-					// 可以进一步判断 netErr.Err 的类型
-					fmt.Println("*net.OpError 类型的错误", err.Error(), err2.Op)
-				}
-				return "url.Error"
+				return "", ErrInternalError
 			} else {
 				fmt.Println(reflect.TypeOf(err), "错误详情:", err)
 			}
 		}
-		return "false"
+		return "", ErrFalse
 	} else {
 		// 解析 JSON 响应
 		if len(gjson.Get(body, "messages").String()) > 2 {
 			modelId := gjson.Get(body, "messages.0.modelId").String()
-			return modelId
+			return modelId, nil
 		} else if len(gjson.Get(body, "messages").String()) == 2 {
-			fmt.Println("offline")
-			return "OffLine"
+			// fmt.Println("offline")
+			return "", ErrOffline
 		} else if len(gjson.Get(body, "messages").String()) == 0 {
-			fmt.Println("error name")
-			return "false"
+			// fmt.Println("error name")
+			return "", ErrFalse
 		}
 		fmt.Println("len messages=", len(gjson.Get(body, "messages").String()), "\nmessages:", gjson.Get(body, "messages").String())
-		return "false"
+		return "", ErrFalse
 	}
 }
 
@@ -134,8 +137,18 @@ func main() {
 	// m3u8 := get_M3u8(get_modelId("Lucky-uu"))
 	// m3u8 := get_M3u8(get_modelId("Hahaha_ha2"))
 	// m3u8 := get_M3u8(get_modelId("8-Monica"))
-	m3u8, bandwidth := get_M3u8(get_modelId(*name, *daili), *daili)
-	fmt.Println("m3u8=", m3u8, "测试结果：", test_m3u8(m3u8, *daili))
-	fmt.Println("ffmpeg.exe -http_proxy ", *daili, " -copyts -progress - -y -i ", m3u8, " -c copy -rtbufsize ", bandwidth, "./ceshi_copyts.mkv")
+	modelname, err := get_modelId(*name, *daili)
+	if err != nil {
+		fmt.Println(err)
+		if errors.Is(err, ErrOffline) {
+			fmt.Println(err)
+		}
+	}
+	if modelname != "" {
+		m3u8, bandwidth := get_M3u8(modelname, *daili)
+		fmt.Println("m3u8=", m3u8, "测试结果：", test_m3u8(m3u8, *daili))
+		fmt.Println("ffmpeg.exe -http_proxy ", *daili, " -copyts -progress - -y -i ", m3u8, " -c copy -rtbufsize ", bandwidth, "./ceshi_copyts.mkv")
+
+	}
 
 }
