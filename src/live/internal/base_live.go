@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 )
 
 type BaseLive struct {
@@ -20,8 +21,7 @@ func genLiveId(url *url.URL) live.ID {
 }
 
 func genLiveIdByString(value string) live.ID {
-	// return live.ID(utils.GetMd5String([]byte(value)))
-	return live.ID(value)
+	return live.ID(utils.GetMd5String([]byte(value)))
 }
 
 func NewBaseLive(url *url.URL, opt ...live.Option) BaseLive {
