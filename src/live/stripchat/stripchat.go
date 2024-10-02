@@ -17,9 +17,16 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func get_modelId(modleName string, daili string) string {
+var (
+	ErrFalse                     = errors.New("false")
+	Err_GetInfo_Unexpected       = errors.New("GetInfo未知错误")
+	Err_GetStreamUrls_Unexpected = errors.New("GetStreamUrls未知错误")
+	ErrOffline                   = errors.New("OffLine")
+)
+
+func get_modelId(modleName string, daili string) (string, error) {
 	if modleName == "" {
-		return "false"
+		return "", ErrFalse
 	}
 	request := gorequest.New()
 	if daili != "" {
@@ -55,30 +62,30 @@ func get_modelId(modleName string, daili string) string {
 					// 可以进一步判断 netErr.Err 的类型
 					fmt.Println("*net.OpError 类型的错误", err.Error(), err2.Op)
 				}
-				return "url.Error"
+				return "", live.ErrInternalError
 			} else {
 				fmt.Println(reflect.TypeOf(err), "错误详情:", err)
 			}
 		}
-		return "false"
+		return "", ErrFalse
 	} else {
 		// 解析 JSON 响应
 		if len(gjson.Get(body, "messages").String()) > 2 {
 			modelId := gjson.Get(body, "messages.0.modelId").String()
-			return modelId
+			return modelId, nil
 		} else if len(gjson.Get(body, "messages").String()) == 2 {
-			return "OffLine"
+			return "", ErrOffline
 		} else if len(gjson.Get(body, "messages").String()) == 0 {
 			// fmt.Println("error name")
-			return "false"
+			return "", ErrFalse
 		}
-		return "false"
+		return "", ErrFalse
 	}
 }
 
-func get_M3u8(modelId string, daili string) string {
-	if modelId == "false" || modelId == "OffLine" || modelId == "url.Error" {
-		return "false"
+func get_M3u8(modelId string, daili string) (string, error) {
+	if modelId == "" { // || modelId == "false" || modelId == "OffLine" || modelId == "url.Error" {
+		return "", ErrFalse
 	}
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
 	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=standard"
@@ -90,13 +97,13 @@ func get_M3u8(modelId string, daili string) string {
 	resp, body, errs := request.Get(url).End()
 
 	if len(errs) > 0 || resp.StatusCode != 200 {
-		return "false"
+		return "", ErrFalse
 	} else {
 		// fmt.Println((body))
 		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
 		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=standard)`) //等价于\?playlistType=standard
 		matches := re.FindString(body)
-		return matches
+		return matches, nil
 	}
 }
 func test_m3u8(url string, daili string) bool {
@@ -153,35 +160,52 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	} else {
 		daili = config.Proxy
 	}
-	modelID := get_modelId(modelName, daili)
-	m3u8 := get_M3u8(modelID, daili)
+	modelID, err_getid := get_modelId(modelName, daili)
+	m3u8, err := get_M3u8(modelID, daili)
 	m3u8_status := test_m3u8(m3u8, daili)
-	if m3u8 != "false" {
+
+	if m3u8_status != false { //strings.Contains(m3u8, ".m3u8")
 		l.m3u8Url = m3u8
 		info = &live.Info{
 			Live:         l,
 			RoomName:     modelID,
 			HostName:     modelName,
-			Status:       m3u8_status,
+			Status:       true,
 			CustomLiveId: m3u8, //l.GetLiveId()可获取持久化数据
 		}
 		return info, nil
 	}
-	if modelID == "false" {
-		return nil, live.ErrRoomUrlIncorrect
-	} else if modelID == "url.Error" {
-		return nil, live.ErrInternalError
-	} else if modelID == "OffLine" {
+	if errors.Is(err_getid, ErrOffline) {
 		info = &live.Info{
 			Live:     l,
 			RoomName: modelID,
 			HostName: modelName,
-			Status:   false,
+			Status:   m3u8_status, //false,
 		}
 		return info, nil
 	}
+	if m3u8 == "" {
+		if strings.Contains(l.m3u8Url, ".m3u8") {
+			m3u8 = l.m3u8Url
+			m3u8_status = test_m3u8(m3u8, daili)
+			if m3u8_status != false { //strings.Contains(m3u8, ".m3u8")
+				l.m3u8Url = m3u8
+				info = &live.Info{
+					Live:         l,
+					RoomName:     modelID,
+					HostName:     modelName,
+					Status:       true,
+					CustomLiveId: m3u8, //l.GetLiveId()可获取持久化数据
+				}
+				return info, nil
+			}
+		} else {
+			return nil, err_getid
+		}
 
-	return nil, errors.New("GetInfo未知错误") //live.ErrInternalError
+	}
+
+	return nil, Err_GetInfo_Unexpected
 }
 
 func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
@@ -194,7 +218,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	} else {
 		daili = config.Proxy
 	}
-	modelID := get_modelId(modelName, daili)
+	modelID, err := get_modelId(modelName, daili)
 	// m3u8 := get_M3u8(modelID, daili)
 	m3u8 := l.m3u8Url
 	// fmt.Println("\n l.m3u8Url=", l.m3u8Url, " l.GetLiveId()", string(l.GetLiveId()))
@@ -202,13 +226,13 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	if m3u8_status {
 		return utils.GenUrls(m3u8)
 	}
-	if modelID == "url.Error" {
+	if errors.Is(err, live.ErrInternalError) {
 		return nil, live.ErrInternalError
 	}
-	if modelID == "false" || modelID == "OffLine" || m3u8 == "false" || !m3u8_status {
+	if modelID == "" || m3u8 == "" || !m3u8_status {
 		return nil, errors.New("GetStreamUrls-room not exists")
 	}
-	return nil, errors.New("GetStreamUrls未知错误.")
+	return nil, Err_GetStreamUrls_Unexpected
 }
 
 func (l *Live) GetPlatformCNName() string {
