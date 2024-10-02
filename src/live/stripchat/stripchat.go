@@ -21,7 +21,9 @@ var (
 	ErrFalse                     = errors.New("false")
 	Err_GetInfo_Unexpected       = errors.New("GetInfo未知错误")
 	Err_GetStreamUrls_Unexpected = errors.New("GetStreamUrls未知错误")
+	Err_TestUrl_Unexpected       = errors.New("testUrl未知错误")
 	ErrOffline                   = errors.New("OffLine")
+	// ErrNullUrl                   = errors.New("no url")
 )
 
 func get_modelId(modleName string, daili string) (string, error) {
@@ -95,7 +97,9 @@ func get_M3u8(modelId string, daili string) (string, error) {
 		request = request.Proxy(daili) //代理
 	}
 	resp, body, errs := request.Get(url).End()
-
+	if resp.StatusCode == 404 {
+		return "", ErrOffline
+	}
 	if len(errs) > 0 || resp.StatusCode != 200 {
 		return "", ErrFalse
 	} else {
@@ -106,9 +110,9 @@ func get_M3u8(modelId string, daili string) (string, error) {
 		return matches, nil
 	}
 }
-func test_m3u8(url string, daili string) bool {
-	if url == "false" || url == "" {
-		return false
+func test_m3u8(url string, daili string) (bool, error) {
+	if url == "" {
+		return false, ErrFalse
 	} else {
 		request := gorequest.New()
 		if daili != "" {
@@ -116,13 +120,17 @@ func test_m3u8(url string, daili string) bool {
 		}
 		resp, body, errs := request.Get(url).End()
 		if len(errs) > 0 || resp.StatusCode != 200 {
-			return false
+			return false, errs[0]
 		}
 		if resp.StatusCode == 200 { //403代表开票，普通用户无法查看，只能看大厅表演
 			_ = body
-			return true
+			return true, nil
 		}
-		return false
+		if resp.StatusCode == 403 { //403代表开票，普通用户无法查看，只能看大厅表演
+			_ = body
+			return false, ErrOffline
+		}
+		return false, Err_TestUrl_Unexpected
 	}
 }
 
@@ -161,10 +169,13 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		daili = config.Proxy
 	}
 	modelID, err_getid := get_modelId(modelName, daili)
-	m3u8, err := get_M3u8(modelID, daili)
-	m3u8_status := test_m3u8(m3u8, daili)
+	m3u8, err_getm3u8 := get_M3u8(modelID, daili)
+	if m3u8 == "" && l.m3u8Url != "" {
+		m3u8 = l.m3u8Url
+	}
+	m3u8_status, err_testm3u8 := test_m3u8(m3u8, daili)
 
-	if m3u8_status != false { //strings.Contains(m3u8, ".m3u8")
+	if m3u8_status { //strings.Contains(m3u8, ".m3u8")
 		l.m3u8Url = m3u8
 		info = &live.Info{
 			Live:         l,
@@ -175,36 +186,34 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		}
 		return info, nil
 	}
-	if errors.Is(err_getid, ErrOffline) {
+	if errors.Is(err_getid, ErrOffline) || errors.Is(err_getm3u8, ErrOffline) || errors.Is(err_testm3u8, ErrOffline) {
 		info = &live.Info{
 			Live:     l,
-			RoomName: modelID,
+			RoomName: "OffLine",
 			HostName: modelName,
 			Status:   m3u8_status, //false,
 		}
 		return info, nil
 	}
-	if m3u8 == "" {
-		if strings.Contains(l.m3u8Url, ".m3u8") {
-			m3u8 = l.m3u8Url
-			m3u8_status = test_m3u8(m3u8, daili)
-			if m3u8_status != false { //strings.Contains(m3u8, ".m3u8")
-				l.m3u8Url = m3u8
-				info = &live.Info{
-					Live:         l,
-					RoomName:     modelID,
-					HostName:     modelName,
-					Status:       true,
-					CustomLiveId: m3u8, //l.GetLiveId()可获取持久化数据
-				}
-				return info, nil
-			}
-		} else {
-			return nil, err_getid
-		}
-
-	}
-
+	// if m3u8 == "" {
+	// 	if strings.Contains(l.m3u8Url, ".m3u8") {
+	// 		m3u8 = l.m3u8Url
+	// 		m3u8_status = test_m3u8(m3u8, daili)
+	// 		if m3u8_status != false { //strings.Contains(m3u8, ".m3u8")
+	// 			l.m3u8Url = m3u8
+	// 			info = &live.Info{
+	// 				Live:         l,
+	// 				RoomName:     modelID,
+	// 				HostName:     modelName,
+	// 				Status:       true,
+	// 				CustomLiveId: m3u8, //l.GetLiveId()可获取持久化数据
+	// 			}
+	// 			return info, nil
+	// 		}
+	// 	} else {
+	// 		return nil, err_getid
+	// 	}
+	// }
 	return nil, Err_GetInfo_Unexpected
 }
 
@@ -212,6 +221,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
 	daili := ""
+	m3u8 := ""
 	config, config_err := readconfig.Get_config()
 	if config_err != nil {
 		daili = ""
@@ -219,19 +229,27 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		daili = config.Proxy
 	}
 	modelID, err := get_modelId(modelName, daili)
-	// m3u8 := get_M3u8(modelID, daili)
-	m3u8 := l.m3u8Url
+	if l.m3u8Url == "" {
+		m3u8, err = get_M3u8(modelID, daili)
+	} else {
+		m3u8 = l.m3u8Url
+	}
+	if errors.Is(err, live.ErrInternalError) || errors.Is(err, ErrOffline) {
+		return nil, live.ErrInternalError
+	}
 	// fmt.Println("\n l.m3u8Url=", l.m3u8Url, " l.GetLiveId()", string(l.GetLiveId()))
-	m3u8_status := test_m3u8(m3u8, daili)
+	m3u8_status, err_testm3u8 := test_m3u8(m3u8, daili)
 	if m3u8_status {
 		return utils.GenUrls(m3u8)
 	}
-	if errors.Is(err, live.ErrInternalError) {
-		return nil, live.ErrInternalError
+
+	if !m3u8_status {
+		return nil, err_testm3u8
 	}
-	if modelID == "" || m3u8 == "" || !m3u8_status {
-		return nil, errors.New("GetStreamUrls-room not exists")
-	}
+
+	// if modelID == "" || m3u8 == "" || !m3u8_status {
+	// 	return nil, errors.New("GetStreamUrls-room not exists")
+	// }
 	return nil, Err_GetStreamUrls_Unexpected
 }
 
