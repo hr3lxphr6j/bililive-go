@@ -159,7 +159,7 @@ func test_m3u8(urlinput string, daili string) (bool, error) {
 			_ = body
 			return true, nil
 		}
-		if resp.StatusCode == 403 || resp.StatusCode == 404 { //403代表开票，普通用户无法查看，只能看大厅表演
+		if resp.StatusCode == 403 { //403代表开票，普通用户无法查看，只能看大厅表演
 			_ = body
 			return false, ErrOffline
 		}
@@ -189,8 +189,7 @@ func main() {
 			fmt.Println("m3u8=", m3u8, "测试结果：", result)
 			fmt.Println("ffmpeg.exe -http_proxy ", *daili, " -copyts -progress - -y -i ", m3u8, " -c copy -rtbufsize ", "./ceshi_copyts.mkv")
 		}
-	} else {
-		fmt.Println("err_getid=", err_getid, "\nerr_getm3u8=", err_getm3u8, "\nerr_test=", err_test)
 	}
+	fmt.Println("err_getid=", err_getid, "\nerr_getm3u8=", err_getm3u8, "\nerr_test=", err_test)
 
 }
