@@ -19,6 +19,7 @@ import (
 
 var (
 	ErrFalse                     = errors.New("false")
+	ErrModelName                 = errors.New("err model name")
 	Err_GetInfo_Unexpected       = errors.New("GetInfo未知错误")
 	Err_GetStreamUrls_Unexpected = errors.New("GetStreamUrls未知错误")
 	Err_TestUrl_Unexpected       = errors.New("testUrl未知错误")
@@ -78,8 +79,7 @@ func get_modelId(modleName string, daili string) (string, error) {
 		} else if len(gjson.Get(body, "messages").String()) == 2 {
 			return "", ErrOffline
 		} else if len(gjson.Get(body, "messages").String()) == 0 {
-			// fmt.Println("error name")
-			return "", ErrFalse
+			return "", ErrModelName
 		}
 		return "", ErrFalse
 	}
@@ -90,45 +90,60 @@ func get_M3u8(modelId string, daili string) (string, error) {
 		return "", ErrFalse
 	}
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=lowLatency"
-	url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=standard"
+	urlinput := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + "_auto.m3u8?playlistType=standard"
 	// url := "https://edge-hls.doppiocdn.com/hls/" + modelId + "/master/" + modelId + ".m3u8"
 	request := gorequest.New()
 	if daili != "" {
 		request = request.Proxy(daili) //代理
 	}
-	resp, body, errs := request.Get(url).End()
-	if resp.StatusCode == 404 {
+	resp, body, errs := request.Get(urlinput).End()
+	if errs != nil {
+		for _, err := range errs {
+			if _, ok := err.(*url.Error); ok {
+				return "", live.ErrInternalError
+			}
+		}
+		return "", ErrFalse
+	}
+	if resp.StatusCode == 404 || resp.StatusCode == 403 {
 		return "", ErrOffline
 	}
-	if len(errs) > 0 || resp.StatusCode != 200 {
-		return "", ErrFalse
-	} else {
-		// fmt.Println((body))
+	if resp.StatusCode == 200 {
 		// re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=lowLatency)`)
 		re := regexp.MustCompile(`(https:\/\/[\w\-\.]+\/hls\/[\d]+\/[\d\_p]+\.m3u8\?playlistType=standard)`) //等价于\?playlistType=standard
 		matches := re.FindString(body)
 		return matches, nil
+	} else {
+		return "", ErrFalse
 	}
 }
-func test_m3u8(url string, daili string) (bool, error) {
-	if url == "" {
+func test_m3u8(urlinput string, daili string) (bool, error) {
+	if urlinput == "" {
 		return false, ErrFalse
 	} else {
 		request := gorequest.New()
 		if daili != "" {
 			request = request.Proxy(daili) //代理
 		}
-		resp, body, errs := request.Get(url).End()
-		if len(errs) > 0 || resp.StatusCode != 200 {
-			return false, errs[0]
+		resp, body, errs := request.Get(urlinput).End()
+		if errs != nil {
+			for _, err := range errs {
+				if _, ok := err.(*url.Error); ok {
+					return false, live.ErrInternalError
+				}
+			}
+			return false, ErrFalse
 		}
-		if resp.StatusCode == 200 { //403代表开票，普通用户无法查看，只能看大厅表演
+		if resp.StatusCode == 200 {
 			_ = body
 			return true, nil
 		}
-		if resp.StatusCode == 403 { //403代表开票，普通用户无法查看，只能看大厅表演
+		if resp.StatusCode == 403 || resp.StatusCode == 404 { //403代表开票，普通用户无法查看，只能看大厅表演
 			_ = body
 			return false, ErrOffline
+		}
+		if resp.StatusCode != 200 {
+			return false, ErrFalse
 		}
 		return false, Err_TestUrl_Unexpected
 	}
@@ -160,7 +175,6 @@ func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
 func (l *Live) GetInfo() (info *live.Info, err error) {
 	modeName := strings.Split(l.Url.String(), "/")
 	modelName := modeName[len(modeName)-1]
-
 	daili := ""
 	config, config_err := readconfig.Get_config()
 	if config_err != nil {
@@ -168,9 +182,11 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 	} else {
 		daili = config.Proxy
 	}
+
 	modelID, err_getid := get_modelId(modelName, daili)
 	m3u8, err_getm3u8 := get_M3u8(modelID, daili)
-	if m3u8 == "" && l.m3u8Url != "" {
+
+	if m3u8 == "" && l.m3u8Url != "" { //url
 		m3u8 = l.m3u8Url
 	}
 	m3u8_status, err_testm3u8 := test_m3u8(m3u8, daili)
@@ -247,9 +263,6 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		return nil, err_testm3u8
 	}
 
-	// if modelID == "" || m3u8 == "" || !m3u8_status {
-	// 	return nil, errors.New("GetStreamUrls-room not exists")
-	// }
 	return nil, Err_GetStreamUrls_Unexpected
 }
 
