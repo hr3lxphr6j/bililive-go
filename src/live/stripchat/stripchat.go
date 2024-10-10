@@ -202,7 +202,7 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		}
 		return info, nil
 	}
-	if errors.Is(err_getid, ErrOffline) || errors.Is(err_getm3u8, ErrOffline) || errors.Is(err_testm3u8, ErrOffline) {
+	if errors.Is(err_testm3u8, ErrOffline) || errors.Is(err_getid, ErrOffline) || errors.Is(err_getm3u8, ErrOffline) {
 		info = &live.Info{
 			Live:     l,
 			RoomName: "OffLine",
@@ -211,25 +211,9 @@ func (l *Live) GetInfo() (info *live.Info, err error) {
 		}
 		return info, nil
 	}
-	// if m3u8 == "" {
-	// 	if strings.Contains(l.m3u8Url, ".m3u8") {
-	// 		m3u8 = l.m3u8Url
-	// 		m3u8_status = test_m3u8(m3u8, daili)
-	// 		if m3u8_status != false { //strings.Contains(m3u8, ".m3u8")
-	// 			l.m3u8Url = m3u8
-	// 			info = &live.Info{
-	// 				Live:         l,
-	// 				RoomName:     modelID,
-	// 				HostName:     modelName,
-	// 				Status:       true,
-	// 				CustomLiveId: m3u8, //l.GetLiveId()可获取持久化数据
-	// 			}
-	// 			return info, nil
-	// 		}
-	// 	} else {
-	// 		return nil, err_getid
-	// 	}
-	// }
+	if errors.Is(err_testm3u8, live.ErrInternalError) || errors.Is(err_getid, live.ErrInternalError) || errors.Is(err_getm3u8, live.ErrInternalError) {
+		return nil, live.ErrInternalError
+	}
 	return nil, Err_GetInfo_Unexpected
 }
 
