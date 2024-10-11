@@ -3,7 +3,6 @@ package stripchat
 import (
 	"errors"
 	"fmt"
-	"net"
 	"net/url"
 	"reflect"
 	"regexp"
@@ -55,16 +54,15 @@ func get_modelId(modleName string, daili string) (string, error) {
 
 	// 处理响应
 	if errs != nil {
-		fmt.Println("get_modeId出错详情:")
 		for _, err := range errs {
-			if err1, ok := err.(*url.Error); ok {
+			if _, ok := err.(*url.Error); ok {
 				// urlErr 是 *url.Error 类型的错误
 				// fmt.Println("*url.Error 类型的错误")
-				if err2, ok := err1.Err.(*net.OpError); ok {
-					// netErr 是 *net.OpError 类型的错误
-					// 可以进一步判断 netErr.Err 的类型
-					fmt.Println("*net.OpError 类型的错误", err.Error(), err2.Op)
-				}
+				// if err2, ok := err1.Err.(*net.OpError); ok {
+				// 	// netErr 是 *net.OpError 类型的错误
+				// 	// 可以进一步判断 netErr.Err 的类型
+				// 	fmt.Println("*net.OpError 类型的错误", err.Error(), err2.Op)
+				// }
 				return "", live.ErrInternalError
 			} else {
 				fmt.Println(reflect.TypeOf(err), "错误详情:", err)
