@@ -100,11 +100,12 @@ func WithAudioOnly(audioOnly bool) Option {
 type ID string
 
 type StreamUrlInfo struct {
-	Url         *url.URL
-	Name        string
-	Description string
-	Resolution  int
-	Vbitrate    int
+	Url                  *url.URL
+	Name                 string
+	Description          string
+	Resolution           int
+	Vbitrate             int
+	HeadersForDownloader map[string]string
 }
 
 type Live interface {
@@ -112,11 +113,12 @@ type Live interface {
 	GetLiveId() ID
 	GetRawUrl() string
 	GetInfo() (*Info, error)
+	// Deprecated: GetStreamUrls is deprecated, using GetStreamInfos instead
 	GetStreamUrls() ([]*url.URL, error)
+	GetStreamInfos() ([]*StreamUrlInfo, error)
 	GetPlatformCNName() string
 	GetLastStartTime() time.Time
 	SetLastStartTime(time.Time)
-	GetHeadersForDownloader() map[string]string
 }
 
 type WrappedLive struct {

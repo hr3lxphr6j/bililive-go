@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
@@ -55,6 +54,7 @@ type Parser struct {
 
 	statusReq  chan struct{}
 	statusResp chan map[string]string
+	cmdLock    sync.Mutex
 }
 
 func (p *Parser) scanFFmpegStatus() <-chan []byte {
@@ -125,12 +125,13 @@ func (p *Parser) Status() (map[string]string, error) {
 	return <-p.statusResp, nil
 }
 
-func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Live, file string) (err error) {
+func (p *Parser) ParseLiveStream(ctx context.Context, streamUrlInfo *live.StreamUrlInfo, live live.Live, file string) (err error) {
+	url := streamUrlInfo.Url
 	ffmpegPath, err := utils.GetFFmpegPath(ctx)
 	if err != nil {
 		return err
 	}
-	headers := live.GetHeadersForDownloader()
+	headers := streamUrlInfo.HeadersForDownloader
 	ffUserAgent, exists := headers["User-Agent"]
 	if !exists {
 		ffUserAgent = userAgent
@@ -166,20 +167,32 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 	}
 
 	args = append(args, file)
-	p.cmd = exec.Command(ffmpegPath, args...)
-	if p.cmdStdIn, err = p.cmd.StdinPipe(); err != nil {
+
+	// p.cmd operations need p.cmdLock
+	func() {
+		p.cmdLock.Lock()
+		defer p.cmdLock.Unlock()
+		p.cmd = exec.Command(ffmpegPath, args...)
+		if p.cmdStdIn, err = p.cmd.StdinPipe(); err != nil {
+			return
+		}
+		if p.cmdStdout, err = p.cmd.StdoutPipe(); err != nil {
+			return
+		}
+		if p.debug {
+			p.cmd.Stderr = os.Stderr
+		}
+		if err = p.cmd.Start(); err != nil {
+			if p.cmd.Process != nil {
+				p.cmd.Process.Kill()
+			}
+			return
+		}
+	}()
+	if err != nil {
 		return err
 	}
-	if p.cmdStdout, err = p.cmd.StdoutPipe(); err != nil {
-		return err
-	}
-	if p.debug {
-		p.cmd.Stderr = os.Stderr
-	}
-	if err = p.cmd.Start(); err != nil {
-		p.cmd.Process.Kill()
-		return err
-	}
+
 	go p.scheduler()
 	err = p.cmd.Wait()
 	if err != nil {
@@ -190,7 +203,9 @@ func (p *Parser) ParseLiveStream(ctx context.Context, url *url.URL, live live.Li
 
 func (p *Parser) Stop() (err error) {
 	p.closeOnce.Do(func() {
-		if p.cmd.ProcessState == nil {
+		p.cmdLock.Lock()
+		defer p.cmdLock.Unlock()
+		if p.cmd != nil && p.cmd.ProcessState == nil {
 			if p.cmdStdIn != nil && p.cmd.Process != nil {
 				if _, err = p.cmdStdIn.Write([]byte("q")); err != nil {
 					err = fmt.Errorf("error sending stop command to ffmpeg: %v", err)

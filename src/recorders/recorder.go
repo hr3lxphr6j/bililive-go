@@ -104,8 +104,17 @@ func NewRecorder(ctx context.Context, live live.Live) (Recorder, error) {
 }
 
 func (r *recorder) tryRecord(ctx context.Context) {
-	urls, err := r.Live.GetStreamUrls()
-	if err != nil || len(urls) == 0 {
+	var streamInfos []*live.StreamUrlInfo
+	var err error
+	if streamInfos, err = r.Live.GetStreamInfos(); err == live.ErrNotImplemented {
+		var urls []*url.URL
+		if urls, err = r.Live.GetStreamUrls(); err == live.ErrNotImplemented {
+			panic("GetStreamInfos and GetStreamUrls are not implemented for " + r.Live.GetPlatformCNName())
+		} else if err == nil {
+			streamInfos = utils.GenUrlInfos(urls, make(map[string]string))
+		}
+	}
+	if err != nil || len(streamInfos) == 0 {
 		r.getLogger().WithError(err).Warn("failed to get stream url, will retry after 5s...")
 		time.Sleep(5 * time.Second)
 		return
@@ -128,7 +137,8 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	}
 	fileName := filepath.Join(r.OutPutPath, buf.String())
 	outputPath, _ := filepath.Split(fileName)
-	url := urls[0]
+	streamInfo := streamInfos[0]
+	url := streamInfo.Url
 
 	if strings.Contains(url.Path, "m3u8") {
 		fileName = fileName[:len(fileName)-4] + ".ts"
@@ -156,7 +166,7 @@ func (r *recorder) tryRecord(ctx context.Context) {
 	r.setAndCloseParser(p)
 	r.startTime = time.Now()
 	r.getLogger().Debugln("Start ParseLiveStream(" + url.String() + ", " + fileName + ")")
-	r.getLogger().Println(r.parser.ParseLiveStream(ctx, url, r.Live, fileName))
+	r.getLogger().Println(r.parser.ParseLiveStream(ctx, streamInfo, r.Live, fileName))
 	r.getLogger().Debugln("End ParseLiveStream(" + url.String() + ", " + fileName + ")")
 	removeEmptyFile(fileName)
 	ffmpegPath, err := utils.GetFFmpegPath(ctx)

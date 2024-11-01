@@ -52,6 +52,12 @@ func (a *BaseLive) SetLastStartTime(time time.Time) {
 	a.LastStartTime = time
 }
 
-func (a *BaseLive) GetHeadersForDownloader() map[string]string {
-	return make(map[string]string)
+// TODO: remove this method
+func (a *BaseLive) GetStreamUrls() ([]*url.URL, error) {
+	return nil, live.ErrNotImplemented
+}
+
+// TODO: remove this method
+func (a *BaseLive) GetStreamInfos() ([]*live.StreamUrlInfo, error) {
+	return nil, live.ErrNotImplemented
 }
