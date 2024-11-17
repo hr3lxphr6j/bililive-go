@@ -136,6 +136,22 @@ class FileList extends React.Component<Props, IState> {
                                 }
                             }
                         },
+                        ts: function (video, url) {
+                            if (mpegtsjs.isSupported()) {
+                                const tsPlayer = mpegtsjs.createPlayer({
+                                    type: "mpegts", // could also be mpegts, m2ts, flv,mse
+                                    url: url,
+                                    hasVideo: true,
+                                    hasAudio: true,
+                                }, {});
+                                tsPlayer.attachMediaElement(video);
+                                tsPlayer.load();
+                            } else {
+                                if (art) {
+                                    art.notice.show = "不支持播放格式: mpegts";
+                                }
+                            }
+                        },
                     },
                 });
             });
