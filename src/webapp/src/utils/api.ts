@@ -28,12 +28,14 @@ class API {
     /**
      * 添加新的直播间
      * @param url URL
+     * @param cookie string
      */
-    addNewRoom(url: string) {
+    addNewRoom(url: string,cookie:string) {
         const reqBody = [
             {
                 "url": url,
-                "listen": true
+                "listen": true,
+                "cookie":cookie
             }
         ];
         return utils.requestPost(`${BASE_URL}/lives`, reqBody);

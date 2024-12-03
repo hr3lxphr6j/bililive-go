@@ -13,7 +13,8 @@ class AddRoomDialog extends React.Component<Props> {
         ModalText: '请输入直播间的URL地址',
         visible: false,
         confirmLoading: false,
-        textView: ''
+        textView: '',
+        textCookie: ''
     };
 
     showModal = () => {
@@ -30,14 +31,15 @@ class AddRoomDialog extends React.Component<Props> {
             confirmLoading: true,
         });
 
-        api.addNewRoom(this.state.textView)
+        api.addNewRoom(this.state.textView,this.state.textCookie)
             .then((rsp) => {
                 // 保存设置
                 api.saveSettingsInBackground();
                 this.setState({
                     visible: false,
                     confirmLoading: false,
-                    textView:''
+                    textView:'',
+                    textCookie:''
                 });
                 this.props.refresh();
             })
@@ -46,7 +48,8 @@ class AddRoomDialog extends React.Component<Props> {
                 this.setState({
                     visible: false,
                     confirmLoading: false,
-                    textView:''
+                    textView:'',
+                    textCookie:''
                 });
             })
     };
@@ -54,7 +57,8 @@ class AddRoomDialog extends React.Component<Props> {
     handleCancel = () => {
         this.setState({
             visible: false,
-            textView:''
+            textView:'',
+            textCookie:''
         });
     };
 
@@ -63,9 +67,14 @@ class AddRoomDialog extends React.Component<Props> {
             textView: e.target.value
         })
     }
+    textCookieChange = (e: any) => {
+        this.setState({
+            textCookie: e.target.value
+        })
+    }
 
     render() {
-        const { visible, confirmLoading, ModalText,textView } = this.state;
+        const { visible, confirmLoading, ModalText,textView,textCookie } = this.state;
         return (
             <div>
                 <Modal
@@ -76,6 +85,7 @@ class AddRoomDialog extends React.Component<Props> {
                     onCancel={this.handleCancel}>
                     <p>{ModalText}</p>
                     <Input size="large" value={textView} placeholder="https://" onChange={this.textChange} />
+                    <Input size="large" value={textCookie} placeholder="设置cookie,可为空" onChange={this.textCookieChange} />
                 </Modal>
             </div>
         );
