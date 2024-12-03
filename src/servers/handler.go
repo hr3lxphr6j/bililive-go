@@ -145,7 +145,8 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
 		isListen := value.Get("listen").Bool()
 		urlStr := strings.Trim(value.Get("url").String(), " ")
-		if retInfo, err := addLiveImpl(r.Context(), urlStr, isListen); err != nil {
+		cookie := strings.Trim(strings.TrimPrefix(value.Get("cookie").String(), "Cookie:"), " ")
+		if retInfo, err := addLiveImpl(r.Context(), urlStr, isListen, cookie); err != nil {
 			msg := urlStr + ": " + err.Error()
 			inst.Logger.Error(msg)
 			errorMessages = append(errorMessages, msg)
@@ -160,7 +161,7 @@ func addLives(writer http.ResponseWriter, r *http.Request) {
 	writeJSON(writer, info)
 }
 
-func addLiveImpl(ctx context.Context, urlStr string, isListen bool) (info *live.Info, err error) {
+func addLiveImpl(ctx context.Context, urlStr string, isListen bool, cookie string) (info *live.Info, err error) {
 	if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 		urlStr = "https://" + urlStr
 	}
@@ -170,8 +171,11 @@ func addLiveImpl(ctx context.Context, urlStr string, isListen bool) (info *live.
 	}
 	inst := instance.GetInstance(ctx)
 	opts := make([]live.Option, 0)
+
 	if v, ok := inst.Config.Cookies[u.Host]; ok {
 		opts = append(opts, live.WithKVStringCookies(u, v))
+	} else if cookie != "" {
+		opts = append(opts, live.WithKVStringCookies(u, cookie))
 	}
 	newLive, err := live.New(u, inst.Cache, opts...)
 	if err != nil {
@@ -190,6 +194,12 @@ func addLiveImpl(ctx context.Context, urlStr string, isListen bool) (info *live.
 			LiveId:      newLive.GetLiveId(),
 		}
 		inst.Config.LiveRooms = append(inst.Config.LiveRooms, liveRoom)
+		if inst.Config.Cookies == nil {
+			inst.Config.Cookies = make(map[string]string)
+		}
+		if cookie != "" {
+			inst.Config.Cookies[u.Host] = cookie
+		}
 	}
 	return info, nil
 }
@@ -318,7 +328,7 @@ func applyLiveRoomsByConfig(ctx context.Context, newLiveRooms []configs.LiveRoom
 		newUrlMap[newRoom.Url] = &newRoom
 		if room, err := currentConfig.GetLiveRoomByUrl(newRoom.Url); err != nil {
 			// add live
-			if _, err := addLiveImpl(ctx, newRoom.Url, newRoom.IsListening); err != nil {
+			if _, err := addLiveImpl(ctx, newRoom.Url, newRoom.IsListening, ""); err != nil {
 				return err
 			}
 		} else {
