@@ -9,21 +9,12 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -  && \
     apt-get update  && \
     apt-get install -y yarn  xz-utils
 
-
-#根据架构安装构建web页面所需的node.js
-RUN ARCH=$(uname -m) && \
-    if [ $ARCH = 'x86_64' ]; then \
-        NODE_ARCH='x64'; \
-    elif [ $ARCH = 'aarch64' ]; then \
-        NODE_ARCH='arm64'; \
-    else \
-        echo '不支持的架构: $ARCH'; \
-    fi && \
-    wget https://nodejs.org/dist/v18.20.3/node-v18.20.3-linux-${NODE_ARCH}.tar.xz && \
-    tar Jxvf /build/node-v18.20.3-linux-${NODE_ARCH}.tar.xz && \
+#安装构建web页面所需的node.js
+RUN wget https://nodejs.org/dist/v18.20.3/node-v18.20.3-linux-x64.tar.xz && \
+    tar Jxvf /build/node-v18.20.3-linux-x64.tar.xz && \
     rm -rf /usr/bin/node /usr/bin/npm && \
-    ln -s /build/node-v18.20.3-linux-${NODE_ARCH}/bin/node /usr/bin/node && \
-    ln -s /build/node-v18.20.3-linux-${NODE_ARCH}/bin/npm /usr/bin/npm
+    ln -s /build/node-v18.20.3-linux-x64/bin/node /usr/bin/node && \
+    ln -s /build/node-v18.20.3-linux-x64/bin/npm /usr/bin/npm
 
 COPY . .
 
