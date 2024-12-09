@@ -27,9 +27,8 @@ RUN ARCH=$(uname -m) && \
 
 COPY . .
 
-#配置国内源并进行构建
+#配置golang编译环境并进行构建
 RUN go env -w GO111MODULE=on && \
-    go env -w GOPROXY=https://goproxy.cn,direct && \
     make build-web && \
     make
 
