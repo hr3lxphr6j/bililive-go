@@ -14,6 +14,12 @@ type Info struct {
 	AudioOnly            bool
 }
 
+type InfoCookie struct {
+	Platform_cn_name string
+	Host             string
+	Cookie           string
+}
+
 func (i *Info) MarshalJSON() ([]byte, error) {
 	t := struct {
 		Id                ID     `json:"id"`

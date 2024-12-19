@@ -109,6 +109,21 @@ class API {
     getFileList(path: string = "") {
         return utils.requestGet(`${BASE_URL}/file/${path}`);
     }
+
+    /**
+     * 获取Cookie列表
+     */
+    getCookieList() {
+        return utils.requestGet(`${BASE_URL}/cookies`);
+    }
+
+    /**
+     * 保存Cookie
+     * @param json {"Host":"","Cookie":""}
+     */
+    saveCookie(json:any){
+        return utils.requestPut(`${BASE_URL}/cookies`,json);
+    }
 }
 
 export default API;
