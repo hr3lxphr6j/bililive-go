@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -419,4 +420,112 @@ func getFileInfo(writer http.ResponseWriter, r *http.Request) {
 	json.Files = jsonFiles
 
 	writeJSON(writer, json)
+}
+
+func getLiveHostCookie(writer http.ResponseWriter, r *http.Request) {
+	inst := instance.GetInstance(r.Context())
+	hostCookieMap := make(map[string]*live.InfoCookie)
+	keys := make([]string, 0)
+	for _, v := range inst.Lives {
+		urltmp, _ := url.Parse(v.GetRawUrl())
+		if _, ok := hostCookieMap[urltmp.Host]; ok == true {
+			continue
+		}
+		v1, _ := v.GetInfo()
+		host := urltmp.Host
+		if cookie, ok := inst.Config.Cookies[host]; ok == true {
+			tmp := &live.InfoCookie{Platform_cn_name: v1.Live.GetPlatformCNName(), Host: host, Cookie: cookie}
+			hostCookieMap[host] = tmp
+		} else {
+			tmp := &live.InfoCookie{Platform_cn_name: v1.Live.GetPlatformCNName(), Host: host}
+			hostCookieMap[host] = tmp
+		}
+		keys = append(keys, host)
+	}
+	sort.Strings(keys)
+	result := make([]*live.InfoCookie, 0)
+	for _, v := range keys {
+		result = append(result, hostCookieMap[v])
+	}
+	writeJSON(writer, result)
+}
+
+func putLiveHostCookie(writer http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		writeJsonWithStatusCode(writer, http.StatusBadRequest, commonResp{
+			ErrNo:  http.StatusBadRequest,
+			ErrMsg: err.Error(),
+		})
+		return
+	}
+	ctx := r.Context()
+	inst := instance.GetInstance(ctx)
+	data := gjson.ParseBytes(b)
+
+	host := data.Get("Host").Str
+	cookie := data.Get("Cookie").Str
+	if cookie == "" {
+
+	} else {
+		reg, _ := regexp.Compile(".*=.*")
+		if !reg.MatchString(cookie) {
+			writeJsonWithStatusCode(writer, http.StatusBadRequest, commonResp{
+				ErrNo:  http.StatusBadRequest,
+				ErrMsg: "cookie格式错误",
+			})
+			return
+		}
+	}
+	if inst.Config.Cookies == nil {
+		inst.Config.Cookies = make(map[string]string)
+	}
+	inst.Config.Cookies[host] = cookie
+	for _, v := range inst.Config.LiveRooms {
+		tmpurl, _ := url.Parse(v.Url)
+		if tmpurl.Host != host {
+			continue
+		}
+		if _, err := replaceLiveImpl(ctx, v, v.IsListening); err != nil {
+			writeJsonWithStatusCode(writer, http.StatusBadRequest, commonResp{
+				ErrNo:  http.StatusBadRequest,
+				ErrMsg: err.Error(),
+			})
+			return
+		}
+	}
+	inst.Config.Marshal()
+	writeJSON(writer, commonResp{
+		Data: "OK",
+	})
+}
+
+/**
+ * 此方法会使录制中的直播间中断重新录制，导致产生多个录制文件
+ */
+func replaceLiveImpl(ctx context.Context, room configs.LiveRoom, isListen bool) (info *live.Info, err error) {
+	inst := instance.GetInstance(ctx)
+	urlStr := room.Url
+	if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
+		urlStr = "https://" + urlStr
+	}
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, errors.New("can't parse url: " + urlStr)
+	}
+	opts := make([]live.Option, 0)
+	if v, ok := inst.Config.Cookies[u.Host]; ok {
+		opts = append(opts, live.WithKVStringCookies(u, v))
+	}
+	newLive, err := live.New(u, inst.Cache, opts...)
+	if err != nil {
+		return nil, err
+	}
+	inst.ListenerManager.(listeners.Manager).RemoveListener(ctx, newLive.GetLiveId())
+	inst.Lives[newLive.GetLiveId()] = newLive
+
+	if isListen {
+		inst.ListenerManager.(listeners.Manager).AddListener(ctx, newLive)
+	}
+	return nil, nil
 }

@@ -1,13 +1,15 @@
 import React from "react";
-import { Button, Divider, PageHeader, Table, Tag } from 'antd';
+import {Button, Divider, PageHeader, Table, Tag, Tabs, Row, Col, Tooltip} from 'antd';
 import PopDialog from '../pop-dialog/index';
 import AddRoomDialog from '../add-room-dialog/index';
 import API from '../../utils/api';
 import './live-list.css';
 import { RouteComponentProps } from "react-router-dom";
 import { ColumnProps } from 'antd/lib/table';
+import EditCookieDialog from "../edit-cookie/index";
 
 const api = new API();
+const { TabPane } = Tabs;
 
 const REFRESH_TIME = 3 * 60 * 1000;
 
@@ -17,6 +19,7 @@ interface Props extends RouteComponentProps {
 
 interface IState {
     list: ItemData[],
+    cookieList: CookieItemData[],
     addRoomDialogVisible: boolean,
     window: any
 }
@@ -30,6 +33,11 @@ interface ItemData {
     listening: boolean
     roomId: string
 }
+interface CookieItemData {
+    Platform_cn_name:string,
+    Host:string,
+    Cookie:string
+}
 
 interface Room {
     roomName: string;
@@ -39,6 +47,10 @@ interface Room {
 class LiveList extends React.Component<Props, IState> {
     //子控件
     child!: AddRoomDialog;
+
+    //cookie开窗
+    cookieChild!: EditCookieDialog;
+
     //定时器
     timer!: NodeJS.Timeout;
 
@@ -177,11 +189,47 @@ class LiveList extends React.Component<Props, IState> {
         this.runStatus,
         this.runAction
     ];
+    cookieColumns=[
+        {
+            title:'直播平台',
+            dataIndex:'livename',
+            key:'livename',
+            render:(name: String, data: CookieItemData) => data.Platform_cn_name+'('+data.Host+')'
+        },{
+            title: 'Cookie',
+            dataIndex: 'Cookie',
+            key: 'Cookie',
+            ellipsis:true,
+            render:(name: String, data: CookieItemData) => {
+                // return <div>
+                //     <label className="cookieString">{data.Cookie}</label>
+                //     <Button type="primary" shape="circle" icon="edit" onClick={()=>{
+                //         this.onEditCookitClick(data)
+                //     }}/>
+                // </div>
+                return <Row gutter={16}>
+                    <Col className="gutter-row" span={12}>
+                        <Tooltip title={data.Cookie}>
+                            <div className="gutter-box cookieString" title={data.Cookie}>{data.Cookie}</div>
+                        </Tooltip>
+                    </Col>
+                    <Col className="gutter-row" span={4}>
+                        <div className="gutter-box">
+                            <Button type="primary" shape="circle" icon="edit" onClick={()=>{
+                                this.onEditCookitClick(data)
+                            }}/>
+                        </div>
+                    </Col>
+                </Row>
+            }
+        }
+    ]
 
     constructor(props: Props) {
         super(props);
         this.state = {
             list: [],
+            cookieList:[],
             addRoomDialogVisible: false,
             window: window
         }
@@ -204,11 +252,19 @@ class LiveList extends React.Component<Props, IState> {
         this.child = ref
     }
 
+    onCookieRef = (ref: EditCookieDialog) => {
+        this.cookieChild = ref
+    }
+
     /**
      * 当添加房间按钮点击，弹出Dialog
      */
     onAddRoomClick = () => {
         this.child.showModal()
+    }
+
+    onEditCookitClick = (data:any)=>{
+        this.cookieChild.showModal(data)
     }
 
     /**
@@ -232,6 +288,10 @@ class LiveList extends React.Component<Props, IState> {
      */
     refresh = () => {
         this.requestListData();
+    }
+
+    refreshCookie = () => {
+        this.requestCookieData();
     }
 
     /**
@@ -284,6 +344,32 @@ class LiveList extends React.Component<Props, IState> {
             });
     }
 
+    requestCookieData(){
+        api.getCookieList()
+            .then(function (rsp:any){
+                return rsp
+            }).then((data: CookieItemData[]) => {
+            this.setState({
+                cookieList: data
+            });
+        })
+    }
+
+    requestData= (targetKey:string) => {
+        switch (targetKey){
+            case "livelist":
+                this.requestListData()
+                break
+            case "cookielist":
+                this.requestCookieData()
+                break
+        }
+    }
+
+    test(){
+        console.log()
+    }
+
     render() {
         const { list } = this.state;
         this.columns.forEach((column: ColumnProps<ItemData>) => {
@@ -300,27 +386,50 @@ class LiveList extends React.Component<Props, IState> {
         })
         return (
             <div>
-                <div style={{ backgroundColor: '#F5F5F5', }}>
-                    <PageHeader
-                        ghost={false}
-                        title="直播间列表"
-                        subTitle="Room List"
-                        extra={[
-                            <Button key="2" type="default" onClick={this.onSettingSave}>保存设置</Button>,
-                            <Button key="1" type="primary" onClick={this.onAddRoomClick}>
-                                添加房间
-                            </Button>,
-                            <AddRoomDialog key="0" ref={this.onRef} refresh={this.refresh} />
-                        ]}>
-                    </PageHeader>
-                </div>
-                <Table
-                    className="item-pad"
-                    columns={(this.state.window.screen.width > 768) ? this.columns : this.smallColumns}
-                    dataSource={this.state.list}
-                    size={(this.state.window.screen.width > 768) ? "default" : "middle"}
-                    pagination={false}
-                />
+                <Tabs defaultActiveKey="livelist" type="card" onChange={this.requestData}>
+                    <TabPane tab="直播间列表" key="livelist">
+                        <div style={{ backgroundColor: '#F5F5F5', }}>
+                            <PageHeader
+                                ghost={false}
+                                title="直播间列表"
+                                subTitle="Room List"
+                                extra={[
+                                    <Button key="2" type="default" onClick={this.onSettingSave}>保存设置</Button>,
+                                    <Button key="1" type="primary" onClick={this.onAddRoomClick}>
+                                        添加房间
+                                    </Button>,
+                                    <AddRoomDialog key="0" ref={this.onRef} refresh={this.refresh} />
+                                ]}>
+                            </PageHeader>
+                        </div>
+                        <Table
+                            className="item-pad"
+                            columns={(this.state.window.screen.width > 768) ? this.columns : this.smallColumns}
+                            dataSource={this.state.list}
+                            size={(this.state.window.screen.width > 768) ? "default" : "middle"}
+                            pagination={false}
+                        />
+                    </TabPane>
+                    <TabPane tab="Cookie管理" key="cookielist">
+                        <div style={{ backgroundColor: '#F5F5F5', }}>
+                            <PageHeader
+                                ghost={false}
+                                title="Cookie管理"
+                                subTitle="Cookie List"
+                            extra={[
+                                <EditCookieDialog key="1" ref={this.onCookieRef} refresh={this.refreshCookie}/>
+                            ]}>
+                            </PageHeader>
+                        </div>
+                        <Table
+                            className="item-pad"
+                            columns={(this.state.window.screen.width > 768) ? this.cookieColumns : this.cookieColumns}
+                            dataSource={this.state.cookieList}
+                            size={(this.state.window.screen.width > 768) ? "default" : "middle"}
+                            pagination={false}
+                        />
+                    </TabPane>
+                </Tabs>
             </div>
         );
     };
