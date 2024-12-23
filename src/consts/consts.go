@@ -3,8 +3,9 @@ package consts
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
+
+	"github.com/shirou/gopsutil/disk"
 )
 
 const (
@@ -39,17 +40,22 @@ var (
 )
 
 func getDir() string {
-	dir, err := os.Getwd()
+	currentPath, _ := os.Getwd()
+	usage, err := disk.Usage(currentPath)
 	if err != nil {
 		// fmt.Println("Error:", err)
 		return ("err")
 	}
+	// 输出硬盘使用情况
+	// 将字节转换为 GB
+	// totalGB := float64(usage.Total) / (1024 * 1024 * 1024)
+	// usedGB := float64(usage.Used) / (1024 * 1024 * 1024)
+	freeGB := float64(usage.Free) / (1024 * 1024 * 1024)
 
-	// 获取磁盘驱动器（适用于 Windows）
-	drive := filepath.VolumeName(dir)
-
-	// 输出结果
-	// fmt.Println("Current working directory:", dir)
-	// fmt.Println("Current disk:", drive)
-	return drive
+	// 输出硬盘使用情况
+	// fmt.Printf("Total: %.2f GB\n", totalGB)
+	// fmt.Printf("Used: %.2f GB\n", usedGB)
+	result := fmt.Sprintf("剩余空间: %.2f GB\n", freeGB)
+	// fmt.Printf("Used Percent: %.2f%%\n", usage.UsedPercent)
+	return result
 }
