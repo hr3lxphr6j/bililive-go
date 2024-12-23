@@ -1,11 +1,11 @@
-import React from "react";
-import API from '../../utils/api';
 import {
-    PageHeader,
+    Button,
     Descriptions,
-    Button
+    PageHeader
 } from 'antd';
 import copy from 'copy-to-clipboard';
+import React from "react";
+import API from '../../utils/api';
 
 const api = new API();
 
@@ -21,6 +21,7 @@ interface IState {
     pid: string
     platform: string
     goVersion: string
+    diskFreeSpace: string
 }
 
 class LiveInfo extends React.Component<Props, IState> {
@@ -34,7 +35,8 @@ class LiveInfo extends React.Component<Props, IState> {
             gitHash: "",
             pid: "",
             platform: "",
-            goVersion: ""
+            goVersion: "",
+            diskFreeSpace:""
         }
     }
 
@@ -48,7 +50,8 @@ class LiveInfo extends React.Component<Props, IState> {
                     gitHash: rsp.git_hash,
                     pid: rsp.pid,
                     platform: rsp.platform,
-                    goVersion: rsp.go_version
+                    goVersion: rsp.go_version,
+                    diskFreeSpace:rsp.current_diskspace
                 })
             })
             .catch(err => {
@@ -65,6 +68,7 @@ Pid: ${this.state.pid}
 Platform: ${this.state.platform}
 Go Version: ${this.state.goVersion}
 Git Hash: ${this.state.gitHash}
+disk free space: ${this.state.diskFreeSpace}
 `;
     }
 
@@ -86,6 +90,7 @@ Git Hash: ${this.state.gitHash}
                     <Descriptions.Item label="Platform">{this.state.platform}</Descriptions.Item>
                     <Descriptions.Item label="Go Version">{this.state.goVersion}</Descriptions.Item>
                     <Descriptions.Item label="Git Hash">{this.state.gitHash}</Descriptions.Item>
+                    <Descriptions.Item label="disk free space">{this.state.diskFreeSpace}</Descriptions.Item>
                 </Descriptions>
                 <Button
                     type="default"
