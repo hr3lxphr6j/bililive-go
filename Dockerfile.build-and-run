@@ -1,0 +1,69 @@
+#docker build -t bililive-go:build . -f Dockerfile.build-and-run 
+FROM golang:1.23.4-bullseye AS builder
+
+WORKDIR /build
+
+#安装tar解压xz需要的xz-utils和构建web页面所需的yarn
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -  && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list  && \
+    apt-get update  && \
+    apt-get install -y yarn  xz-utils
+
+
+#根据架构安装构建web页面所需的node.js
+RUN ARCH=$(uname -m) && \
+    if [ $ARCH = 'x86_64' ]; then \
+        NODE_ARCH='x64'; \
+    elif [ $ARCH = 'aarch64' ]; then \
+        NODE_ARCH='arm64'; \
+    else \
+        echo '不支持的架构: $ARCH'; \
+    fi && \
+    wget https://nodejs.org/dist/v18.20.3/node-v18.20.3-linux-${NODE_ARCH}.tar.xz && \
+    tar Jxvf /build/node-v18.20.3-linux-${NODE_ARCH}.tar.xz && \
+    rm -rf /usr/bin/node /usr/bin/npm && \
+    ln -s /build/node-v18.20.3-linux-${NODE_ARCH}/bin/node /usr/bin/node && \
+    ln -s /build/node-v18.20.3-linux-${NODE_ARCH}/bin/npm /usr/bin/npm
+
+COPY . .
+
+#配置golang编译环境并进行构建
+RUN go env -w GO111MODULE=on && \
+    make build-web && \
+    make
+
+RUN sh -c "/build/bin/bililive* --version"
+
+
+FROM alpine
+
+ARG tag
+
+ENV WORKDIR="/srv/bililive"
+ENV OUTPUT_DIR="/srv/bililive" \
+    CONF_DIR="/etc/bililive-go" \
+    PORT=8080
+
+ENV PUID=0 PGID=0 UMASK=022
+
+RUN mkdir -p $OUTPUT_DIR && \
+    mkdir -p $CONF_DIR && \
+    apk update && \
+    apk --no-cache add ffmpeg libc6-compat curl su-exec tzdata && \
+    cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+COPY --from=builder /build/bin/bililive* /usr/bin/bililive-go
+
+
+COPY config.docker.yml $CONF_DIR/config.yml
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+VOLUME $OUTPUT_DIR
+
+EXPOSE $PORT
+
+WORKDIR ${WORKDIR}
+ENTRYPOINT [ "sh" ]
+CMD [ "/entrypoint.sh" ]
