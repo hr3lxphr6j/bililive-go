@@ -14,6 +14,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/recorders"
+	"github.com/hr3lxphr6j/bililive-go/src/types"
 )
 
 var (
@@ -58,7 +59,7 @@ func (c collector) Collect(ch chan<- prometheus.Metric) {
 	wg := sync.WaitGroup{}
 	for id, l := range c.inst.Lives {
 		wg.Add(1)
-		go func(id live.ID, l live.Live) {
+		go func(id types.LiveID, l live.Live) {
 			defer wg.Done()
 			obj, err := c.inst.Cache.Get(l)
 			if err != nil {

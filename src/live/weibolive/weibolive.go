@@ -1,11 +1,11 @@
 package weibolive
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"regexp"
-	"fmt"
+	"strings"
 
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/hr3lxphr6j/requests"
@@ -28,9 +28,9 @@ func init() {
 
 type builder struct{}
 
-func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
+func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		BaseLive: internal.NewBaseLive(url, opt...),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 
@@ -87,7 +87,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 	}
 
 	streamurl := gjson.GetBytes(body, "data.live_origin_flv_url").String()
-    queryParams := l.Url.Query()
+	queryParams := l.Url.Query()
 	quality := queryParams.Get("q")
 	if quality != "" {
 		targetQuality := "_wb" + quality + "avc.flv"
@@ -99,7 +99,7 @@ func (l *Live) GetStreamUrls() (us []*url.URL, err error) {
 		}
 		fmt.Println("weibo stream quality fixed: " + streamurl)
 	}
-	
+
 	return utils.GenUrls(streamurl)
 }
 

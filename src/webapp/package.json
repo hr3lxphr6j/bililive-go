@@ -45,7 +45,7 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://127.0.0.1:8080/",
+  "proxy": "http://172.17.114.164:8080/",
   "devDependencies": {
     "@types/prismjs": "^1.26.0"
   }

@@ -2,6 +2,7 @@ package servers
 
 import (
 	"context"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 
@@ -105,7 +106,12 @@ func (s *Server) Start(ctx context.Context) error {
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Add(1)
 	go func() {
-		switch err := s.server.ListenAndServe(); err {
+		listener, err := net.Listen("tcp4", s.server.Addr)
+		if err != nil {
+			inst.Logger.Error(err)
+			return
+		}
+		switch err := s.server.Serve(listener); err {
 		case nil, http.ErrServerClosed:
 		default:
 			inst.Logger.Error(err)

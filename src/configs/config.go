@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/hr3lxphr6j/bililive-go/src/live"
+	"github.com/hr3lxphr6j/bililive-go/src/types"
 	"gopkg.in/yaml.v2"
 )
 
@@ -83,11 +83,11 @@ type Config struct {
 }
 
 type LiveRoom struct {
-	Url         string  `yaml:"url"`
-	IsListening bool    `yaml:"is_listening"`
-	LiveId      live.ID `yaml:"-"`
-	Quality     int     `yaml:"quality"`
-	AudioOnly   bool    `yaml:"audio_only"`
+	Url         string       `yaml:"url"`
+	IsListening bool         `yaml:"is_listening"`
+	LiveId      types.LiveID `yaml:"-"`
+	Quality     int          `yaml:"quality"`
+	AudioOnly   bool         `yaml:"audio_only"`
 }
 
 type liveRoomAlias LiveRoom
@@ -179,6 +179,7 @@ func (c *Config) Verify() error {
 	return nil
 }
 
+// todo remove this function
 func (c *Config) RefreshLiveRoomIndexCache() {
 	for index, room := range c.LiveRooms {
 		c.liveRoomIndexCache[room.Url] = index
