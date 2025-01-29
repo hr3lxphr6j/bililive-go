@@ -35,9 +35,9 @@ func init() {
 
 type builder struct{}
 
-func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
+func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		BaseLive:        internal.NewBaseLive(url, opt...),
+		BaseLive:        internal.NewBaseLive(url),
 		responseCookies: make(map[string]string),
 		isUsingLegacy:   false,
 	}, nil

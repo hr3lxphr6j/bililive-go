@@ -2,10 +2,11 @@ package kuaishou
 
 import (
 	"fmt"
-	"github.com/hr3lxphr6j/requests"
-	"github.com/tidwall/gjson"
 	"net/http"
 	"net/url"
+
+	"github.com/hr3lxphr6j/requests"
+	"github.com/tidwall/gjson"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/live/internal"
@@ -25,9 +26,9 @@ func init() {
 
 type builder struct{}
 
-func (b *builder) Build(url *url.URL, opt ...live.Option) (live.Live, error) {
+func (b *builder) Build(url *url.URL) (live.Live, error) {
 	return &Live{
-		BaseLive: internal.NewBaseLive(url, opt...),
+		BaseLive: internal.NewBaseLive(url),
 	}, nil
 }
 

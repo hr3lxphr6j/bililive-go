@@ -11,11 +11,12 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/events"
+	"github.com/hr3lxphr6j/bililive-go/src/types"
 )
 
 func NewManager(ctx context.Context) Manager {
 	rm := &manager{
-		savers: make(map[live.ID]Recorder),
+		savers: make(map[types.LiveID]Recorder),
 		cfg:    instance.GetInstance(ctx).Config,
 	}
 	instance.GetInstance(ctx).RecorderManager = rm
@@ -26,10 +27,10 @@ func NewManager(ctx context.Context) Manager {
 type Manager interface {
 	interfaces.Module
 	AddRecorder(ctx context.Context, live live.Live) error
-	RemoveRecorder(ctx context.Context, liveId live.ID) error
+	RemoveRecorder(ctx context.Context, liveId types.LiveID) error
 	RestartRecorder(ctx context.Context, liveId live.Live) error
-	GetRecorder(ctx context.Context, liveId live.ID) (Recorder, error)
-	HasRecorder(ctx context.Context, liveId live.ID) bool
+	GetRecorder(ctx context.Context, liveId types.LiveID) (Recorder, error)
+	HasRecorder(ctx context.Context, liveId types.LiveID) bool
 }
 
 // for test
@@ -39,7 +40,7 @@ var (
 
 type manager struct {
 	lock   sync.RWMutex
-	savers map[live.ID]Recorder
+	savers map[types.LiveID]Recorder
 	cfg    *configs.Config
 }
 
@@ -138,7 +139,7 @@ func (m *manager) RestartRecorder(ctx context.Context, live live.Live) error {
 	return nil
 }
 
-func (m *manager) RemoveRecorder(ctx context.Context, liveId live.ID) error {
+func (m *manager) RemoveRecorder(ctx context.Context, liveId types.LiveID) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	recorder, ok := m.savers[liveId]
@@ -150,7 +151,7 @@ func (m *manager) RemoveRecorder(ctx context.Context, liveId live.ID) error {
 	return nil
 }
 
-func (m *manager) GetRecorder(ctx context.Context, liveId live.ID) (Recorder, error) {
+func (m *manager) GetRecorder(ctx context.Context, liveId types.LiveID) (Recorder, error) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	r, ok := m.savers[liveId]
@@ -160,7 +161,7 @@ func (m *manager) GetRecorder(ctx context.Context, liveId live.ID) (Recorder, er
 	return r, nil
 }
 
-func (m *manager) HasRecorder(ctx context.Context, liveId live.ID) bool {
+func (m *manager) HasRecorder(ctx context.Context, liveId types.LiveID) bool {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	_, ok := m.savers[liveId]
