@@ -120,7 +120,7 @@ class EditCookieDialog extends React.Component<Props> {
         return (
             <div>
                 <Modal
-                    title={"修改"+{Platform_cn_name}+"("+Host+")Cookie"}
+                    title={"修改"+Platform_cn_name+"("+Host+")Cookie"}
                     visible={visible}
                     onOk={this.handleOk}
                     confirmLoading={confirmLoading}
