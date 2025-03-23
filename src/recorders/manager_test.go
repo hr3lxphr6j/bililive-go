@@ -11,6 +11,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	livemock "github.com/hr3lxphr6j/bililive-go/src/live/mock"
+	"github.com/hr3lxphr6j/bililive-go/src/types"
 )
 
 func TestManagerAddAndRemoveRecorder(t *testing.T) {
@@ -30,7 +31,7 @@ func TestManagerAddAndRemoveRecorder(t *testing.T) {
 	}
 	defer func() { newRecorder = backup }()
 	l := livemock.NewMockLive(ctrl)
-	l.EXPECT().GetLiveId().Return(live.ID("test")).AnyTimes()
+	l.EXPECT().GetLiveId().Return(types.LiveID("test")).AnyTimes()
 	assert.NoError(t, m.AddRecorder(context.Background(), l))
 	assert.Equal(t, ErrRecorderExist, m.AddRecorder(context.Background(), l))
 	ln, err := m.GetRecorder(context.Background(), "test")

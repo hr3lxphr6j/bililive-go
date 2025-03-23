@@ -103,7 +103,7 @@ func main() {
 			continue
 		}
 		if _, ok := inst.Lives[l.GetLiveId()]; ok {
-			logger.Errorf("%s is exist!", room)
+			logger.Errorf("%v is exist!", room)
 			continue
 		}
 		inst.Lives[l.GetLiveId()] = l
