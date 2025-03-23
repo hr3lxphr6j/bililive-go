@@ -3,6 +3,7 @@ package huya
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
@@ -57,11 +58,27 @@ func GetStreamInfos_ForXingXiu(l *Live) (infos []*live.StreamUrlInfo, err error)
 	if err != nil {
 		return nil, err
 	}
-	sFlvUrl := data.Get("data.stream.baseSteamInfoList.0.sFlvUrl").String()
-	sStreamName := data.Get("data.stream.baseSteamInfoList.0.sStreamName").String()
-	sFlvUrlSuffix := data.Get("data.stream.baseSteamInfoList.0.sFlvUrlSuffix").String()
-	sFlvAntiCode := data.Get("data.stream.baseSteamInfoList.0.sFlvAntiCode").String()
+
+	streamInfoList := data.Get("data.stream.baseSteamInfoList").Array()
+	streamInfoObj := streamInfoList[0]
+	for _, info := range streamInfoList {
+		// 优先使用 TX cdn
+		if info.Get("sCdnType").String() == "TX" {
+			streamInfoObj = info
+			break
+		}
+	}
+	sFlvUrl := streamInfoObj.Get("sFlvUrl").String()
+	sStreamName := streamInfoObj.Get("sStreamName").String()
+	sFlvUrlSuffix := streamInfoObj.Get("sFlvUrlSuffix").String()
+	sFlvAntiCode := streamInfoObj.Get("sFlvAntiCode").String()
 	streamUrl := fmt.Sprintf("%s/%s.%s?%s", sFlvUrl, sStreamName, sFlvUrlSuffix, sFlvAntiCode)
+
+	// 如果选择的是 TX，执行额外的字符串替换
+	if streamInfoObj.Get("sCdnType").String() == "TX" {
+		streamUrl = strings.Replace(streamUrl, "&ctype=tars_mp", "&ctype=huya_webh5", 1)
+		streamUrl = strings.Replace(streamUrl, "&fs=bhct", "&fs=bgct", 1)
+	}
 
 	res, err := utils.GenUrls(streamUrl)
 	if err != nil {
