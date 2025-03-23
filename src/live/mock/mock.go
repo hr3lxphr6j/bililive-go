@@ -5,12 +5,15 @@
 package mock
 
 import (
+	context "context"
 	url "net/url"
 	reflect "reflect"
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
+	configs "github.com/hr3lxphr6j/bililive-go/src/configs"
 	live "github.com/hr3lxphr6j/bililive-go/src/live"
+	types "github.com/hr3lxphr6j/bililive-go/src/types"
 )
 
 // MockLive is a mock of Live interface.
@@ -66,10 +69,10 @@ func (mr *MockLiveMockRecorder) GetLastStartTime() *gomock.Call {
 }
 
 // GetLiveId mocks base method.
-func (m *MockLive) GetLiveId() live.ID {
+func (m *MockLive) GetLiveId() types.LiveID {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLiveId")
-	ret0, _ := ret[0].(live.ID)
+	ret0, _ := ret[0].(types.LiveID)
 	return ret0
 }
 
@@ -159,4 +162,18 @@ func (m *MockLive) SetLiveIdByString(arg0 string) {
 func (mr *MockLiveMockRecorder) SetLiveIdByString(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLiveIdByString", reflect.TypeOf((*MockLive)(nil).SetLiveIdByString), arg0)
+}
+
+// UpdateLiveOptionsbyConfig mocks base method.
+func (m *MockLive) UpdateLiveOptionsbyConfig(arg0 context.Context, arg1 *configs.LiveRoom) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateLiveOptionsbyConfig", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateLiveOptionsbyConfig indicates an expected call of UpdateLiveOptionsbyConfig.
+func (mr *MockLiveMockRecorder) UpdateLiveOptionsbyConfig(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLiveOptionsbyConfig", reflect.TypeOf((*MockLive)(nil).UpdateLiveOptionsbyConfig), arg0, arg1)
 }

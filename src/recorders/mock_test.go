@@ -11,6 +11,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	live "github.com/hr3lxphr6j/bililive-go/src/live"
+	types "github.com/hr3lxphr6j/bililive-go/src/types"
 )
 
 // MockRecorder is a mock of Recorder interface.
@@ -141,7 +142,7 @@ func (mr *MockManagerMockRecorder) Close(arg0 interface{}) *gomock.Call {
 }
 
 // GetRecorder mocks base method.
-func (m *MockManager) GetRecorder(arg0 context.Context, arg1 live.ID) (Recorder, error) {
+func (m *MockManager) GetRecorder(arg0 context.Context, arg1 types.LiveID) (Recorder, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRecorder", arg0, arg1)
 	ret0, _ := ret[0].(Recorder)
@@ -156,7 +157,7 @@ func (mr *MockManagerMockRecorder) GetRecorder(arg0, arg1 interface{}) *gomock.C
 }
 
 // HasRecorder mocks base method.
-func (m *MockManager) HasRecorder(arg0 context.Context, arg1 live.ID) bool {
+func (m *MockManager) HasRecorder(arg0 context.Context, arg1 types.LiveID) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HasRecorder", arg0, arg1)
 	ret0, _ := ret[0].(bool)
@@ -170,7 +171,7 @@ func (mr *MockManagerMockRecorder) HasRecorder(arg0, arg1 interface{}) *gomock.C
 }
 
 // RemoveRecorder mocks base method.
-func (m *MockManager) RemoveRecorder(arg0 context.Context, arg1 live.ID) error {
+func (m *MockManager) RemoveRecorder(arg0 context.Context, arg1 types.LiveID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveRecorder", arg0, arg1)
 	ret0, _ := ret[0].(error)
