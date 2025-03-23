@@ -1,42 +1,61 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"time"
 
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
+	"github.com/hr3lxphr6j/bililive-go/src/instance"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
+	"github.com/hr3lxphr6j/bililive-go/src/types"
 )
 
 type BaseLive struct {
 	Url           *url.URL
 	LastStartTime time.Time
-	LiveId        live.ID
+	LiveId        types.LiveID
 	Options       *live.Options
 }
 
-func genLiveId(url *url.URL) live.ID {
+func genLiveId(url *url.URL) types.LiveID {
 	return genLiveIdByString(fmt.Sprintf("%s%s", url.Host, url.Path))
 }
 
-func genLiveIdByString(value string) live.ID {
-	return live.ID(utils.GetMd5String([]byte(value)))
+func genLiveIdByString(value string) types.LiveID {
+	return types.LiveID(utils.GetMd5String([]byte(value)))
 }
 
-func NewBaseLive(url *url.URL, opt ...live.Option) BaseLive {
+func NewBaseLive(url *url.URL) BaseLive {
 	return BaseLive{
-		Url:     url,
-		LiveId:  genLiveId(url),
-		Options: live.MustNewOptions(opt...),
+		Url:    url,
+		LiveId: genLiveId(url),
 	}
+}
+
+func (a *BaseLive) UpdateLiveOptionsbyConfig(ctx context.Context, room *configs.LiveRoom) (err error) {
+	inst := instance.GetInstance(ctx)
+	url, err := url.Parse(room.Url)
+	if err != nil {
+		return
+	}
+	opts := make([]live.Option, 0)
+	if v, ok := inst.Config.Cookies[url.Host]; ok {
+		opts = append(opts, live.WithKVStringCookies(url, v))
+	}
+	opts = append(opts, live.WithQuality(room.Quality))
+	opts = append(opts, live.WithAudioOnly(room.AudioOnly))
+	a.Options = live.MustNewOptions(opts...)
+	return
 }
 
 func (a *BaseLive) SetLiveIdByString(value string) {
 	a.LiveId = genLiveIdByString(value)
 }
 
-func (a *BaseLive) GetLiveId() live.ID {
+func (a *BaseLive) GetLiveId() types.LiveID {
 	return a.LiveId
 }
 

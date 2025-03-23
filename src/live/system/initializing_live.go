@@ -13,9 +13,9 @@ func init() {
 
 type builder struct{}
 
-func (b *builder) Build(live live.Live, url *url.URL, opt ...live.Option) (live.Live, error) {
+func (b *builder) Build(live live.Live, url *url.URL) (live.Live, error) {
 	return &InitializingLive{
-		BaseLive:     internal.NewBaseLive(url, opt...),
+		BaseLive:     internal.NewBaseLive(url),
 		OriginalLive: live,
 	}, nil
 }

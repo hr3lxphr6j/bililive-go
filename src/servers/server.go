@@ -2,6 +2,7 @@ package servers
 
 import (
 	"context"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 
@@ -50,6 +51,8 @@ func initMux(ctx context.Context) *mux.Router {
 	apiRoute.HandleFunc("/lives/{id}", removeLive).Methods("DELETE")
 	apiRoute.HandleFunc("/lives/{id}/{action}", parseLiveAction).Methods("GET")
 	apiRoute.HandleFunc("/file/{path:.*}", getFileInfo).Methods("GET")
+	apiRoute.HandleFunc("/cookies", getLiveHostCookie).Methods("GET")
+	apiRoute.HandleFunc("/cookies", putLiveHostCookie).Methods("PUT")
 	apiRoute.Handle("/metrics", promhttp.Handler())
 
 	m.PathPrefix("/files/").Handler(
@@ -79,12 +82,12 @@ func initMux(ctx context.Context) *mux.Router {
 }
 
 func CORSMiddleware(h http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Access-Control-Allow-Origin", "*")
-        w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-        w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-        h.ServeHTTP(w, r)
-    })
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		h.ServeHTTP(w, r)
+	})
 }
 
 func NewServer(ctx context.Context) *Server {
@@ -103,7 +106,12 @@ func (s *Server) Start(ctx context.Context) error {
 	inst := instance.GetInstance(ctx)
 	inst.WaitGroup.Add(1)
 	go func() {
-		switch err := s.server.ListenAndServe(); err {
+		listener, err := net.Listen("tcp4", s.server.Addr)
+		if err != nil {
+			inst.Logger.Error(err)
+			return
+		}
+		switch err := s.server.Serve(listener); err {
 		case nil, http.ErrServerClosed:
 		default:
 			inst.Logger.Error(err)

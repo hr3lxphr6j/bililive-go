@@ -2,6 +2,7 @@
 package live
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/cookiejar"
@@ -10,6 +11,8 @@ import (
 	"time"
 
 	"github.com/bluele/gcache"
+	"github.com/hr3lxphr6j/bililive-go/src/configs"
+	"github.com/hr3lxphr6j/bililive-go/src/types"
 )
 
 var (
@@ -27,11 +30,11 @@ func getBuilder(domain string) (Builder, bool) {
 }
 
 type Builder interface {
-	Build(*url.URL, ...Option) (Live, error)
+	Build(*url.URL) (Live, error)
 }
 
 type InitializingLiveBuilder interface {
-	Build(Live, *url.URL, ...Option) (Live, error)
+	Build(Live, *url.URL) (Live, error)
 }
 
 type InitializingFinishedParam struct {
@@ -97,8 +100,6 @@ func WithAudioOnly(audioOnly bool) Option {
 	}
 }
 
-type ID string
-
 type StreamUrlInfo struct {
 	Url                  *url.URL
 	Name                 string
@@ -110,7 +111,7 @@ type StreamUrlInfo struct {
 
 type Live interface {
 	SetLiveIdByString(string)
-	GetLiveId() ID
+	GetLiveId() types.LiveID
 	GetRawUrl() string
 	GetInfo() (*Info, error)
 	// Deprecated: GetStreamUrls is deprecated, using GetStreamInfos instead
@@ -119,6 +120,7 @@ type Live interface {
 	GetPlatformCNName() string
 	GetLastStartTime() time.Time
 	SetLastStartTime(time.Time)
+	UpdateLiveOptionsbyConfig(context.Context, *configs.LiveRoom) error
 }
 
 type WrappedLive struct {
@@ -147,15 +149,20 @@ func (w *WrappedLive) GetInfo() (*Info, error) {
 	return i, nil
 }
 
-func New(url *url.URL, cache gcache.Cache, opts ...Option) (live Live, err error) {
+func New(ctx context.Context, room *configs.LiveRoom, cache gcache.Cache) (live Live, err error) {
+	url, err := url.Parse(room.Url)
+	if err != nil {
+		return nil, err
+	}
 	builder, ok := getBuilder(url.Host)
 	if !ok {
 		return nil, errors.New("not support this url")
 	}
-	live, err = builder.Build(url, opts...)
+	live, err = builder.Build(url)
 	if err != nil {
 		return
 	}
+	live.UpdateLiveOptionsbyConfig(ctx, room)
 	live = newWrappedLive(live, cache)
 	for i := 0; i < 3; i++ {
 		var info *Info
@@ -169,7 +176,11 @@ func New(url *url.URL, cache gcache.Cache, opts ...Option) (live Live, err error
 	}
 
 	// when room initializaion is failed
-	live, err = InitializingLiveBuilderInstance.Build(live, url, opts...)
+	live, err = InitializingLiveBuilderInstance.Build(live, url)
+	if err != nil {
+		return nil, err
+	}
+	live.UpdateLiveOptionsbyConfig(ctx, room)
 	live = newWrappedLive(live, cache)
 	live.GetInfo() // dummy call to initialize cache inside wrappedLive
 	return

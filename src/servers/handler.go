@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -23,6 +23,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/listeners"
 	"github.com/hr3lxphr6j/bililive-go/src/live"
 	"github.com/hr3lxphr6j/bililive-go/src/recorders"
+	"github.com/hr3lxphr6j/bililive-go/src/types"
 )
 
 // FIXME: remove this
@@ -48,7 +49,7 @@ func getAllLives(writer http.ResponseWriter, r *http.Request) {
 func getLive(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(r.Context())
 	vars := mux.Vars(r)
-	live, ok := inst.Lives[live.ID(vars["id"])]
+	live, ok := inst.Lives[types.LiveID(vars["id"])]
 	if !ok {
 		writeJsonWithStatusCode(writer, http.StatusNotFound, commonResp{
 			ErrNo:  http.StatusNotFound,
@@ -63,7 +64,7 @@ func parseLiveAction(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(r.Context())
 	vars := mux.Vars(r)
 	resp := commonResp{}
-	live, ok := inst.Lives[live.ID(vars["id"])]
+	live, ok := inst.Lives[types.LiveID(vars["id"])]
 	if !ok {
 		resp.ErrNo = http.StatusNotFound
 		resp.ErrMsg = fmt.Sprintf("live id: %s can not find", vars["id"])
@@ -110,7 +111,7 @@ func startListening(ctx context.Context, live live.Live) error {
 	return inst.ListenerManager.(listeners.Manager).AddListener(ctx, live)
 }
 
-func stopListening(ctx context.Context, liveId live.ID) error {
+func stopListening(ctx context.Context, liveId types.LiveID) error {
 	inst := instance.GetInstance(ctx)
 	return inst.ListenerManager.(listeners.Manager).RemoveListener(ctx, liveId)
 }
@@ -169,11 +170,12 @@ func addLiveImpl(ctx context.Context, urlStr string, isListen bool) (info *live.
 		return nil, errors.New("can't parse url: " + urlStr)
 	}
 	inst := instance.GetInstance(ctx)
-	opts := make([]live.Option, 0)
-	if v, ok := inst.Config.Cookies[u.Host]; ok {
-		opts = append(opts, live.WithKVStringCookies(u, v))
+	liveRoom := configs.LiveRoom{
+		Url:         u.String(),
+		IsListening: isListen,
 	}
-	newLive, err := live.New(u, inst.Cache, opts...)
+	newLive, err := live.New(ctx, &liveRoom, inst.Cache)
+	liveRoom.LiveId = newLive.GetLiveId()
 	if err != nil {
 		return nil, err
 	}
@@ -184,11 +186,6 @@ func addLiveImpl(ctx context.Context, urlStr string, isListen bool) (info *live.
 		}
 		info = parseInfo(ctx, newLive)
 
-		liveRoom := configs.LiveRoom{
-			Url:         u.String(),
-			IsListening: isListen,
-			LiveId:      newLive.GetLiveId(),
-		}
 		inst.Config.LiveRooms = append(inst.Config.LiveRooms, liveRoom)
 	}
 	return info, nil
@@ -197,7 +194,7 @@ func addLiveImpl(ctx context.Context, urlStr string, isListen bool) (info *live.
 func removeLive(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(r.Context())
 	vars := mux.Vars(r)
-	live, ok := inst.Lives[live.ID(vars["id"])]
+	live, ok := inst.Lives[types.LiveID(vars["id"])]
 	if !ok {
 		writeJsonWithStatusCode(writer, http.StatusNotFound, commonResp{
 			ErrNo:  http.StatusNotFound,
@@ -276,14 +273,6 @@ func putRawConfig(writer http.ResponseWriter, r *http.Request) {
 	inst := instance.GetInstance(ctx)
 	var jsonBody map[string]interface{}
 	json.Unmarshal(b, &jsonBody)
-	configPath, err := inst.Config.GetFilePath()
-	if err != nil {
-		writeJsonWithStatusCode(writer, http.StatusInternalServerError, commonResp{
-			ErrNo:  http.StatusInternalServerError,
-			ErrMsg: err.Error(),
-		})
-		return
-	}
 	newConfig, err := configs.NewConfigWithBytes([]byte(jsonBody["config"].(string)))
 	if err != nil {
 		writeJsonWithStatusCode(writer, http.StatusInternalServerError, commonResp{
@@ -293,39 +282,40 @@ func putRawConfig(writer http.ResponseWriter, r *http.Request) {
 		return
 	}
 	oldConfig := inst.Config
+	oldConfig.RefreshLiveRoomIndexCache()
+	inst.Config = newConfig
 	newConfig.File = oldConfig.File
-	if err := applyLiveRoomsByConfig(ctx, newConfig.LiveRooms); err != nil {
+	if err := applyLiveRoomsByConfig(ctx, oldConfig); err != nil {
 		writeJSON(writer, map[string]interface{}{
 			"error": err.Error(),
 		})
 		return
 	}
-	newConfig.LiveRooms = oldConfig.LiveRooms
-	ioutil.WriteFile(configPath, []byte(jsonBody["config"].(string)), os.ModePerm)
-	inst.Config = newConfig
+	newConfig.Marshal()
 	newConfig.RefreshLiveRoomIndexCache()
 	writeJSON(writer, commonResp{
 		Data: "OK",
 	})
 }
 
-func applyLiveRoomsByConfig(ctx context.Context, newLiveRooms []configs.LiveRoom) error {
+func applyLiveRoomsByConfig(ctx context.Context, oldConfig *configs.Config) error {
 	inst := instance.GetInstance(ctx)
-	currentConfig := inst.Config
-	currentConfig.RefreshLiveRoomIndexCache()
+	newConfig := inst.Config
+	newLiveRooms := newConfig.LiveRooms
 	newUrlMap := make(map[string]*configs.LiveRoom)
 	for _, newRoom := range newLiveRooms {
 		newUrlMap[newRoom.Url] = &newRoom
-		if room, err := currentConfig.GetLiveRoomByUrl(newRoom.Url); err != nil {
+		if room, err := oldConfig.GetLiveRoomByUrl(newRoom.Url); err != nil {
 			// add live
 			if _, err := addLiveImpl(ctx, newRoom.Url, newRoom.IsListening); err != nil {
 				return err
 			}
 		} else {
-			live, ok := inst.Lives[live.ID(room.LiveId)]
+			live, ok := inst.Lives[types.LiveID(room.LiveId)]
 			if !ok {
 				return errors.New(fmt.Sprintf("live id: %s can not find", room.LiveId))
 			}
+			live.UpdateLiveOptionsbyConfig(ctx, &newRoom)
 			if room.IsListening != newRoom.IsListening {
 				if newRoom.IsListening {
 					// start listening
@@ -338,15 +328,15 @@ func applyLiveRoomsByConfig(ctx context.Context, newLiveRooms []configs.LiveRoom
 						return err
 					}
 				}
-				room.IsListening = newRoom.IsListening
 			}
+			newRoom.LiveId = room.LiveId
 		}
 	}
-	loopRooms := currentConfig.LiveRooms
+	loopRooms := oldConfig.LiveRooms
 	for _, room := range loopRooms {
 		if _, ok := newUrlMap[room.Url]; !ok {
 			// remove live
-			live, ok := inst.Lives[live.ID(room.LiveId)]
+			live, ok := inst.Lives[types.LiveID(room.LiveId)]
 			if !ok {
 				return errors.New(fmt.Sprintf("live id: %s can not find", room.LiveId))
 			}
@@ -419,4 +409,84 @@ func getFileInfo(writer http.ResponseWriter, r *http.Request) {
 	json.Files = jsonFiles
 
 	writeJSON(writer, json)
+}
+
+func getLiveHostCookie(writer http.ResponseWriter, r *http.Request) {
+	inst := instance.GetInstance(r.Context())
+	hostCookieMap := make(map[string]*live.InfoCookie)
+	keys := make([]string, 0)
+	for _, v := range inst.Lives {
+		urltmp, _ := url.Parse(v.GetRawUrl())
+		if _, ok := hostCookieMap[urltmp.Host]; ok == true {
+			continue
+		}
+		v1, _ := v.GetInfo()
+		host := urltmp.Host
+		if cookie, ok := inst.Config.Cookies[host]; ok == true {
+			tmp := &live.InfoCookie{Platform_cn_name: v1.Live.GetPlatformCNName(), Host: host, Cookie: cookie}
+			hostCookieMap[host] = tmp
+		} else {
+			tmp := &live.InfoCookie{Platform_cn_name: v1.Live.GetPlatformCNName(), Host: host}
+			hostCookieMap[host] = tmp
+		}
+		keys = append(keys, host)
+	}
+	sort.Strings(keys)
+	result := make([]*live.InfoCookie, 0)
+	for _, v := range keys {
+		result = append(result, hostCookieMap[v])
+	}
+	writeJSON(writer, result)
+}
+
+func putLiveHostCookie(writer http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		writeJsonWithStatusCode(writer, http.StatusBadRequest, commonResp{
+			ErrNo:  http.StatusBadRequest,
+			ErrMsg: err.Error(),
+		})
+		return
+	}
+	ctx := r.Context()
+	inst := instance.GetInstance(ctx)
+	data := gjson.ParseBytes(b)
+
+	host := data.Get("Host").Str
+	cookie := data.Get("Cookie").Str
+	if cookie == "" {
+
+	} else {
+		reg, _ := regexp.Compile(".*=.*")
+		if !reg.MatchString(cookie) {
+			writeJsonWithStatusCode(writer, http.StatusBadRequest, commonResp{
+				ErrNo:  http.StatusBadRequest,
+				ErrMsg: "cookie格式错误",
+			})
+			return
+		}
+	}
+	if inst.Config.Cookies == nil {
+		inst.Config.Cookies = make(map[string]string)
+	}
+	inst.Config.Cookies[host] = cookie
+	for _, v := range inst.Config.LiveRooms {
+		tmpurl, _ := url.Parse(v.Url)
+		if tmpurl.Host != host {
+			continue
+		}
+		live := inst.Lives[v.LiveId]
+		if live == nil {
+			writeJsonWithStatusCode(writer, http.StatusBadRequest, commonResp{
+				ErrNo:  http.StatusBadRequest,
+				ErrMsg: "can't find live by url: " + v.Url,
+			})
+			return
+		}
+		live.UpdateLiveOptionsbyConfig(ctx, &v)
+	}
+	inst.Config.Marshal()
+	writeJSON(writer, commonResp{
+		Data: "OK",
+	})
 }

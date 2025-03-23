@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -25,6 +24,7 @@ import (
 	"github.com/hr3lxphr6j/bililive-go/src/pkg/utils"
 	"github.com/hr3lxphr6j/bililive-go/src/recorders"
 	"github.com/hr3lxphr6j/bililive-go/src/servers"
+	"github.com/hr3lxphr6j/bililive-go/src/types"
 )
 
 func getConfig() (*configs.Config, error) {
@@ -93,22 +93,11 @@ func main() {
 
 	events.NewDispatcher(ctx)
 
-	inst.Lives = make(map[live.ID]live.Live)
+	inst.Lives = make(map[types.LiveID]live.Live)
 	for index, _ := range inst.Config.LiveRooms {
 		room := &inst.Config.LiveRooms[index]
-		u, err := url.Parse(room.Url)
-		if err != nil {
-			logger.WithField("url", room).Error(err)
-			continue
-		}
-		opts := make([]live.Option, 0)
-		if v, ok := inst.Config.Cookies[u.Host]; ok {
-			opts = append(opts, live.WithKVStringCookies(u, v))
-		}
-		opts = append(opts, live.WithQuality(room.Quality))
-		opts = append(opts, live.WithAudioOnly(room.AudioOnly))
 
-		l, err := live.New(u, inst.Cache, opts...)
+		l, err := live.New(ctx, room, inst.Cache)
 		if err != nil {
 			logger.WithField("url", room).Error(err.Error())
 			continue
