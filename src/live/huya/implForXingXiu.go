@@ -60,6 +60,9 @@ func GetStreamInfos_ForXingXiu(l *Live) (infos []*live.StreamUrlInfo, err error)
 	}
 
 	streamInfoList := data.Get("data.stream.baseSteamInfoList").Array()
+	if len(streamInfoList) == 0 {
+		return nil, fmt.Errorf("streamInfoList 为空")
+	}
 	streamInfoObj := streamInfoList[0]
 	for _, info := range streamInfoList {
 		// 优先使用 TX cdn
